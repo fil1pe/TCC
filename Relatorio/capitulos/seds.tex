@@ -46,7 +46,7 @@ Um autômato finito determinístico (\acs{AFD}), ou máquina de estados finitos 
     \end{tikzpicture}
 }{fig:afd_componentes}
 
-Durante a computação de uma cadeia de entrada, o AFD lê o símbolo da célula atual da fita, apontada pela cabeça de leitura, e avança o cabeçote em uma posição para a direita, caso a próxima célula não esteja vazia. Inicialmente, ao receber uma entrada, a cabeça de leitura estará posicionada na extremidade esquerda da fita e, por conseguinte, da cadeia de símbolos. Se a computação de um símbolo lido não acarretar um estado definido, o funcionamento será interrompido.
+Durante a computação de uma cadeia de entrada, o AFD lê o símbolo da célula atual da fita, apontada pela cabeça de leitura, e avança o cabeçote em uma posição para a direita. Inicialmente, ao receber uma entrada, a cabeça de leitura estará posicionada na extremidade esquerda da fita e, por conseguinte, da cadeia de símbolos. Se a computação de um símbolo lido não acarretar um estado definido ou a cabeça de leitura estiver posicionada sobre uma célula vazia, o funcionamento do autômato será interrompido.
 
 \hl{Na Ciência da Computação, os autômatos finitos determinísticos ....}
 
@@ -58,7 +58,7 @@ A definição de \acs{AFD} que segue foi inspirada e adptada de \citeonline{hopc
 
 Um AFD $G$ é uma quíntupla $$\langle Q, E, \delta, q_0, Q_m \rangle$$ em que \begin{itemize}[label={}]
   \item $Q$ é o conjunto finito de estados
-  \item $E$ é o conjunto \hl{finito} de eventos % verificar se esse é finito, em hopcroft
+  \item $E$ é o conjunto finito de eventos
   \item $\delta:Q \times E \nrightarrow Q$ é a função de transição
   \item $q_0 $ é o estado inicial
   \item $Q_m \subseteq Q$ é o conjunto de estados marcados
@@ -75,7 +75,7 @@ q & se$ $w=\varepsilon \\
 
 \subsection{Diagrama de estados}
 
-\hl{EXPLICAR}
+Para auxiliar na visualização das transições entre os estados dos autômatos, os AFDs são comumente representados por diagramas de estados. Nessa representação, os estados são nós de uma estrutura semelhante a de grafos, e as transições, arestas que interligam dois nós, conforme a Figura \ref{fig:afd_diagrama}. Representam-se as transições cuja origem e destino são o mesmo estado por \textit{loops}: arestas que partem de um nó e terminam no mesmo.
 
 \figuradoautor{Representação da transição de estados em um diagrama}{
     \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
@@ -86,13 +86,16 @@ q & se$ $w=\varepsilon \\
     \end{tikzpicture}
 }{fig:afd_diagrama}
 
-\hl{EXPLICAR ESTADO INICIAL}
+Nesta classe de diagramas, os estados inicial e final podem ser destacados de alguma forma. Para este trabalho, uma seta sem origem aponta sempre para o nó do estado inicial, e uma circunferência dupla enfatiza o de um estado final, como demonstra a Figura \ref{fig:afd_estado_inicial}.
 
-\figuradoautor{Representação do estado inicial em um diagrama}{
+\figuradoautor{Representação de estados inicial (à esquerda) e final (à direita) em um diagrama}{
     \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
-        \node[state,initial] (q0) {estado inicial};
+        \node[state,initial,minimum size=3cm] (q0) {estado inicial};
+        \node[state,accepting,minimum size=3cm] at (4,0) (qf) {estado final};
     \end{tikzpicture}
 }{fig:afd_estado_inicial}
+
+Pode-se citar outros aspectos desta representação de autômatos: a possibilidade de adicionar rótulos aos nós, a opção de omitir os nomes dos estados nos nós quando não forem necessários e a aglutinação de transições que partem e terminam no mesmo estado em uma mesma aresta, com os símbolos neste trabalho separados por vírgula.
 
 \subsection{Linguagem gerada}
 

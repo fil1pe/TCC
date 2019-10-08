@@ -2,7 +2,7 @@
 	12pt,				% tamanho da fonte
 	openright,			% capítulos começam em pág ímpar (insere página vazia caso preciso)
 	oneside,			
-	a4paper,			% tamanho do papel. 
+	a4paper,			% tamanho do papel
 	chapter=TITLE,		% títulos de capítulos convertidos em letras maiúsculas
 	section=TITLE,		% títulos de seções convertidos em letras maiúsculas
 	%subsection=TITLE,	% títulos de subseções convertidos em letras maiúsculas
@@ -14,11 +14,15 @@
 
 \usepackage{udesc}
 
+\usepackage{float} % para forçar a posição das figuras
+
+% Para fazer marcações:
 \usepackage{color}
 \usepackage{ulem}
 \newcommand\hl{\bgroup\markoverwith
   {\textcolor{yellow}{\rule[-.5ex]{2pt}{2.5ex}}}\ULon}
 
+% Para desenhar (autômatos, e.g.):
 \usepackage{tikz}
 \usetikzlibrary{automata, positioning, arrows}
 \tikzset{
@@ -36,23 +40,25 @@
 
 \usepackage{amsmath}
 
-%Pacote para determinar o número da última página na Ficha Catalográfica
+% Para determinar o número da última página na Ficha Catalográfica:
 \usepackage{lastpage}
 
-
+% Para agilizar a inserção de figuras:
+\newcommand{\figura}[4]{
+	\begin{figure}[H]
+    	\caption{#1}
+    	\begin{center}
+        	#2
+    	\end{center}
+    	\legend{#4}
+    	\label{#3}
+    \end{figure}
+}
 \newcommand{\figuradoautor}[3]{
-    \begin{figure}[h]
-    \caption{#1}
-    \begin{center}
-        #2
-    \end{center}
-    \legend{Fonte: Elaborada pelo autor, 2019.}
-    \label{#3}
-\end{figure}
+    \figura{#1}{#2}{#3}{Fonte: Elaborada pelo autor, 2019.}
 }
 
-
-% Dados da capa
+% Dados da capa:
 \titulo{Especificação e prova de propriedade acerca de autômatos finitos determinísticos assistidas por Coq}
 \autor{Filipe Ramos}
 \local{Joinville - SC}
@@ -62,34 +68,24 @@
 \data{2019}
 \fulldata{xx de xxxx de 2019}
 
-
-
-% Folha de rosto
+% Dados da folha de rosto:
 \inforosto{Trabalho de Conclusão de Curso apresentado ao curso de Bacharelado em Ciência da Computação como requisito parcial para a obtenção do título de Bacharel em Ciência da Computação.}
 \orientador{Karina Girardi Roggia}
 \orientadorRotulo{Dra. }
 \coorientador{Rafael Castro Gonçalves Silva}
 \coorientadorRotulo{Me. }
 
-
-
 \begin{document}
 
+\include{pretextual} % texto dos elementos pré-textuais
 
-
-% Elementos pré-textuais
-\include{pretextual}
-
-
-
-% Lista de abreviaturas e siglas
+% Lista de abreviaturas e siglas:
 \begin{siglas}
     \acro{AFD}{Autômato finito determinístico}
     \acro{SED}{Sistema a eventos discretos}
 \end{siglas}
 
-
-
+% Lista de símbolos:
 %\begin{simbolos}
 %	\SingleSpacing
 %	\item[\%] Porcentagem
@@ -97,61 +93,47 @@
 %	\item[$O(n)$] Ordem de um algoritmo
 %\end{simbolos}
 
-
-
-% Sumário
+% Sumário:
 \pdfbookmark[0]{\contentsname}{toc}
 \tableofcontents*
 \cleardoublepage
 
-
-
 \textual
 
-%Retira o nome do capítulo do header
+% Retira o nome do capítulo do header:
 \pagestyle{eudesc}
 \aliaspagestyle{chapter}{eudesc}
 
+
+% Texto principal do TCC:
 \include{capitulos/introducao}
 \include{capitulos/assistentesdeprovas}
 \include{capitulos/seds}
 \include{capitulos/sistemasdeenfileiramento}
 
-% Finaliza o bookmark do PDF
+% Finaliza o bookmark do PDF:
 \bookmarksetup{startatroot}% 
-
-
 
 \postextual
 
-
-
-% Referências bibliográficas
+% Referências bibliográficas:
 \bibliography{referencias}
 
-
-
-% Glossário
+% Glossário:
 %
 % Consulte o manual da classe abntex2 para orientações sobre o glossário.
 %
 %\glossary
 
-
-
-% Apêndices
+% Apêndices:
 %\begin{apendicesenv}
 %	\include{Partes/apeA}
 %\end{apendicesenv}
 
-
-
-% Anexos
+% Anexos:
 %\begin{anexosenv}
 %	\include{Partes/aneA}
 %\end{anexosenv}
-
-
 
 \end{document}
 
