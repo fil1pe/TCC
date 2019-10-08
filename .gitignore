@@ -1,0 +1,11 @@
+Relatorio/**/*.aux
+Relatorio/**/*.bbl
+Relatorio/**/*.blg
+Relatorio/**/*.dvi
+Relatorio/**/*.lof
+Relatorio/**/*.log
+Relatorio/**/*.loq
+Relatorio/**/*.lot
+Relatorio/**/*.out.ps
+Relatorio/**/*.toc
+Relatorio/**/*.synctex.gz
