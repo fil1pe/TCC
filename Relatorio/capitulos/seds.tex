@@ -1,0 +1,121 @@
+\chapter{Sistemas a eventos discretos}
+
+\section{Autômatos finitos determinísticos}
+
+\hl{DEFINIR AUTOMATO}
+
+Um autômato finito determinístico (\acs{AFD}), ou máquina de estados finitos determinística, é uma máquina abstrata dotada de fita, unidade de controle e função de transição. A fita de um autômato é um espaço ilimitado utilizado para armazenar uma sequência de símbolos que serão lidos e computados. Já a unidade de controle contém as variáveis do estado atual da máquina, que servem de parâmetro para a computação da função de transição. Para determinar o estado de um autômato, há uma cabeça de leitura sobre a fita e um conjunto de elementos abstratos que norteiam a evolução do funcionamento da máquina: os estados \cite{hopcroft}. A Figura \ref{fig:afd_componentes} esquematiza a transição de estado de um AFD com a cabeça de leitura inicialmente posicionada sobre a segunda célula da fita.
+
+\figuradoautor{Transição de um AFD}{
+    \begin{tikzpicture}
+        \draw[draw=black] (0,0.8) rectangle ++(0.8,0.8)
+        (0.8,0.8) rectangle ++(0.8,0.8)
+        (1.6,0.8) rectangle ++(0.8,0.8)
+        (2.4,0.8) rectangle ++(0.8,0.8)
+        (3.2,0.8) rectangle ++(0.8,0.8)
+        (4.8,0.8) rectangle ++(0.8,0.8)
+        (5.6,0.8) rectangle ++(0.8,0.8);
+        \draw[>=triangle 60,->,line width=0.6mm] (1.2,0.4) -- (1.2,0.7);
+        \node at (1.2,0) {estado $q$};
+        \node at (0.4,1.2) {$a_1$};
+        \node at (1.2,1.2) {$a_2$};
+        \node at (2.0,1.2) {$a_3$};
+        \node at (2.8,1.2) {$a_4$};
+        \node at (3.6,1.2) {$a_5$};
+        \node at (4.4,1.2) {$...$};
+        \node at (5.2,1.2) {$a_n$};
+        
+        \draw[>=triangle 60,->,line width=0.4mm, draw=gray] (6.6,1.2) -- (7.8,1.2);
+        
+        \draw[draw=black] (8,0.8) rectangle ++(0.8,0.8)
+        (8.8,0.8) rectangle ++(0.8,0.8)
+        (9.6,0.8) rectangle ++(0.8,0.8)
+        (10.4,0.8) rectangle ++(0.8,0.8)
+        (11.2,0.8) rectangle ++(0.8,0.8)
+        (12.8,0.8) rectangle ++(0.8,0.8)
+        (13.6,0.8) rectangle ++(0.8,0.8);
+        \draw[>=triangle 60,->,line width=0.6mm] (10.0,0.4) -- (10.0,0.7);
+        \node at (10.0,0) {estado $q'$};
+        \node at (8.4,1.2) {$a_1$};
+        \node at (9.2,1.2) {$a_2$};
+        \node at (10.0,1.2) {$a_3$};
+        \node at (10.8,1.2) {$a_4$};
+        \node at (11.6,1.2) {$a_5$};
+        \node at (12.4,1.2) {$...$};
+        \node at (13.2,1.2) {$a_n$};
+    \end{tikzpicture}
+}{fig:afd_componentes}
+
+Durante a computação de uma cadeia de entrada, o AFD lê o símbolo da célula atual da fita, apontada pela cabeça de leitura, e avança o cabeçote em uma posição para a direita, caso a próxima célula não esteja vazia. Inicialmente, ao receber uma entrada, a cabeça de leitura estará posicionada na extremidade esquerda da fita e, por conseguinte, da cadeia de símbolos. Se a computação de um símbolo lido não acarretar um estado definido, o funcionamento será interrompido.
+
+\hl{Na Ciência da Computação, os autômatos finitos determinísticos ....}
+
+No contexto dos \acs{SED}s, os AFDs são modelos matemáticos que descrevem sistemas com base nos eventos que podem ocorrer. Dessa maneira, as cadeias de símbolos que são enviadas à entrada dos AFDs constituem sequências de eventos cuja computação resulta em uma descrição do sistema baseada nas variáveis de controle da máquina de estados \cite{cassandras}.
+
+\subsection{Definição formal}
+
+A definição de \acs{AFD} que segue foi inspirada e adptada de \citeonline{hopcroft} e \citeonline{cassandras}.
+
+Um AFD $G$ é uma quíntupla $$\langle Q, E, \delta, q_0, Q_m \rangle$$ em que \begin{itemize}[label={}]
+  \item $Q$ é o conjunto finito de estados
+  \item $E$ é o conjunto \hl{finito} de eventos % verificar se esse é finito, em hopcroft
+  \item $\delta:Q \times E \nrightarrow Q$ é a função de transição
+  \item $q_0 $ é o estado inicial
+  \item $Q_m \subseteq Q$ é o conjunto de estados marcados
+\end{itemize}
+
+A função de eventos ativos de $G$, que será denotada por $\Gamma_G:Q \rightarrow 2^E$, relaciona cada estado com os eventos possíveis a partir dele. Formalmente $$(\forall q \in Q) (\forall e \in E), e \in \Gamma_G(q) \Leftrightarrow \delta(q, e) \in Q$$ isto é, $e \in \Gamma_G(q)$ se e somente se $\delta(q, e)$ é definido.
+
+Ao fecho de Kleene sobre um conjunto de eventos $E$, denotado por $E^\star$, pertencem todas as possíveis cadeias de eventos pertencentes a $E$. Uma cadeia de eventos é uma sequência finita $e_1 e_2 ... e_{|w|}$ em que $e_i \in E$ ($\forall i = 1..|w|$). Quando $|w| = 0$, a cadeia é dita vazia e será simbolizada por $\varepsilon$.
+
+A função de transição estendida $\hat{\delta}:Q \times E^\star \nrightarrow Q$ é definida recursivamente destarte: $$\hat{\delta}(q, w) = \begin{cases}
+q & se$ $w=\varepsilon \\
+\hat{\delta}(\delta(q, e), w') & se$ $w=e w'
+\end{cases}$$ e terá valor indefinido quando $\delta(q, e)$ assim for.
+
+\subsection{Diagrama de estados}
+
+\hl{EXPLICAR}
+
+\figuradoautor{Representação da transição de estados em um diagrama}{
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state,minimum size=1.7cm] (q0) {$q$}; 
+        \node[state,accepting,minimum size=1.7cm] at (4,0) (q1) {$\delta(q, e)$};
+        \draw
+        (q0) edge node{$e$} (q1);
+    \end{tikzpicture}
+}{fig:afd_diagrama}
+
+\hl{EXPLICAR ESTADO INICIAL}
+
+\figuradoautor{Representação do estado inicial em um diagrama}{
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state,initial] (q0) {estado inicial};
+    \end{tikzpicture}
+}{fig:afd_estado_inicial}
+
+\subsection{Linguagem gerada}
+
+A linguagem gerada por um AFD $G$ é o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Sendo assim, a linguagem gerada pelo autômato são todas as cadeias de eventos que o fazem transicionar do estado inicial a um estado definido. Isso significa que, quando uma cadeia $w \in L(G)$ for posicionada na fita do autômato, a computação de cada evento, da esquerda para a direita da sequência, sempre resultará em um estado definido. 
+
+\hl{REVISAR}
+
+\subsection{Linguagem marcada}
+
+A linguagem marcada por um AFD $G$ é o conjunto $$L_m(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q_m \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado marcado.
+
+Denomina-se linguagem regular a linguagem marcada por qualquer AFD \cite{hopcroft}. Desse modo, este trabalho de conclusão de curso versará sobre linguagens exclusivamente regulares, a exemplo das quais é possível citar o conjunto dos números naturais pares. Sabendo que um número par é aquele cujo último algarismo -- da esquerda para a direita -- pertence a $\{ 0, 2, 4, 6, 8 \}$, pode-se construir o AFD da Figura \ref{fig:afd_pares}, demonstrando a validade da afirmação.
+
+\figuradoautor{Diagrama de estados do AFD que reconhece números naturais pares}{
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state,initial] (q0) {}; 
+        \node[state,accepting] at (5,0) (q1) {};
+        \draw
+            (q0) edge[loop above] node{$1$, $3$, $5$, $7$, $9$} (q0)
+            (q0) edge[bend left, above] node{$0$, $2$, $4$, $6$, $8$} (q1)
+            (q1) edge[loop above] node{$0$, $2$, $4$, $6$, $8$} (q1)
+            (q1) edge[bend left, below] node{$1$, $3$, $5$, $7$, $9$} (q0);
+    \end{tikzpicture}
+}{fig:afd_pares}
+
+Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, \citeonline{cassandras} 
