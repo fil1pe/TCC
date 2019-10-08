@@ -2,9 +2,9 @@
 
 \section{Autômatos finitos determinísticos}
 
-\hl{DEFINIR AUTOMATO}
+Autômato -- palavra derivada do termo em latim \textit{automatu} -- é ``maquinismo que se move por meios mecânicos'' e ``(...) imita os movimentos humanos'' \cite[p. 81]{aurelio}. Esse termo tem sido usado na Ciência da Computação desde a década de 1930 para descrever importantes modelos da Teoria dos Autômatos, que aborda máquinas de Turing, por exemplo. Nesse contexto, um autômato é uma máquina abstrata descrita matematicamente e idealizada em termos de limitações físicas \cite{hopcroft}.
 
-Um autômato finito determinístico (\acs{AFD}), ou máquina de estados finitos determinística, é uma máquina abstrata dotada de fita, unidade de controle e função de transição. A fita de um autômato é um espaço ilimitado utilizado para armazenar uma sequência de símbolos que serão lidos e computados. Já a unidade de controle contém as variáveis do estado atual da máquina, que servem de parâmetro para a computação da função de transição. Para determinar o estado de um autômato, há uma cabeça de leitura sobre a fita e um conjunto de elementos abstratos que norteiam a evolução do funcionamento da máquina: os estados \cite{hopcroft}. A Figura \ref{fig:afd_componentes} esquematiza a transição de estado de um AFD com a cabeça de leitura inicialmente posicionada sobre a segunda célula da fita.
+Um autômato finito determinístico (\acs{AFD}), ou máquina de estados finitos determinística, é uma máquina dotada de fita, unidade de controle e função de transição. A fita de um autômato é um espaço ilimitado utilizado para armazenar uma sequência de símbolos que serão lidos e computados. Já a unidade de controle contém as variáveis do estado atual da máquina, que servem de parâmetro para a computação da função de transição. Para determinar o estado de um autômato, há uma cabeça de leitura sobre a fita e um conjunto de elementos abstratos que norteiam a evolução do funcionamento da máquina: os estados \cite{hopcroft}. A Figura \ref{fig:afd_componentes} esquematiza a transição de estado de um AFD com a cabeça de leitura inicialmente posicionada sobre a segunda célula da fita.
 
 \figuradoautor{Transição de um AFD}{
     \begin{tikzpicture}
@@ -48,9 +48,7 @@ Um autômato finito determinístico (\acs{AFD}), ou máquina de estados finitos 
 
 Durante a computação de uma cadeia de entrada, o AFD lê o símbolo da célula atual da fita, apontada pela cabeça de leitura, e avança o cabeçote em uma posição para a direita. Inicialmente, ao receber uma entrada, a cabeça de leitura estará posicionada na extremidade esquerda da fita e, por conseguinte, da cadeia de símbolos. Se a computação de um símbolo lido não acarretar um estado definido ou a cabeça de leitura estiver posicionada sobre uma célula vazia, o funcionamento do autômato será interrompido.
 
-\hl{Na Ciência da Computação, os autômatos finitos determinísticos ....}
-
-No contexto dos \acs{SED}s, os AFDs são modelos matemáticos que descrevem sistemas com base nos eventos que podem ocorrer. Dessa maneira, as cadeias de símbolos que são enviadas à entrada dos AFDs constituem sequências de eventos cuja computação resulta em uma descrição do sistema baseada nas variáveis de controle da máquina de estados \cite{cassandras}.
+Na Ciência da Computação, os AFDs formam a base de alguns componentes de software e partes de compiladores. Um artifício muito empregado no desenvolvimento de software são as expressões regulares, que podem ser convertidas em AFDs e permitem encontrar padrões em textos \cite{hopcroft}. Já no contexto dos \acs{SED}s, os AFDs são modelos matemáticos que descrevem sistemas com base nos eventos que podem ocorrer. Dessa maneira, as cadeias de símbolos que são enviadas à entrada dos AFDs constituem sequências de eventos cuja computação resulta em uma descrição do sistema baseada nas variáveis de controle da máquina de estados \cite{cassandras}.
 
 \subsection{Definição formal}
 
@@ -97,15 +95,9 @@ Nesta classe de diagramas, os estados inicial e final podem ser destacados de al
 
 Pode-se citar outros aspectos desta representação de autômatos: a possibilidade de adicionar rótulos aos nós, a opção de omitir os nomes dos estados nos nós quando não forem necessários e a aglutinação de transições que partem e terminam no mesmo estado em uma mesma aresta, com os símbolos neste trabalho separados por vírgula.
 
-\subsection{Linguagem gerada}
-
-A linguagem gerada por um AFD $G$ é o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Sendo assim, a linguagem gerada pelo autômato são todas as cadeias de eventos que o fazem transicionar do estado inicial a um estado definido. Isso significa que, quando uma cadeia $w \in L(G)$ for posicionada na fita do autômato, a computação de cada evento, da esquerda para a direita da sequência, sempre resultará em um estado definido. 
-
-\hl{REVISAR}
-
 \subsection{Linguagem marcada}
 
-A linguagem marcada por um AFD $G$ é o conjunto $$L_m(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q_m \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado marcado.
+A linguagem marcada por um AFD $G$ é o conjunto $$L_m(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q_m \}$$ Sendo assim, a linguagem marcada pelo autômato são todas as cadeias de eventos que o fazem transicionar do estado inicial a um estado marcado. Isso significa que, quando uma cadeia $w \in L_m(G)$ for posicionada na fita do autômato, a computação de cada evento, da esquerda para a direita da sequência, sempre resultará em um estado definido e terminará em um estado marcado.
 
 Denomina-se linguagem regular a linguagem marcada por qualquer AFD \cite{hopcroft}. Desse modo, este trabalho de conclusão de curso versará sobre linguagens exclusivamente regulares, a exemplo das quais é possível citar o conjunto dos números naturais pares. Sabendo que um número par é aquele cujo último algarismo -- da esquerda para a direita -- pertence a $\{ 0, 2, 4, 6, 8 \}$, pode-se construir o AFD da Figura \ref{fig:afd_pares}, demonstrando a validade da afirmação.
 
@@ -121,4 +113,10 @@ Denomina-se linguagem regular a linguagem marcada por qualquer AFD \cite{hopcrof
     \end{tikzpicture}
 }{fig:afd_pares}
 
-Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, \citeonline{cassandras} 
+Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, \citeonline{cassandras} \hl{...}
+
+\subsection{Linguagem gerada e bloqueios}
+
+A linguagem gerada por um AFD $G$ é o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado definido.
+
+Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \varnothing$, diz-se que há um \textit{deadlock}. Um \textit{livelock} se configura quando não é possível alcançar, a partir de um estado a que se chegou, um estado marcado. Se qualquer bloqueio acontece, tem-se que $$\overline{L_m(G)} \subset L(G)$$ em que $\overline{L_m(G)}$ é o conjunto de todos os prefixos de todas as cadeias pertencentes a $L_m(G)$, ou $$\overline{L_m(G)} = \{ w \in E^\star \mid \exists w' \in E^\star, w w' \in L_m(G) \}$$ Isso é devido a \hl{...} \cite{cassandras}.
