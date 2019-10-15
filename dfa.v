@@ -1,7 +1,8 @@
 Record dfa (Q E : Type) := {
   delta : Q -> E -> Q;
   initial_state : Q;
-  is_final : Q -> bool
+  is_final : Q -> bool;
+  sink_state : Q
 }.
 
 (* Example *)
@@ -10,7 +11,7 @@ Inductive states1 : Type :=
   | q0 (* initial state *)
   | q1
   | q2 (* final state *)
-  | q3. (* ? *)
+  | q3.
 
 Inductive events1 : Type :=
   | a
@@ -31,7 +32,7 @@ Definition is_final1 (q:states1) : bool :=
   end.
 
 Definition dfa1 :=
-  {| delta := delta1; initial_state := q0; is_final := is_final1 |}.
+  {| delta := delta1; initial_state := q0; is_final := is_final1; sink_state := q3 |}.
 
 Check dfa1.
 
