@@ -120,3 +120,41 @@ Quando um autômato se destina a verificar padrões em cadeias de eventos, ou pa
 A linguagem gerada por um AFD $G$ é o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado definido.
 
 Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \varnothing$, diz-se que há um \textit{deadlock}. Um \textit{livelock} se configura quando não é possível alcançar, a partir de um estado a que se chegou, um estado marcado. Se qualquer bloqueio acontece, tem-se que $$\overline{L_m(G)} \subset L(G)$$ em que $\overline{L_m(G)}$ é o conjunto de todos os prefixos de todas as cadeias pertencentes a $L_m(G)$, ou $$\overline{L_m(G)} = \{ w \in E^\star \mid \exists w' \in E^\star, w w' \in L_m(G) \}$$ Isso é devido a \hl{...} \cite{cassandras}.
+
+\subsection{Função de transição total}
+
+Haja vista que não é possível definir funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é impreterível alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \rightarrow Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
+\delta(q, e) & se$ $\delta(q, e) \in Q \\
+\otimes & se$ $\delta(q, e) \not\in Q
+\end{cases}$$ em que $\otimes$ é algum estado novo, não pertencente a $Q$.
+
+O autômato $G$ é muito semelhante ao $$G' = \langle Q \cup \{ \otimes \}, E, \delta', q_0, Q_m \rangle$$ uma vez que a única diferença entre eles é que, em $G'$, ao realizar-se uma transição que seria indefinida em $G$, alcança-se um estado do qual não se pode sair.
+
+Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do que se estabeleceu como linguagem gerada por AFD anteriormente. Pode-se, não obstante, modificar a definição de linguagem gerada de forma que $G$ e $G'$ sejam equivalentes em se tratando de linguagem. Seja a linguagem $$L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_0, w) \neq \otimes \}$$ então $$L'(G') = L'(G) = L(G)$$
+
+É possível visualizar a nova definição de AFD na Figura \ref{fig:afd_funcao_total}, que a exemplifica para um AFD de alfabeto $\{ a, b \}$.
+
+\figuradoautor{Um AFD simples (à esquerda) e seu correspondente na definição com função de transição total (à direita)}{
+	\raisebox{-0.5\height}{\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial,accepting] (q0) {$q_0$}; 
+	\node[state] at (3,0) (q1) {$q_1$};
+	\draw
+	(q0) edge[bend left, above] node{$a$} (q1)
+	(q1) edge[bend left, below] node{$b$} (q0);
+	\end{tikzpicture}}
+	\raisebox{-0.5\height}{\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial,accepting] at (0, 2) (q0) {$q_0$}; 
+	\node[state] at (3,2) (q1) {$q_1$};
+	\node[state] at (1.5,0) (q2) {$\otimes$};
+	\draw
+	(q0) edge[bend left, above] node{$a$} (q1)
+	(q0) edge[bend right, below] node{$b$} (q2)
+	(q1) edge[bend left, below] node{$a$} (q2)
+	(q1) edge[bend left, below] node{$b$} (q0)
+	(q2) edge[loop below] node{$a$, $b$} (q2);
+	\end{tikzpicture}}
+}{fig:afd_funcao_total} 
+
+\hl{E OS BLOQUEIOS?}
+
+É evidente que um AFD cuja função de transição não é total pode ser modelado matematicamente utilizando funções totais. Isso é importante para que se possa representá-lo na linguagem do Coq.
