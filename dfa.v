@@ -1,3 +1,10 @@
+Require Import Coq.Lists.List.
+Import ListNotations.
+
+Set Implicit Arguments.
+Unset Strict Implicit.
+Unset Printing Implicit Defensive.
+
 Record dfa (Q E : Type) := {
   delta : Q -> E -> Q;
   initial_state : Q;
@@ -5,7 +12,20 @@ Record dfa (Q E : Type) := {
   sink_state : Q
 }.
 
-(* Example *)
+(* Extended delta:*)
+
+Fixpoint delta' {Q E : Type} (g : dfa Q E) (q : Q) (w : list E) : Q :=
+  match w with
+  | [] => q
+  | e::w' => delta' g (g.(delta) q e) w'
+  end.
+
+(* Generated language: *)
+
+Definition in_language {Q E : Type} (g : dfa Q E) (w : list E) : Prop :=
+  ~ delta' g g.(initial_state) w = g.(sink_state).
+
+(* Example:
 
 Inductive states1 : Type :=
   | q0 (* initial state *)
@@ -36,5 +56,36 @@ Definition dfa1 :=
 
 Check dfa1.
 
+Compute delta' dfa1 q0 [a;b;a;b;a;b].
 
+Theorem dfa1_test1 : in_language dfa1 [a;b;a;b;a;b].
+Proof.
+  unfold in_language, not.
+  intros.
+  discriminate H.
+Qed.
 
+*)
+
+Require Export Arith_base.
+Require Import BinPos BinInt BinNat Pnat Nnat.
+Local Open Scope Z_scope.
+
+Inductive events {E : Type} : Type :=
+  | add
+  | rem
+  | other (e : E).
+
+Fixpoint buffer_count {E : Type} (w : list (@events E)) : Z :=
+  match w with
+  | [] => 0
+  | add::w' => buffer_count w' + 1
+  | rem::w' => buffer_count w' - 1
+  | _::w' => buffer_count w'
+  end.
+
+Check [add;rem].
+
+(* not working *)
+
+Compute buffer_count [rem;add;add].
