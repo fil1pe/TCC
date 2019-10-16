@@ -174,3 +174,32 @@ Proof.
     + apply prefix_closed in H0. apply IHw in H0.
       rewrite buffer_other. apply H0.
 Qed.
+
+Theorem th2:
+  forall (Q E : Type) (g : dfa Q (@events E)) (n : Z),
+    upper_bound g n ->
+    (exists (f : @states Q->Z), f(state g.(initial_state)) = 0 /\
+      forall (q : Q),
+        f(state q) <= n /\
+        f(g.(delta) q add) >= f(state q) + 1 /\
+        f(g.(delta) q rem) >= f(state q) - 1 /\
+        (forall (e : E), f(g.(delta) q (other e)) >= f(state q))
+    ).
+Proof.
+(* FICA PARA O TCC 2 ;-) *)
+Admitted.
+
+Theorem th12:
+  forall (Q E : Type) (g : dfa Q (@events E)) (n : Z),
+    (exists (f : @states Q->Z), f(state g.(initial_state)) = 0 /\
+      forall (q : Q),
+        f(state q) <= n /\
+        f(g.(delta) q add) >= f(state q) + 1 /\
+        f(g.(delta) q rem) >= f(state q) - 1 /\
+        (forall (e : E), f(g.(delta) q (other e)) >= f(state q))
+    ) <-> upper_bound g n.
+Proof.
+  split.
+  apply th1.
+  apply th2.
+Qed.
