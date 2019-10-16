@@ -25,6 +25,9 @@ Fixpoint buffer_count {E : Type} (w : list (@events E)) : Z :=
   | _::w' => buffer_count w'
   end.
 
+Definition upper_bound {Q E : Type} (g : dfa Q (@events E)) (n : Z) :=
+  forall w, w ==> g -> buffer_count w <= n.
+
 Lemma buffer_add: forall (E : Type) (w : list (@events E)),
   buffer_count (w ++ [add]) = buffer_count w + 1.
 Proof.
@@ -137,8 +140,9 @@ Theorem th1:
         f(g.(delta) q add) >= f(state q) + 1 /\
         f(g.(delta) q rem) >= f(state q) - 1 /\
         (forall (e : E), f(g.(delta) q (other e)) >= f(state q))
-    ) -> (forall w, w ==> g -> buffer_count w <= n).
+    ) -> upper_bound g n.
 Proof.
+  unfold upper_bound.
   intros.
   destruct H as [f [H1 H2]].
   induction w using @rev_ind.
