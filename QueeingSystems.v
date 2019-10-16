@@ -31,47 +31,44 @@ Definition upper_bound {Q E : Type} (g : dfa Q (@events E)) (n : Z) :=
 Lemma buffer_add: forall (E : Type) (w : list (@events E)),
   buffer_count (w ++ [add]) = buffer_count w + 1.
 Proof.
-  intros.
-  induction w.
+  intros E w.
+  induction w as [|e w IH].
   - reflexivity.
-  - simpl. destruct a.
-    + rewrite IHw. reflexivity.
-    + rewrite IHw. omega.
-    + rewrite IHw. omega.
+  - simpl. rewrite IH. destruct e.
+    + reflexivity.
+    + omega.
+    + omega.
 Qed.
 
 Lemma buffer_rem: forall (E : Type) (w : list (@events E)),
   buffer_count (w ++ [rem]) = buffer_count w - 1.
 Proof.
-  intros.
-  induction w.
+  intros E w.
+  induction w as [|e w IH].
   - reflexivity.
-  - simpl. destruct a.
-    + rewrite IHw. omega.
-    + rewrite IHw. reflexivity.
-    + rewrite IHw. omega.
+  - simpl. rewrite IH. destruct e.
+    + omega.
+    + reflexivity.
+    + omega.
 Qed.
 
 Lemma buffer_other: forall (E : Type) (w : list (@events E)) (e : E),
   buffer_count (w ++ [other e]) = buffer_count w.
 Proof.
-  intros.
-  induction w.
+  intros E w c.
+  induction w as [|e w IH].
   - reflexivity.
-  - simpl. destruct a.
-    + rewrite IHw. reflexivity.
-    + rewrite IHw. reflexivity.
-    + rewrite IHw. reflexivity.
+  - simpl. rewrite IH. reflexivity.
 Qed.
 
 Lemma extended_delta__delta: forall (Q E : Type) (g : dfa Q E) (q : Q) (e : E),
   extended_delta g (state q) [e] = g.(delta) q e.
 Proof.
-  intros.
+  intros Q E g q e.
   simpl.
   destruct (delta g q e).
-  reflexivity.
-  reflexivity.
+  - reflexivity.
+  - reflexivity.
 Qed.
 
 Lemma buffer_count_leq_f:
@@ -83,51 +80,45 @@ Lemma buffer_count_leq_f:
         (forall (e : E), f(g.(delta) q (other e)) >= f(state q))
     ) -> (forall w, w ==> g -> buffer_count w <= f (extended_delta g (state g.(initial_state)) w)).
 Proof.
-  intros.
-  assert (forall q : Q, f (delta g q add) >= f (state q) + 1).
-  { apply H. }
-  assert (forall q : Q, f (delta g q rem) >= f (state q) - 1).
-  { apply H. }
-  assert (forall q : Q, (forall e : E, f (delta g q (other e)) >= f (state q))).
-  { apply H. }
-  destruct H.
-  induction w using @rev_ind.
+  intros Q E g f H0 w H2.
+  destruct H0 as [H0 H1].
+  induction w as [|e w IHw] using @rev_ind.
   - simpl. omega.
-  - simpl. destruct x.
+  - simpl. destruct e.
     + rewrite buffer_add.
-      assert (w ==> g).
-      { apply prefix_closed in H0. apply H0. }
-      apply IHw in H5.
+      assert (H3 : w ==> g).
+      { apply prefix_closed in H2. apply H2. }
+      apply IHw in H3.
       assert (f (extended_delta g (state (initial_state g)) (w)) + 1 <= f (extended_delta g (state (initial_state g)) (w ++ [add]))).
-      { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w). destruct s.
-        - apply prefix_closed in H0. unfold in_language in H0. unfold not in H0. symmetry in Heqs. apply H0 in Heqs.
-          destruct Heqs.
+      { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w) as q eqn:eq_q. destruct q.
+        - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
+          destruct eq_q.
         - rewrite extended_delta__delta. assert (f (delta g q add) >= f (state q) + 1).
           { apply H1. }
           omega. }
       omega.
     + rewrite buffer_rem.
-      assert (w ==> g).
-      { apply prefix_closed in H0. apply H0. }
-      apply IHw in H5.
+      assert (H3 : w ==> g).
+      { apply prefix_closed in H2. apply H2. }
+      apply IHw in H3.
       assert (f (extended_delta g (state (initial_state g)) (w)) - 1 <= f (extended_delta g (state (initial_state g)) (w ++ [rem]))).
-      { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w). destruct s.
-        - apply prefix_closed in H0. unfold in_language in H0. unfold not in H0. symmetry in Heqs. apply H0 in Heqs.
-          destruct Heqs.
+      { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w) as q eqn:eq_q. destruct q.
+        - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
+          destruct eq_q.
         - rewrite extended_delta__delta. assert (f (delta g q rem) >= f (state q) - 1).
-          { apply H2. }
+          { apply H1. }
           omega. }
       omega.
     + rewrite buffer_other.
-      assert (w ==> g).
-      { apply prefix_closed in H0. apply H0. }
-      apply IHw in H5.
+      assert (H3 : w ==> g).
+      { apply prefix_closed in H2. apply H2. }
+      apply IHw in H3.
       assert (f (extended_delta g (state (initial_state g)) (w)) <= f (extended_delta g (state (initial_state g)) (w ++ [other e]))).
-      { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w). destruct s.
-        - apply prefix_closed in H0. unfold in_language in H0. unfold not in H0. symmetry in Heqs. apply H0 in Heqs.
-          destruct Heqs.
+      { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w) as q eqn:eq_q. destruct q.
+        - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
+          destruct eq_q.
         - rewrite extended_delta__delta. assert (f (delta g q (other e)) >= f (state q)).
-          { apply H3. }
+          { apply H1. }
           omega. }
       omega.
 Qed.
@@ -143,36 +134,31 @@ Theorem th1:
     ) -> upper_bound g n.
 Proof.
   unfold upper_bound.
-  intros.
-  destruct H as [f [H1 H2]].
-  induction w using @rev_ind.
-  - assert (f (state (initial_state g)) <= n).
-    { apply H2. }
-    rewrite H1 in H.
-    simpl.
-    apply H.
-  - destruct x.
-    + assert (forall w, w ==> g -> buffer_count w <= f (extended_delta g (state g.(initial_state)) w)).
+  intros Q E g n H0 w H2.
+  destruct H0 as [f [H0 H1]].
+  induction w as [|e w IHw] using @rev_ind.
+  - assert (H3 : f (state (initial_state g)) <= n).
+    { apply H1. }
+    rewrite H0 in H3.
+    apply H3.
+  - destruct e.
+    + assert (H3 : forall w, w ==> g -> buffer_count w <= f (extended_delta g (state g.(initial_state)) w)).
       { apply buffer_count_leq_f. split.
-          apply H1. 
-          intros. split.
-          - apply H2.
-          - split.
-            + apply H2.
-            + apply H2. }
+          - apply H0. 
+          - intros H3. apply H1. }
       assert (buffer_count (w ++ [add]) <= f (extended_delta g (state (initial_state g)) (w ++ [add]))).
-      { apply H. apply H0. }
+      { apply H3. apply H2. }
       assert (f (extended_delta g (state (initial_state g)) (w ++ [add])) <= n).
-      { remember (extended_delta g (state (initial_state g)) (w ++ [add])).
-        destruct s.
-        - unfold in_language in H0. unfold not in H0. symmetry in Heqs. apply H0 in Heqs. destruct Heqs.
-        - apply H2. }
+      { remember (extended_delta g (state (initial_state g)) (w ++ [add])) as q eqn:eq_q.
+        destruct q.
+        - unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q. destruct eq_q.
+        - apply H1. }
       omega.
-    + apply prefix_closed in H0. apply IHw in H0.
+    + apply prefix_closed in H2. apply IHw in H2.
       rewrite buffer_rem.
       omega.
-    + apply prefix_closed in H0. apply IHw in H0.
-      rewrite buffer_other. apply H0.
+    + apply prefix_closed in H2. apply IHw in H2.
+      rewrite buffer_other. apply H2.
 Qed.
 
 Theorem th2:
@@ -202,4 +188,16 @@ Proof.
   split.
   apply th1.
   apply th2.
+Qed.
+
+Theorem upper_bound_geq_0:
+  forall (Q E : Type) (g : dfa Q (@events E)) n,
+    upper_bound g n -> n >= 0.
+Proof.
+  intros Q E g n H.
+  apply th12 in H.
+  destruct H as [f H], H as [H H0].
+  assert (f (state (initial_state g)) <= n).
+  { apply H0. }
+  omega.
 Qed.

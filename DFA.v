@@ -30,7 +30,7 @@ Lemma extended_delta_sink_state:
   forall (Q E : Type) (g : dfa Q E) w,
     extended_delta g sink_state w = sink_state.
 Proof.
-  intros.
+  intros Q E g w.
   destruct w.
   reflexivity.
   reflexivity.
@@ -41,12 +41,10 @@ Theorem dist_extended_delta:
     extended_delta g q (w ++ w') =
     extended_delta g (extended_delta g q w) w'.
 Proof.
-  intros.
-  generalize dependent q.
-  generalize dependent w'.
-  induction w.
-  - intros. simpl. destruct q. reflexivity. reflexivity.
-  - intros. simpl. destruct q.
+  intros Q E g w.
+  induction w as [|e w IHw].
+  - intros w' q. simpl. destruct q. reflexivity. reflexivity.
+  - intros w' q. simpl. destruct q.
     + symmetry. apply extended_delta_sink_state.
     + rewrite IHw. reflexivity.
 Qed.
@@ -63,8 +61,8 @@ Theorem prefix_closed:
     (w ++ w') ==> g -> w ==> g.
 Proof.
   unfold in_language, not.
-  intros.
-  rewrite dist_extended_delta in H. rewrite H0 in H. apply H.
+  intros Q E g w w' H0 H1.
+  rewrite dist_extended_delta in H0. rewrite H1 in H0. apply H0.
   destruct w'. reflexivity. reflexivity.
 Qed.
 
@@ -105,7 +103,7 @@ Theorem dfa1_test1 : [a;b;a;b;a;b] ==> dfa1.
 Proof.
   unfold in_language.
   unfold not.
-  intros.
+  intros H.
   discriminate H.
 Qed.
 *)
