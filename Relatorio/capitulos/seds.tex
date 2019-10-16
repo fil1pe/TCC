@@ -123,14 +123,14 @@ Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \
 
 \subsection{Função de transição total}
 
-Haja vista que não é possível definir funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é impreterível alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \rightarrow Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
-\delta(q, e) & se$ $\delta(q, e) \in Q \\
-\otimes & se$ $\delta(q, e) \not\in Q
-\end{cases}$$ em que $\otimes$ é algum estado novo, não pertencente a $Q$.
+Haja vista que não é possível formular funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é impreterível alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \rightarrow Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
+\delta(q, e) & se$ $q \in Q \wedge \delta(q, e) \in Q \\
+\otimes & se$ $q \not\in Q \vee \delta(q, e) \not\in Q
+\end{cases}$$ em que $\otimes$ é um estado novo, não pertencente a $Q$.
 
 O autômato $G$ é muito semelhante ao $$G' = \langle Q \cup \{ \otimes \}, E, \delta', q_0, Q_m \rangle$$ uma vez que a única diferença entre eles é que, em $G'$, ao realizar-se uma transição que seria indefinida em $G$, alcança-se um estado do qual não se pode sair.
 
-Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do que se estabeleceu como linguagem gerada por AFD anteriormente. Pode-se, não obstante, modificar a definição de linguagem gerada de forma que $G$ e $G'$ sejam equivalentes em se tratando de linguagem. Seja a linguagem $$L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_0, w) \neq \otimes \}$$ então $$L'(G') = L'(G) = L(G)$$
+Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do que se estabeleceu como linguagem gerada anteriormente. Pode-se, não obstante, modificar a definição dela de forma que $G$ e $G'$ sejam equivalentes em se tratando de linguagens: $$L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_0, w) \neq \otimes \}$$ é a linguagem gerada pelo autômato $G'$. Então $$L'(G') = L'(G) = L(G)$$
 
 É possível visualizar a nova definição de AFD na Figura \ref{fig:afd_funcao_total}, que a exemplifica para um AFD de alfabeto $\{ a, b \}$.
 
