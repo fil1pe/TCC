@@ -84,11 +84,11 @@ Proof.
   destruct H0 as [H0 H1].
   induction w as [|e w IHw] using @rev_ind.
   - simpl. omega.
-  - simpl. destruct e.
+  - assert (H3 : w ==> g).
+    { apply prefix_closed in H2. apply H2. }
+    apply IHw in H3.
+    destruct e.
     + rewrite buffer_add.
-      assert (H3 : w ==> g).
-      { apply prefix_closed in H2. apply H2. }
-      apply IHw in H3.
       assert (f (extended_delta g (state (initial_state g)) (w)) + 1 <= f (extended_delta g (state (initial_state g)) (w ++ [add]))).
       { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w) as q eqn:eq_q. destruct q.
         - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
@@ -98,9 +98,6 @@ Proof.
           omega. }
       omega.
     + rewrite buffer_rem.
-      assert (H3 : w ==> g).
-      { apply prefix_closed in H2. apply H2. }
-      apply IHw in H3.
       assert (f (extended_delta g (state (initial_state g)) (w)) - 1 <= f (extended_delta g (state (initial_state g)) (w ++ [rem]))).
       { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w) as q eqn:eq_q. destruct q.
         - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
@@ -110,9 +107,6 @@ Proof.
           omega. }
       omega.
     + rewrite buffer_other.
-      assert (H3 : w ==> g).
-      { apply prefix_closed in H2. apply H2. }
-      apply IHw in H3.
       assert (f (extended_delta g (state (initial_state g)) (w)) <= f (extended_delta g (state (initial_state g)) (w ++ [other e]))).
       { rewrite dist_extended_delta. remember (extended_delta g (state (initial_state g)) w) as q eqn:eq_q. destruct q.
         - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
