@@ -26,6 +26,16 @@ Fixpoint extended_delta {Q E : Type} (g : dfa Q E) (q : @states Q) (w : list E) 
                 end
   end.
 
+Lemma extended_delta_sink_state:
+  forall (Q E : Type) (g : dfa Q E) w,
+    extended_delta g sink_state w = sink_state.
+Proof.
+  intros.
+  destruct w.
+  reflexivity.
+  reflexivity.
+Qed.
+
 Theorem dist_extended_delta:
   forall (Q E : Type) (g : dfa Q E) w w' q,
     extended_delta g q (w ++ w') =
@@ -37,7 +47,7 @@ Proof.
   induction w.
   - intros. simpl. destruct q. reflexivity. reflexivity.
   - intros. simpl. destruct q.
-    + destruct w'. reflexivity. reflexivity.
+    + symmetry. apply extended_delta_sink_state.
     + rewrite IHw. reflexivity.
 Qed.
 
