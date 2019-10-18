@@ -1,110 +1,103 @@
-DIGEST 2ff0cdfedf400004c88bf9979e320895
+DIGEST 9926543d61e4e7d1775619ebd6de4132
 FDFA
 R15:28 Coq.Lists.List <> <> lib
-ind 147:152 <> states
-constr 179:188 <> sink_state
-constr 194:198 <> state
-R189:189 DFA <> states ind
-R207:207 DFA <> states ind
-rec 217:219 <> dfa
-proj 241:245 <> delta
-proj 271:283 <> initial_state
-proj 291:298 <> is_final
-R249:252 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R254:257 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R259:264 DFA <> states ind
-R266:266 DFA <> Q var
-R253:253 DFA <> E var
-R248:248 DFA <> Q var
-R286:286 DFA <> Q var
-R302:305 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R306:309 Coq.Init.Datatypes <> bool ind
-R301:301 DFA <> Q var
-def 361:374 <> extended_delta
-R394:396 DFA <> dfa rec
-R400:400 DFA <> E var
-R398:398 DFA <> Q var
-R409:414 DFA <> states ind
-R416:416 DFA <> Q var
-R424:427 Coq.Init.Datatypes <> list ind
-R429:429 DFA <> E var
-R435:440 DFA <> states ind
-R442:442 DFA <> Q var
-R455:455 DFA <> q var
-R466:475 DFA <> sink_state constr
-R480:489 DFA <> sink_state constr
-R495:499 DFA <> state constr
-R513:513 DFA <> w var
-R538:539 Coq.Lists.List ListNotations :list_scope:'['_']' not
-R544:548 DFA <> state constr
-R572:573 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
-R580:593 DFA <> extended_delta def
-R601:605 DFA <> delta proj
-R598:598 DFA <> g var
-R595:595 DFA <> g var
-prf 651:675 <> extended_delta_sink_state
-R705:707 DFA <> dfa rec
-R711:711 DFA <> E var
-R709:709 DFA <> Q var
-R750:752 Coq.Init.Logic <> :type_scope:x_'='_x not
-R721:734 DFA <> extended_delta def
-R749:749 DFA <> w var
-R738:747 DFA <> sink_state constr
-R736:736 DFA <> g var
-R753:762 DFA <> sink_state constr
-prf 848:866 <> dist_extended_delta
-R896:898 DFA <> dfa rec
-R902:902 DFA <> E var
-R900:900 DFA <> Q var
-R945:951 Coq.Init.Logic <> :type_scope:x_'='_x not
-R917:930 DFA <> extended_delta def
-R938:941 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R937:937 DFA <> w var
-R942:943 DFA <> w' var
-R934:934 DFA <> q var
-R932:932 DFA <> g var
-R952:965 DFA <> extended_delta def
-R992:993 DFA <> w' var
-R970:983 DFA <> extended_delta def
-R989:989 DFA <> w var
-R987:987 DFA <> q var
-R985:985 DFA <> g var
-R967:967 DFA <> g var
-R1170:1194 DFA <> extended_delta_sink_state thm
-R1170:1194 DFA <> extended_delta_sink_state thm
-def 1273:1283 <> in_language
-R1303:1305 DFA <> dfa rec
-R1309:1309 DFA <> E var
-R1307:1307 DFA <> Q var
-R1317:1320 Coq.Init.Datatypes <> list ind
-R1322:1322 DFA <> E var
-R1337:1338 Coq.Init.Logic <> :type_scope:'~'_x not
-R1383:1385 Coq.Init.Logic <> :type_scope:x_'='_x not
-R1339:1352 DFA <> extended_delta def
-R1382:1382 DFA <> w var
-R1357:1361 DFA <> state constr
-R1366:1378 DFA <> initial_state proj
-R1363:1363 DFA <> g var
-R1354:1354 DFA <> g var
-R1386:1395 DFA <> sink_state constr
-R1424:1434 DFA <> in_language def
-not 1408:1408 <> ::x_'==>'_x
-prf 1473:1485 <> prefix_closed
-R1515:1517 DFA <> dfa rec
-R1521:1521 DFA <> E var
-R1519:1519 DFA <> Q var
-R1549:1552 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R1554:1558 DFA <> ::x_'==>'_x not
-R1559:1559 DFA <> g var
-R1553:1553 DFA <> w var
-R1534:1534 DFA <> ::x_'==>'_x not
-R1542:1547 DFA <> ::x_'==>'_x not
-R1548:1548 DFA <> g var
-R1536:1539 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R1535:1535 DFA <> w var
-R1540:1541 DFA <> w' var
-R1578:1588 DFA <> in_language def
-R1591:1593 Coq.Init.Logic <> not def
-R1633:1651 DFA <> dist_extended_delta thm
-R1633:1651 DFA <> dist_extended_delta thm
-R1633:1651 DFA <> dist_extended_delta thm
+ind 151:155 <> state
+constr 182:191 <> sink_state
+constr 197:208 <> proper_state
+R192:192 DFA <> state ind
+R217:217 DFA <> state ind
+rec 227:229 <> dfa
+proj 251:255 <> delta
+proj 280:292 <> initial_state
+proj 300:307 <> is_final
+R259:262 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R264:267 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R269:273 DFA <> state ind
+R275:275 DFA <> Q var
+R263:263 DFA <> E var
+R258:258 DFA <> Q var
+R295:295 DFA <> Q var
+R311:314 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R315:318 Coq.Init.Datatypes <> bool ind
+R310:310 DFA <> Q var
+def 370:383 <> extended_delta
+R403:405 DFA <> dfa rec
+R409:409 DFA <> E var
+R407:407 DFA <> Q var
+R418:422 DFA <> state ind
+R435:435 DFA <> q var
+R446:455 DFA <> sink_state constr
+R460:469 DFA <> sink_state constr
+R475:486 DFA <> proper_state constr
+R500:500 DFA <> w var
+R525:526 Coq.Lists.List ListNotations :list_scope:'['_']' not
+R531:542 DFA <> proper_state constr
+R566:567 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R574:587 DFA <> extended_delta def
+R593:597 DFA <> delta proj
+R599:599 DFA <> g var
+R589:589 DFA <> g var
+prf 645:669 <> extended_delta_sink_state
+R699:701 DFA <> dfa rec
+R705:705 DFA <> E var
+R703:703 DFA <> Q var
+R744:746 Coq.Init.Logic <> :type_scope:x_'='_x not
+R715:728 DFA <> extended_delta def
+R743:743 DFA <> w var
+R732:741 DFA <> sink_state constr
+R730:730 DFA <> g var
+R747:756 DFA <> sink_state constr
+prf 842:860 <> dist_extended_delta
+R890:892 DFA <> dfa rec
+R896:896 DFA <> E var
+R894:894 DFA <> Q var
+R939:945 Coq.Init.Logic <> :type_scope:x_'='_x not
+R911:924 DFA <> extended_delta def
+R932:935 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R931:931 DFA <> w var
+R936:937 DFA <> w' var
+R928:928 DFA <> q var
+R926:926 DFA <> g var
+R946:959 DFA <> extended_delta def
+R986:987 DFA <> w' var
+R964:977 DFA <> extended_delta def
+R983:983 DFA <> w var
+R981:981 DFA <> q var
+R979:979 DFA <> g var
+R961:961 DFA <> g var
+R1164:1188 DFA <> extended_delta_sink_state thm
+R1164:1188 DFA <> extended_delta_sink_state thm
+def 1267:1277 <> in_language
+R1297:1299 DFA <> dfa rec
+R1303:1303 DFA <> E var
+R1301:1301 DFA <> Q var
+R1320:1321 Coq.Init.Logic <> :type_scope:'~'_x not
+R1373:1375 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1322:1335 DFA <> extended_delta def
+R1372:1372 DFA <> w var
+R1340:1351 DFA <> proper_state constr
+R1354:1366 DFA <> initial_state proj
+R1368:1368 DFA <> g var
+R1337:1337 DFA <> g var
+R1376:1385 DFA <> sink_state constr
+R1414:1424 DFA <> in_language def
+not 1398:1398 <> ::x_'==>'_x
+prf 1463:1475 <> prefix_closed
+R1505:1507 DFA <> dfa rec
+R1511:1511 DFA <> E var
+R1509:1509 DFA <> Q var
+R1539:1542 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R1544:1548 DFA <> ::x_'==>'_x not
+R1549:1549 DFA <> g var
+R1543:1543 DFA <> w var
+R1524:1524 DFA <> ::x_'==>'_x not
+R1532:1537 DFA <> ::x_'==>'_x not
+R1538:1538 DFA <> g var
+R1526:1529 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R1525:1525 DFA <> w var
+R1530:1531 DFA <> w' var
+R1568:1578 DFA <> in_language def
+R1581:1583 Coq.Init.Logic <> not def
+R1623:1641 DFA <> dist_extended_delta thm
+R1623:1641 DFA <> dist_extended_delta thm
+R1623:1641 DFA <> dist_extended_delta thm

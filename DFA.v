@@ -2,27 +2,27 @@ Require Import Coq.Lists.List.
 Import ListNotations.
 
 Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+(*Unset Strict Implicit.
+Unset Printing Implicit Defensive.*)
 
-Inductive states {Q : Type} : Type :=
+Inductive state {Q : Type} : Type :=
   | sink_state
-  | state (q : Q).
+  | proper_state (q : Q).
 
 Record dfa (Q E : Type) := {
-  delta: Q -> E -> @states Q;
+  delta: Q -> E -> @state Q;
   initial_state: Q;
   is_final: Q -> bool
 }.
 
 (* Extended transition function: *)
 
-Fixpoint extended_delta {Q E : Type} (g : dfa Q E) (q : @states Q) (w : list E) : @states Q :=
+Fixpoint extended_delta {Q E : Type} (g : dfa Q E) q w : state :=
   match q with
   | sink_state => sink_state
-  | state q' => match w with
-                | [] => state q'
-                | e::w' => extended_delta g (g.(delta) q' e) w'
+  | proper_state q' => match w with
+                | [] => proper_state q'
+                | e::w' => extended_delta g ((delta g) q' e) w'
                 end
   end.
 
@@ -51,8 +51,8 @@ Qed.
 
 (* Generated language: *)
 
-Definition in_language {Q E : Type} (g : dfa Q E) (w : list E) : Prop :=
-  ~ extended_delta g (state g.(initial_state)) w = sink_state.
+Definition in_language {Q E : Type} (g : dfa Q E) w : Prop :=
+  ~ extended_delta g (proper_state (initial_state g)) w = sink_state.
 
 Notation " x ==> g " := (in_language g x) (at level 60). (* ? *)
 
@@ -78,11 +78,11 @@ Inductive events1 : Type :=
   | a
   | b.
 
-Definition delta1 (q:states1) (e:events1) : @states states1 :=
+Definition delta1 (q:states1) (e:events1) : state :=
   match q, e with
-  | q0, a => state q1
-  | q1, b => state q2
-  | q2, a => state q1
+  | q0, a => proper_state q1
+  | q1, b => proper_state q2
+  | q2, a => proper_state q1
   | _, _ => sink_state
   end.
 
@@ -97,7 +97,7 @@ Definition dfa1 :=
 
 Check dfa1.
 
-Compute extended_delta dfa1 (state q0) [a;b;a;b;a;b].
+Compute extended_delta dfa1 (proper_state q0) [a;b;a;b;a;b].
 
 Theorem dfa1_test1 : [a;b;a;b;a;b] ==> dfa1.
 Proof.

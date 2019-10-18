@@ -1,15 +1,18 @@
 \chapter{Sistemas a eventos discretos}
 
-Segundo \citeonline[p. 142, tradução do autor]{lafortune} \begin{citacao} Sistemas a eventos discretos (\acs{SED}s) são sistemas dinâmicos com duas características definidoras: seus espaços de estados são discretos e potencialmente infinitos, e sua dinâmica é orientada a eventos, em vez de tempo. (...) Eventos que ocorrem de forma assíncrona (em geral) causam um salto no espaço de estados, de um estado para outro. \end{citacao} A exemplo disso, protocolos de comunicação em redes de computadores são frequentemente modelados por SEDs, como indica a Figura \ref{fig:protocolo_rede}\nocite{kurose}.
+Segundo \citeonline[p. 142, tradução do autor]{lafortune} \begin{citacao} Sistemas a eventos discretos (\acs{SED}s) são sistemas dinâmicos com duas características definidoras: seus espaços de estados são discretos e potencialmente infinitos, e sua dinâmica é orientada a eventos, em vez de tempo. (...) Eventos que ocorrem de forma assíncrona (em geral) causam um salto no espaço de estados, de um estado para outro. \end{citacao} A exemplo disso, protocolos de comunicação em redes de computadores são frequentemente modelados por SEDs, como indica a Figura \ref{fig:protocolo_rede}.
 
 \figura{Protocolo para um canal de redes de computadores com erros de bits: lado remetente e (abaixo) destinatário}{
 	\includegraphics[width=.9 \textwidth]{figuras/rdt2_0-remetente.png}\\
+	\vspace{8mm}
 	\includegraphics[width=.6 \textwidth]{figuras/rdt2_0-destinatario.png}
-}{fig:protocolo_rede}{KUROSE; ROSS, 2013}
+}{fig:protocolo_rede}{KUROSE, J.; ROSS K. \textbf{Redes de computadores e a internet}: uma abordagem top-down. 6. ed. São Paulo: Pearson, 2013}
 
-Na Figura \ref{fig:protocolo_rede}, tem-se representado um protocolo de redes em que os círculos são estados de espera, e as transições nas arestas, eventos -- neste caso, procedimentos computacionais. A representação supracitada é uma evidência do caráter de SED do protocolo. A figura é um diagrama de estados, que será introduzido mais adiante.
+Na Figura \ref{fig:protocolo_rede}, tem-se representado um protocolo de redes em que há estados de espera e transições que dependem de eventos discretos -- neste caso, procedimentos computacionais. A representação supracitada é uma evidência do caráter de SED do protocolo, e a figura é um diagrama de estados, que será introduzido mais adiante.
 
-\hl{FALAR DE AUTOMATOS E REDES DE PETRI}
+\hl{...}
+
+SEDs são comumente representados por redes de Petri e autômatos determinísticos. \hl{falar um pouco sobre redes de Petri}. Este trabalho de conclusão de concurso, todavia, enfoca a representação por autômatos determinísticos, que podem ser finitos ou infinitos. A diferença entre eles é que naqueles os conjuntos de estados e eventos são finitos e nestes, infinitos. A seção que segue introduz os principais conceitos de autômatos finitos determinísticos usados para este trabalho.
 
 \section{Autômatos finitos determinísticos}
 
@@ -137,7 +140,7 @@ Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \
 Haja vista que não é possível formular funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é impreterível alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \rightarrow Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
 \delta(q, e) & se$ $q \in Q \wedge \delta(q, e) \in Q \\
 \otimes & se$ $q \not\in Q \vee \delta(q, e) \not\in Q
-\end{cases}$$ em que $\otimes$ é um estado novo, não pertencente a $Q$.
+\end{cases}$$ em que $\otimes$ é um estado novo, não pertencente a $Q$: o estado de ralo.
 
 O autômato $G$ é muito semelhante ao $$G' = \langle Q \cup \{ \otimes \}, E, \delta', q_0, Q_m \rangle$$ uma vez que a única diferença entre eles é que, em $G'$, ao realizar-se uma transição que seria indefinida em $G$, alcança-se um estado do qual não se pode sair.
 
@@ -169,3 +172,4 @@ Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do 
 \hl{E OS BLOQUEIOS?}
 
 É evidente que um AFD cuja função de transição não é total pode ser modelado matematicamente utilizando funções totais. Isso é importante para que se possa representá-lo na linguagem do Coq.
+
