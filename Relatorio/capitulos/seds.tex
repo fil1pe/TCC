@@ -132,9 +132,9 @@ O autômato $G$ é muito semelhante ao $$G' = \langle Q \cup \{ \otimes \}, E, \
 
 Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do que se estabeleceu como linguagem gerada anteriormente. Pode-se, não obstante, modificar a definição dela de forma que $G$ e $G'$ sejam equivalentes em se tratando de linguagens: $$L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_0, w) \neq \otimes \}$$ é a linguagem gerada pelo autômato $G'$. Então $$L'(G') = L'(G) = L(G)$$
 
-É possível visualizar a nova definição de AFD na Figura \ref{fig:afd_funcao_total}, que a exemplifica para um AFD de alfabeto $\{ a, b \}$.
+É possível visualizar as formulações de um AFD usando função de transição parcial e total na Figura \ref{fig:afd_funcao_total}, que a exemplifica para um AFD de alfabeto $\{ a, b \}$.
 
-\figuradoautor{Um AFD simples (à esquerda) e seu correspondente na definição com função de transição total (à direita)}{
+\figuradoautor{Um AFD simples (à esquerda) e seu correspondente com função de transição total (à direita)}{
 	\raisebox{-0.5\height}{\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
 	\node[state,initial,accepting] (q0) {$q_0$}; 
 	\node[state] at (3,0) (q1) {$q_1$};
@@ -153,7 +153,7 @@ Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do 
 	(q1) edge[bend left, below] node{$b$} (q0)
 	(q2) edge[loop below] node{$a$, $b$} (q2);
 	\end{tikzpicture}}
-}{fig:afd_funcao_total} 
+}{fig:afd_funcao_total}
 
 \hl{E OS BLOQUEIOS?}
 

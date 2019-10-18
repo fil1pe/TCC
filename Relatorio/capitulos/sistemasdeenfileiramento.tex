@@ -1,3 +1,31 @@
 \chapter{Sistemas de enfileiramento}
 
-Os sistemas de enfileiramento constituem importante classe de \acs{SED}s \cite{cassandras}.
+Os sistemas de enfileiramento constituem importante classe de \acs{SED}s. \hl{REVISAR.} \cite{cassandras}
+
+Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila até que as pessoas a sua frente sejam atendidas. Esse sistema de enfileiramento pode ser modelado pelo autômato infinito determinístico ilustrado pela Figura \ref{fig:sist_enfil_simples_infinito}, em que $+$ e $-$ são os respectivos eventos de chegada e partida de pessoa da fila.
+
+\figuradoautor{Um sistema de enfileiramento simples}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q0) {}; 
+		\node[state] at (3,0) (q1) {};
+		\node[state] at (6,0) (q2) {};
+		\node[state,draw=none] at (9,0) (q3) {$...$};
+		\draw
+		(q0) edge[bend left, above] node{$+$} (q1)
+		(q1) edge[bend left, below] node{$-$} (q0)
+		(q1) edge[bend left, above] node{$+$} (q2)
+		(q2) edge[bend left, below] node{$-$} (q1)
+		(q2) edge[bend left, above] node{$+$} (q3)
+		(q3) edge[bend left, below] node{$-$} (q2);
+		\end{tikzpicture}
+}{fig:sist_enfil_simples_infinito}
+
+Na Figura \ref{fig:sist_enfil_simples_infinito} é assumido que a fila de pessoas pode crescer indefinidamente, o que não é possível na realidade.
+
+Um exemplo de sistema de enfileiramento é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados. \hl{PROBLEMA DO VICTOR}
+
+\section{Problema do produtor e consumidor}
+
+\section{Propriedades desejadas}
+
+\subsection{Aplicações}
