@@ -1,0 +1,35 @@
+\chapter{Problemas de filas}
+
+Os sistemas de filas constituem importante classe de sistemas a eventos discretos (\acs{SED}s) em que entidades ou objetos devem esperar para obter um determinado recurso. Há três elementos básicos que compõem esses sistemas: \begin{itemize}
+	\item consumidor: entidade que espera por um recurso;
+	\item servidor: o recurso que é aguardado;
+	\item fila: o espaço em que os consumidores esperam.
+\end{itemize} Os recursos são genericamente denominados servidores por geralmente proverem serviço \cite{cassandras}. O presente trabalho aborda uma ótica abstrata dos sistemas de filas, já que há a possibilidade de reduzir problemas a esses sistemas.
+
+Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila até que as pessoas a sua frente sejam atendidas. Esse sistema de filas pode ser modelado pelo autômato infinito determinístico ilustrado pela Figura \ref{fig:sist_enfil_simples_infinito}, em que $+$ e $-$ são os respectivos eventos de chegada e partida de pessoa da fila.
+
+\figuradoautor{Um sistema de filas simples}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+		\node[state,initial] (q0) {}; 
+		\node[state] at (3,0) (q1) {};
+		\node[state] at (6,0) (q2) {};
+		\node[state,draw=none] at (9,0) (q3) {$...$};
+		\draw
+		(q0) edge[bend left, above] node{$+$} (q1)
+		(q1) edge[bend left, below] node{$-$} (q0)
+		(q1) edge[bend left, above] node{$+$} (q2)
+		(q2) edge[bend left, below] node{$-$} (q1)
+		(q2) edge[bend left, above] node{$+$} (q3)
+		(q3) edge[bend left, below] node{$-$} (q2);
+		\end{tikzpicture}
+}{fig:fila_simples_infinito}
+
+Na Figura \ref{fig:fila_simples_infinito} é assumido que a fila de pessoas pode crescer indefinidamente, o que não é possível na realidade. Assumindo que as filas têm um tamanho máximo, faz-se possível modelar vários sistemas de filas por meio de autômatos finitos determinísticos (AFDs).
+
+Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados (\acs{VANT}s). Nele as demandas são os consumidores, e os VANTs, os servidores.
+
+\section{Problema do produtor e consumidor}
+
+\section{Propriedades desejadas}
+
+\subsection{Aplicações}

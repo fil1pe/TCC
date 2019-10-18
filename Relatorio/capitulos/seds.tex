@@ -1,5 +1,16 @@
 \chapter{Sistemas a eventos discretos}
 
+Segundo \citeonline[p. 142, tradução do autor]{lafortune} \begin{citacao} Sistemas a eventos discretos (\acs{SED}s) são sistemas dinâmicos com duas características definidoras: seus espaços de estados são discretos e potencialmente infinitos, e sua dinâmica é orientada a eventos, em vez de tempo. (...) Eventos que ocorrem de forma assíncrona (em geral) causam um salto no espaço de estados, de um estado para outro. \end{citacao} A exemplo disso, protocolos de comunicação em redes de computadores são frequentemente modelados por SEDs, como indica a Figura \ref{fig:protocolo_rede}\nocite{kurose}.
+
+\figura{Protocolo para um canal de redes de computadores com erros de bits: lado remetente e (abaixo) destinatário}{
+	\includegraphics[width=.9 \textwidth]{figuras/rdt2_0-remetente.png}\\
+	\includegraphics[width=.6 \textwidth]{figuras/rdt2_0-destinatario.png}
+}{fig:protocolo_rede}{KUROSE; ROSS, 2013}
+
+Na Figura \ref{fig:protocolo_rede}, tem-se representado um protocolo de redes em que os círculos são estados de espera, e as transições nas arestas, eventos -- neste caso, procedimentos computacionais. A representação supracitada é uma evidência do caráter de SED do protocolo. A figura é um diagrama de estados, que será introduzido mais adiante.
+
+\hl{FALAR DE AUTOMATOS E REDES DE PETRI}
+
 \section{Autômatos finitos determinísticos}
 
 Autômato -- palavra derivada do termo em latim \textit{automatu} -- é ``maquinismo que se move por meios mecânicos'' e ``(...) imita os movimentos humanos'' \cite[p. 81]{aurelio}. Esse termo tem sido usado na Ciência da Computação desde a década de 1930 para descrever importantes modelos da Teoria dos Autômatos, que aborda máquinas de Turing, por exemplo. Nesse contexto, um autômato é uma máquina abstrata descrita matematicamente e idealizada em termos de limitações físicas \cite{hopcroft}.
