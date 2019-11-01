@@ -21,15 +21,60 @@ Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila 
 		(q2) edge[bend left, below] node{$-$} (q1)
 		(q2) edge[bend left, above] node{$+$} (q3)
 		(q3) edge[bend left, below] node{$-$} (q2);
-		\end{tikzpicture}
+	\end{tikzpicture}
 }{fig:fila_simples_infinito}
 
 Na Figura \ref{fig:fila_simples_infinito} é assumido que a fila de pessoas pode crescer indefinidamente, o que não é possível na realidade. Assumindo que as filas têm um tamanho máximo, faz-se possível modelar vários sistemas de filas por meio de autômatos finitos determinísticos (AFDs).
 
 Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados (\acs{VANT}s). Nele as demandas são os consumidores, e os VANTs, os servidores.
 
-\section{Problema do produtor e consumidor}
-
 \section{Propriedades desejadas}
 
+Um sistema de filas geralmente requer que duas propriedades inerentes sejam satisfeitas: que o tamanho máximo de cada fila não possa exceder uma capacidade máxima e não seja possível realizar operações de retirada em uma fila vazia. Isso decorre do fato de que normalmente as filas destes sistemas são representações de espaços físicos, com limitações que devem ser respeitadas nos modelos de SEDs.
+
+O problema do produtor-consumidor é um exemplo de aplicação destas propriedades. Na ciência da computação, a concorrência entre threads sobre os mesmos recursos impõe que alguns artifícios de software e hardware sejam empregados a fim de respeitá-las. Sem estes, o desenvolvimento de aplicações computacionais com recursos compartilhados gera defeitos que são manifestados no uso. \hl{exemplificar}. Para a automação industrial, \hl{exemplificar}.
+
+Apesar de as representações de filas físicas requererem um volume mínimo de zero itens, esta pode não ser uma condição para filas abstratas. A subseção a seguir aborda estes e outros casos, em que é possível reduzir problemas abstraindo a noção de filas, servidores e consumidores.
+
+\subsection{Redução de problemas}
+
+É possível reduzir problemas à validação das propriedades supracitadas. Seja um SED com a seguinte restrição: há dois subconjuntos de eventos $E_1$ e $E_2$ tais que, em qualquer cadeia de eventos, o número de eventos pertencentes a $E_1$ menos o número de eventos pertencentes a $E_2$ é maior ou igual a $n$ e/ou menor ou igual a $m$. Pode-se modelá-lo como um sistema de filas em que os eventos de $E_1$ e $E_2$ sejam substituídos respectivamente por operações de adição e retirada de fila. Garantido que a lista tem capacidade máxima de $m - n$ itens e volume mínimo de zero itens, a restrição é satisfeita.
+
+A exemplo disso, seja o autômato da Figura \ref{fig:exemplo_reducao1}. ... O exemplo é simples, mas ilustra facilmente esta redução de problemas.
+
+\figuradoautor{Autômato para o funcionamento de uma linha de produção simples}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial] (q0) {}; 
+	\node[state] at (3,0) (q1) {};
+	\node[state] at (6,0) (q2) {};
+	\node[state] at (9,0) (q3) {};
+	\draw
+	(q0) edge[bend left, above] node{$s_1$} (q1)
+	(q1) edge[above] node{$t_1$} (q0)
+	(q1) edge[above] node{$s_2$} (q2)
+	(q2) edge[bend left, below] node{$t_2$} (q0)
+	(q2) edge[above] node{$s_1$} (q3)
+	(q3) edge[bend left, below] node{$t_1$, $s_2$} (q2)
+	(q3) edge[bend right, above] node{$t_2$} (q1);
+	\end{tikzpicture}
+}{fig:exemplo_reducao1}
+
+\figuradoautor{Autômato da Figura \ref{fig:exemplo_reducao1} reduzido para um sistema de filas}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial] (q0) {}; 
+	\node[state] at (3,0) (q1) {};
+	\node[state] at (6,0) (q2) {};
+	\node[state] at (9,0) (q3) {};
+	\draw
+	(q0) edge[bend left, above] node{$s_1$} (q1)
+	(q1) edge[above] node{$t_1$} (q0)
+	(q1) edge[above] node{$s_2$} (q2)
+	(q2) edge[bend left, below] node{$t_2$} (q0)
+	(q2) edge[above] node{$s_1$} (q3)
+	(q3) edge[bend left, below] node{$t_1$, $s_2$} (q2)
+	(q3) edge[bend right, above] node{$t_2$} (q1);
+	\end{tikzpicture}
+}{fig:exemplo_reducao1}
+
 \subsection{Aplicações}
+

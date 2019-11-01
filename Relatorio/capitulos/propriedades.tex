@@ -1,1 +1,31 @@
 \chapter{Garantia de propriedades em sistemas de filas}
+
+\hl{ESCREVER MAIS}
+
+\hl{INTRODUZIR} $G = \langle Q? ... \rangle$
+
+Precisamos de uma função $c : E^\star \to \mathbb{Z}$ que conte o número de itens armazenados em uma fila após uma cadeia de eventos $w$. Uma forma de defini-la é $$c(w) = \begin{cases}
+c(w') + 1 & \text{se $w=+w'$}\\
+c(w') - 1 & \text{se $w=-w'$}\\
+0 & \text{senão}
+\end{cases}$$
+
+A fim de facilitar a leitura dos teoremas a serem demonstrados neste capítulo, simplifiquemos a notação para a transição estendida de um estado $q$ por uma cadeia de eventos $w$ da seguinte maneira: $$qw \equiv \hat{\delta}(q,w)$$ Pelo mesmo motivo, definamos a função $t : E \to \mathbb{Z}$ desta forma: $$t(e) = \begin{cases}
+1 & \text{se $e=+$} \\
+-1 & \text{se $e=-$} \\
+0 & \text{senão}
+\end{cases}$$
+
+\section{Garantia de capacidade máxima}
+
+Existe uma função $f : Q \to \mathbb{Z}$ e um $n : \mathbb{Z}$ tal que \begin{equation}
+f(q_0) = 0 \wedge [(\forall q : Q)(\forall e : E), f(qe) \geq f(q) + t(e) \wedge f(q) \leq n]
+\end{equation} se e somente se a fila do sistema modelado por $G$ tem sempre no máximo $n$ itens.
+
+\hl{INTRODUZIR PROVA} Provemos antes o lema que segue. Para todo $f : Q \to \mathbb{Z}$\begin{equation}
+\begin{aligned}
+f(q_0) = 0 \wedge [(\forall q : Q)(\forall e : E), f(qe) \geq f(q) + t(e)]\\\Rightarrow (\forall w : E^\star), c(w) \leq f(q_0w)
+\end{aligned}
+\end{equation} A demonstração deste lema será por indução em $w$, com base $$c(\varepsilon) \leq f(q_0\varepsilon)$$ o que é verdade, pois $c(\varepsilon) = 0$ e é pressuposto que $f(q_0) = 0$.
+
+Para o passo indutivo, temos de provar que $$\forall u : E, c(wu) \leq f(q_0wu)$$ é válido a partir da hipótese de indução. Quando $u = +$ $$c(w+) = c(w) + 1 \leq f(q_0w+)$$ conforme as propriedades da soma de inteiros.

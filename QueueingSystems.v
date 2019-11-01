@@ -9,16 +9,14 @@ Require Import Omega.
 Local Open Scope Z_scope.
 
 Inductive event {E : Type} : Type :=
-  | add
-  | rem
-  | other (e : E).
+  add | rem | other (e : E).
 
 Fixpoint buffer_count {E : Type} (w : list (@event E)) : Z :=
   match w with
-  | [] => 0
-  | add::w' => buffer_count w' + 1
-  | rem::w' => buffer_count w' - 1
-  | _::w' => buffer_count w'
+  [] => 0 |
+  add::w' => buffer_count w' + 1 |
+  rem::w' => buffer_count w' - 1 |
+  _::w' => buffer_count w'
   end.
 
 Definition upper_bound {Q E : Type} (g : dfa Q (@event E)) n :=
@@ -57,12 +55,12 @@ Proof.
   - simpl. rewrite IH. reflexivity.
 Qed.
 
-Lemma extended_delta__delta: forall (Q E : Type) (g : dfa Q E) q e,
-  extended_delta g (proper_state q) [e] = (delta g) q e.
+Lemma extended_transition__transition: forall (Q E : Type) (g : dfa Q E) q e,
+  extended_transition g (proper_state q) [e] = (transition g) q e.
 Proof.
   intros Q E g q e.
   simpl.
-  destruct (delta g q e).
+  destruct (transition g q e).
   - reflexivity.
   - reflexivity.
 Qed.
@@ -71,10 +69,10 @@ Lemma buffer_count_leq_f:
   forall (Q E : Type) (g : dfa Q (@event E)) (f : @state Q->Z),
     (f(proper_state (initial_state g)) = 0 /\
       forall (q : Q),
-        f((delta g) q add) >= f(proper_state q) + 1 /\
-        f((delta g) q rem) >= f(proper_state q) - 1 /\
-        (forall (e : E), f((delta g) q (other e)) >= f(proper_state q))
-    ) -> (forall w, w ==> g -> buffer_count w <= f (extended_delta g (proper_state (initial_state g)) w)).
+        f((transition g) q add) >= f(proper_state q) + 1 /\
+        f((transition g) q rem) >= f(proper_state q) - 1 /\
+        (forall (e : E), f((transition g) q (other e)) >= f(proper_state q))
+    ) -> (forall w, w ==> g -> buffer_count w <= f (extended_transition g (proper_state (initial_state g)) w)).
 Proof.
   intros Q E g f H0 w H2.
   destruct H0 as [H0 H1].
@@ -85,29 +83,29 @@ Proof.
     apply IHw in H3.
     destruct e.
     + rewrite buffer_add.
-      assert (f (extended_delta g (proper_state (initial_state g)) (w)) + 1 <= f (extended_delta g (proper_state (initial_state g)) (w ++ [add]))).
-      { rewrite dist_extended_delta. remember (extended_delta g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
+      assert (f (extended_transition g (proper_state (initial_state g)) (w)) + 1 <= f (extended_transition g (proper_state (initial_state g)) (w ++ [add]))).
+      { rewrite dist_extended_transition. remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
         - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
           destruct eq_q.
-        - rewrite extended_delta__delta. assert (f (delta g q add) >= f (proper_state q) + 1).
+        - rewrite extended_transition__transition. assert (f (transition g q add) >= f (proper_state q) + 1).
           { apply H1. }
           omega. }
       omega.
     + rewrite buffer_rem.
-      assert (f (extended_delta g (proper_state (initial_state g)) (w)) - 1 <= f (extended_delta g (proper_state (initial_state g)) (w ++ [rem]))).
-      { rewrite dist_extended_delta. remember (extended_delta g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
+      assert (f (extended_transition g (proper_state (initial_state g)) (w)) - 1 <= f (extended_transition g (proper_state (initial_state g)) (w ++ [rem]))).
+      { rewrite dist_extended_transition. remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
         - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
           destruct eq_q.
-        - rewrite extended_delta__delta. assert (f (delta g q rem) >= f (proper_state q) - 1).
+        - rewrite extended_transition__transition. assert (f (transition g q rem) >= f (proper_state q) - 1).
           { apply H1. }
           omega. }
       omega.
     + rewrite buffer_other.
-      assert (f (extended_delta g (proper_state (initial_state g)) (w)) <= f (extended_delta g (proper_state (initial_state g)) (w ++ [other e]))).
-      { rewrite dist_extended_delta. remember (extended_delta g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
+      assert (f (extended_transition g (proper_state (initial_state g)) (w)) <= f (extended_transition g (proper_state (initial_state g)) (w ++ [other e]))).
+      { rewrite dist_extended_transition. remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
         - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
           destruct eq_q.
-        - rewrite extended_delta__delta. assert (f (delta g q (other e)) >= f (proper_state q)).
+        - rewrite extended_transition__transition. assert (f (transition g q (other e)) >= f (proper_state q)).
           { apply H1. }
           omega. }
       omega.
@@ -118,9 +116,9 @@ Theorem th1:
     (exists (f : @state Q->Z), f(proper_state (initial_state g)) = 0 /\
       forall (q : Q),
         f(proper_state q) <= n /\
-        f((delta g) q add) >= f(proper_state q) + 1 /\
-        f((delta g) q rem) >= f(proper_state q) - 1 /\
-        (forall (e : E), f((delta g) q (other e)) >= f(proper_state q))
+        f((transition g) q add) >= f(proper_state q) + 1 /\
+        f((transition g) q rem) >= f(proper_state q) - 1 /\
+        (forall (e : E), f((transition g) q (other e)) >= f(proper_state q))
     ) -> upper_bound g n.
 Proof.
   unfold upper_bound.
@@ -132,14 +130,14 @@ Proof.
     rewrite H0 in H3.
     apply H3.
   - destruct e.
-    + assert (H3 : forall w, w ==> g -> buffer_count w <= f (extended_delta g (proper_state (initial_state g)) w)).
+    + assert (H3 : forall w, w ==> g -> buffer_count w <= f (extended_transition g (proper_state (initial_state g)) w)).
       { apply buffer_count_leq_f. split.
           - apply H0. 
           - intros H3. apply H1. }
-      assert (buffer_count (w ++ [add]) <= f (extended_delta g (proper_state (initial_state g)) (w ++ [add]))).
+      assert (buffer_count (w ++ [add]) <= f (extended_transition g (proper_state (initial_state g)) (w ++ [add]))).
       { apply H3. apply H2. }
-      assert (f (extended_delta g (proper_state (initial_state g)) (w ++ [add])) <= n).
-      { remember (extended_delta g (proper_state (initial_state g)) (w ++ [add])) as q eqn:eq_q.
+      assert (f (extended_transition g (proper_state (initial_state g)) (w ++ [add])) <= n).
+      { remember (extended_transition g (proper_state (initial_state g)) (w ++ [add])) as q eqn:eq_q.
         destruct q.
         - unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q. destruct eq_q.
         - apply H1. }
@@ -157,9 +155,9 @@ Theorem th2:
     (exists (f : @state Q->Z), f(proper_state (initial_state g)) = 0 /\
       forall (q : Q),
         f(proper_state q) <= n /\
-        f((delta g) q add) >= f(proper_state q) + 1 /\
-        f((delta g) q rem) >= f(proper_state q) - 1 /\
-        (forall (e : E), f((delta g) q (other e)) >= f(proper_state q))
+        f((transition g) q add) >= f(proper_state q) + 1 /\
+        f((transition g) q rem) >= f(proper_state q) - 1 /\
+        (forall (e : E), f((transition g) q (other e)) >= f(proper_state q))
     ).
 Proof.
 (* FICA PARA O TCC 2 ;-) *)
@@ -170,9 +168,9 @@ Theorem th12:
     (exists (f : @state Q->Z), f(proper_state (initial_state g)) = 0 /\
       forall (q : Q),
         f(proper_state q) <= n /\
-        f((delta g) q add) >= f(proper_state q) + 1 /\
-        f((delta g) q rem) >= f(proper_state q) - 1 /\
-        (forall (e : E), f((delta g) q (other e)) >= f(proper_state q))
+        f((transition g) q add) >= f(proper_state q) + 1 /\
+        f((transition g) q rem) >= f(proper_state q) - 1 /\
+        (forall (e : E), f((transition g) q (other e)) >= f(proper_state q))
     ) <-> upper_bound g n.
 Proof.
   split.
