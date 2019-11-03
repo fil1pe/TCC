@@ -66,9 +66,12 @@ Na Ciência da Computação, os AFDs formam a base de alguns componentes de soft
 
 \subsection{Definição formal}
 
-A definição de \acs{AFD} que segue foi inspirada e adptada de \citeonline{hopcroft} e \citeonline{cassandras}.
+A definição de \acs{AFD} que segue foi inspirada e adaptada de \citeonline{hopcroft} e \citeonline{cassandras}.
 
-Um AFD $G$ é uma quíntupla $$\langle Q, E, \delta, q_0, Q_m \rangle$$ em que \begin{itemize}[label={}]
+Um AFD $G$ é uma quíntupla \begin{equation}
+\label{eq:afd}
+\langle Q, E, \delta, q_0, Q_m \rangle
+\end{equation} em que \begin{itemize}[label={}]
   \item $Q$ é o conjunto finito de estados
   \item $E$ é o conjunto finito de eventos
   \item $\delta:Q \times E \nrightarrow Q$ é a função de transição

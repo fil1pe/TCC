@@ -124,29 +124,19 @@ Proof.
   unfold upper_bound.
   intros Q E g n H0 w H2.
   destruct H0 as [f [H0 H1]].
-  induction w as [|e w IHw] using @rev_ind.
-  - assert (H3 : f (proper_state (initial_state g)) <= n).
+  assert (H3: buffer_count w <= f (extended_transition g (proper_state (initial_state g)) w)).
+  { apply buffer_count_leq_f.
+      - split.
+        + apply H0.
+        + intros H3. apply H1.
+      - apply H2. }
+  remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q.
+  destruct q.
+  - unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
+    destruct eq_q.
+  - assert (f (proper_state q) <= n).
     { apply H1. }
-    rewrite H0 in H3.
-    apply H3.
-  - destruct e.
-    + assert (H3 : forall w, w ==> g -> buffer_count w <= f (extended_transition g (proper_state (initial_state g)) w)).
-      { apply buffer_count_leq_f. split.
-          - apply H0. 
-          - intros H3. apply H1. }
-      assert (buffer_count (w ++ [add]) <= f (extended_transition g (proper_state (initial_state g)) (w ++ [add]))).
-      { apply H3. apply H2. }
-      assert (f (extended_transition g (proper_state (initial_state g)) (w ++ [add])) <= n).
-      { remember (extended_transition g (proper_state (initial_state g)) (w ++ [add])) as q eqn:eq_q.
-        destruct q.
-        - unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q. destruct eq_q.
-        - apply H1. }
-      omega.
-    + apply prefix_closed in H2. apply IHw in H2.
-      rewrite buffer_rem.
-      omega.
-    + apply prefix_closed in H2. apply IHw in H2.
-      rewrite buffer_other. apply H2.
+    omega.
 Qed.
 
 Theorem th2:

@@ -2,15 +2,15 @@
 
 \hl{ESCREVER MAIS}
 
-\hl{INTRODUZIR} $G = \langle Q? ... \rangle$
+Para representar as operações de adição e retirada de fila, utilizaremos os respectivos símbolos $+$ e $-$. Seja $G = \langle Q, E, \delta, q_0, Q_m \rangle$ um AFD definido conforme a equação \ref{eq:afd}, em que $E \supseteq \{ +, - \}$, queremos provar que o sistema de filas modelado por $G$ satisfaz as duas propriedades supracitadas no capítulo \ref{cap:filas}: que a fila tenha uma capacidade máxima e não seja permitido efetuar operação de retirada de item quando ela estiver vazia.
 
 Precisamos de uma função $c : E^\star \to \mathbb{Z}$ que conte o número de itens armazenados em uma fila após uma cadeia de eventos $w$. Uma forma de defini-la é $$c(w) = \begin{cases}
 c(w') + 1 & \text{se $w=+w'$}\\
 c(w') - 1 & \text{se $w=-w'$}\\
 0 & \text{senão}
-\end{cases}$$
+\end{cases}$$ Baseado nas propriedades aritméticas da soma de inteiros, podemos observar para quaisquer $w_1$ e $w_2 \in E^\star$ $$c(w_1w_2) = c(w_1) + c(w_2)$$ que será útil para a prova dos teoremas acerca das propriedades dos sistemas de filas.
 
-A fim de facilitar a leitura dos teoremas a serem demonstrados neste capítulo, simplifiquemos a notação para a transição estendida de um estado $q$ por uma cadeia de eventos $w$ da seguinte maneira: $$qw \equiv \hat{\delta}(q,w)$$ Pelo mesmo motivo, definamos a função $t : E \to \mathbb{Z}$ desta forma: $$t(e) = \begin{cases}
+A fim de facilitar a leitura dos teoremas, simplifiquemos a notação para a transição estendida de um estado $q$ por uma cadeia de eventos $w$ da seguinte maneira: $$qw \equiv \hat{\delta}(q,w)$$ Pelo mesmo motivo, definamos a função $t : E \to \mathbb{Z}$ desta forma: $$t(e) = \begin{cases}
 1 & \text{se $e=+$} \\
 -1 & \text{se $e=-$} \\
 0 & \text{senão}
@@ -18,14 +18,127 @@ A fim de facilitar a leitura dos teoremas a serem demonstrados neste capítulo, 
 
 \section{Garantia de capacidade máxima}
 
-Existe uma função $f : Q \to \mathbb{Z}$ e um $n : \mathbb{Z}$ tal que \begin{equation}
-f(q_0) = 0 \wedge [(\forall q : Q)(\forall e : E), f(qe) \geq f(q) + t(e) \wedge f(q) \leq n]
-\end{equation} se e somente se a fila do sistema modelado por $G$ tem sempre no máximo $n$ itens.
+\begin{teo}
+	\label{teo:teo1}
+	Existe uma função $f : Q \to \mathbb{Z}$ e um inteiro $n$ tal que \begin{equation*}
+	f(q_0) = 0 \wedge [(\forall q \in Q)(\forall e \in E), f(qe) \geq f(q) + t(e) \wedge f(q) \leq n]
+	\end{equation*} se e somente se a fila do sistema modelado por $G$ tem sempre no máximo $n$ itens.
+\end{teo}
 
-\hl{INTRODUZIR PROVA} Provemos antes o lema que segue. Para todo $f : Q \to \mathbb{Z}$\begin{equation}
-\begin{aligned}
-f(q_0) = 0 \wedge [(\forall q : Q)(\forall e : E), f(qe) \geq f(q) + t(e)]\\\Rightarrow (\forall w : E^\star), c(w) \leq f(q_0w)
-\end{aligned}
-\end{equation} A demonstração deste lema será por indução em $w$, com base $$c(\varepsilon) \leq f(q_0\varepsilon)$$ o que é verdade, pois $c(\varepsilon) = 0$ e é pressuposto que $f(q_0) = 0$.
+\hl{INTRODUZIR PROVA} Provemos antes o lema que segue.
 
-Para o passo indutivo, temos de provar que $$\forall u : E, c(wu) \leq f(q_0wu)$$ é válido a partir da hipótese de indução. Quando $u = +$ $$c(w+) = c(w) + 1 \leq f(q_0w+)$$ conforme as propriedades da soma de inteiros.
+\begin{lem}
+	\label{lem:lema1}
+	Para toda função $f : Q \to \mathbb{Z}$, é válido que\begin{equation*}
+	\begin{aligned}
+	f(q_0) = 0 \wedge [(\forall q \in Q)(\forall e \in E), f(qe) \geq f(q) + t(e)]\\\Rightarrow \forall w \in L(G), c(w) \leq f(q_0w)
+	\end{aligned}
+	\end{equation*}
+\end{lem}
+\begin{proof}
+A prova deste lema será por indução em $w$, tendo como base $$c(\varepsilon) \leq f(q_0\varepsilon)$$ o que é verdade, pois $c(\varepsilon) = 0$ e é pressuposto $f(q_0) = 0$.
+
+Para o passo indutivo, temos de provar que, para todo evento $u \in E$, se $ wu$ é gerada por $G$, então $$c(wu) = c(w) + t(u) \leq f(q_0wu)$$ ou \begin{equation}
+\label{eq:goallema1}
+c(w) \leq f(q_0wu) - t(u)
+\end{equation} é válido a partir da hipótese de indução.
+
+Sabemos que, se $wu$ é gerada por $G$, então o prefixo $w$ também é. Diante disso \begin{equation}
+\label{eq:hipindlema1}
+c(w) \leq f(q_0w)
+\end{equation} é obtido da hipótese de indução.
+
+Com base na hipótese do lema, obtemos \begin{equation}
+\label{eq:hiplema1}
+f(q_0w) \leq f(q_0wu) - t(u)
+\end{equation}
+
+A partir das equações \ref{eq:hipindlema1} e \ref{eq:hiplema1}, verifica-se $$c(w) \leq f(q_0w) \leq f(q_0wu) - t(u)$$ demonstrando a equação \ref{eq:goallema1}, como queríamos.
+\end{proof}
+
+\hl{INTRODUZIR PROVA $\Rightarrow$ DO TEOREMA}
+
+\begin{proof}
+Aplicando o lema \ref{lem:lema1} na hipótese do teorema, obtemos $$\forall w \in L(G), c(w) \leq f(q_0w)$$
+
+Da hipótese também temos $$f(q_0w) \leq n$$
+
+Portanto $$c(w) \leq f(q_0w) \leq n$$ como desejávamos demonstrar.
+\end{proof}
+
+A demonstração do lema 1 e teorema 1 foram auxiliadas pelo Coq.
+
+Na figura \ref{fig:ex1_teo1}, há um exemplo que ilustra um sistema de produtor e consumidor. Nela os eventos $p$ e $c$ são, respectivamente, a produção e consumo de item. Seja $f_1 : Q \to \mathbb{Z}$ uma função cuja imagem está rotulada nos nós da figura, indicando para cada estado o valor mapeado. Como $f_1$ respeita o teorema \ref{teo:teo1}, podemos concluir que o sistema modelado permite volume máximo de um item na fila.
+
+\figuradoautor{Exemplo de aplicação do teorema \ref{teo:teo1} em um sistema que atende à propriedade}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial] (q0) {$0$}; 
+	\node[state] at (3,0) (q1) {$0$};
+	\node[state] at (6,0) (q2) {$1$};
+	\node[state] at (0,-3) (q3) {$0$};
+	\node[state] at (3,-3) (q4) {$0$};
+	\node[state] at (6,-3) (q5) {$1$};
+	\draw
+	(q0) edge[above] node{$p$} (q1)
+	(q1) edge[above] node{$+$} (q2)
+	(q2) edge[above,bend left=20] node{$-$} (q3)
+	(q3) edge[below] node{$p$} (q4)
+	(q4) edge[below] node{$+$} (q5)
+	(q3) edge[left] node{$c$} (q0)
+	(q4) edge[left] node{$c$} (q1)
+	(q5) edge[left] node{$c$} (q2);
+	\end{tikzpicture}
+}{fig:ex1_teo1}
+
+Sob outra perspectiva, a figura \ref{fig:ex2_teo1} apresenta um exemplo de AFD que modela um sistema que permite, notavelmente, adição e retirada de um número indefinido de itens da fila. Supondo que tal sistema atenda à propriedade da capacidade máxima, seja $f_2 : Q \to \mathbb{Z}$ qualquer função que mapeie cada estado a um número inteiro de forma que $f_2(q_0) = 0$ e $f_2(qe) \geq f_2(q) + t(e)$ para todo evento $e \in \{+,-\}$. É fácil notar que $f_2$ não existe, pois, como $q_1e = q_1$, podemos obter o absurdo: $f(q_1) \geq f(q_1) + t(e)$. Com isso, o teorema \ref{teo:teo1} conclui que o sistema não admite capacidade máxima.
+
+\figuradoautor{Exemplo de sistema que não respeita a propriedade}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial] (q0) {$q_0$};
+	\node[state,initial] at (3,0) (q1) {$q_1$};
+	\draw
+	(q0) edge node{$+$} (q1)
+	(q1) edge[loop above] node{$+$,$-$} (q1);
+	\end{tikzpicture}
+}{fig:ex2_teo1}
+
+Além de provar que determinados sistemas de filas cumprem ou não com a especificação de uma fila com volume máximo, muitas vezes quer-se atestar a impossibilidade de efetuar operação de retirada de fila vazia. É sobre isso que trata a seção \ref{sec:vol_min}, a seguir.
+
+\section{GARANTIA DE VOLUME MÍNIMO}
+\label{sec:vol_min}
+
+Todo sistema de filas especificado com base em \citeonline{cassandras} deve impedir a remoção de itens de filas quando estas forem vazias. Isso é em razão do caráter físico e não abstrato com que se configuram as filas por aquela ótica. Mesmo para filas abstratas, pode ser interessante que esta propriedade seja respeitada. A fim de garantir isso, o teorema \ref{teo:teo2} nos possibilita obter resposta à pergunta: a fila tem volume mínimo de zero itens?
+
+\begin{teo}
+	\label{teo:teo2}
+	Existe uma função $f : Q \to \mathbb{Z}$ tal que \begin{equation*}
+	f(q_0) = 0 \wedge [(\forall q \in Q)(\forall e \in E), f(qe) \leq f(q) + t(e) \wedge f(q) \geq 0]
+	\end{equation*} se e somente se a fila do sistema modelado por $G$ nunca tem volume negativo.
+\end{teo}
+
+Considerando o autômato da figura \ref{fig:ex1_teo2}, verificamos que o sistema nela representado tem uma fila que respeita esta propriedade, embora não garanta capacidade máxima. Tomando a função $f_3 : Q \to \mathbb{Z}$ rotulada nos nós da figura, pode-se notar que ela respeita o teorema \ref{teo:teo2}, evidenciando que tal SED foi modelado de modo a não permitir o evento $-$ nos momentos em que a fila está vazia.
+
+\figuradoautor{Exemplo de sistema que atende à propriedade}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial] (q0) {$0$};
+	\node[state] at (3,0) (q1) {$1$};
+	\node[state] at (1.5,-1.5) (q2) {$0$};
+	\draw
+	(q0) edge node{$+$} (q1)
+	(q1) edge node{$-$} (q2)
+	(q2) edge node{$+$} (q0);
+	\end{tikzpicture}
+}{fig:ex1_teo2}
+
+\figuradoautor{Exemplo de sistema que atende à propriedade}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state,initial] (q0) {$0$};
+	\node[state] at (3,0) (q1) {$1$};
+	\node[state] at (1.5,-1.5) (q2) {$0$};
+	\draw
+	(q0) edge node{$-$} (q1)
+	(q1) edge node{$+$} (q2)
+	(q2) edge node{$-$} (q0);
+	\end{tikzpicture}
+}{fig:ex1_teo2}
+
