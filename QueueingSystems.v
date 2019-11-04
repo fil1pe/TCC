@@ -11,48 +11,29 @@ Local Open Scope Z_scope.
 Inductive event {E : Type} : Type :=
   add | rem | other (e : E).
 
-Fixpoint buffer_count {E : Type} (w : list (@event E)) : Z :=
+Definition count_event {E : Type} (e : @event E) : Z :=
+  match e with
+  add => 1  |
+  rem => -1 |
+  other e' => 0
+  end.
+
+Fixpoint count_buffer {E : Type} (w : list (@event E)) : Z :=
   match w with
   [] => 0 |
-  add::w' => buffer_count w' + 1 |
-  rem::w' => buffer_count w' - 1 |
-  _::w' => buffer_count w'
+  e::w' => count_event e + count_buffer w'
   end.
 
 Definition upper_bound {Q E : Type} (g : dfa Q (@event E)) n :=
-  forall w, w ==> g -> buffer_count w <= n.
+  forall w, g ==> w -> count_buffer w <= n.
 
-Lemma buffer_add: forall (E : Type) (w : list (@event E)),
-  buffer_count (w ++ [add]) = buffer_count w + 1.
+Lemma buffer_change: forall (E : Type) (w : list (@event E)) (e : @event E),
+  count_buffer (w ++ [e]) = count_buffer w + count_event e.
 Proof.
-  intros E w.
-  induction w as [|e w IH].
-  - reflexivity.
-  - simpl. rewrite IH. destruct e.
-    + reflexivity.
-    + omega.
-    + omega.
-Qed.
-
-Lemma buffer_rem: forall (E : Type) (w : list (@event E)),
-  buffer_count (w ++ [rem]) = buffer_count w - 1.
-Proof.
-  intros E w.
-  induction w as [|e w IH].
-  - reflexivity.
-  - simpl. rewrite IH. destruct e.
-    + omega.
-    + reflexivity.
-    + omega.
-Qed.
-
-Lemma buffer_other: forall (E : Type) (w : list (@event E)) (e : E),
-  buffer_count (w ++ [other e]) = buffer_count w.
-Proof.
-  intros E w c.
-  induction w as [|e w IH].
-  - reflexivity.
-  - simpl. rewrite IH. reflexivity.
+  intros E w e.
+  induction w as [|e' w IH].
+  - simpl. omega.
+  - simpl. rewrite IH. omega.
 Qed.
 
 Lemma extended_transition__transition: forall (Q E : Type) (g : dfa Q E) q e,
@@ -72,43 +53,25 @@ Lemma buffer_count_leq_f:
         f((transition g) q add) >= f(proper_state q) + 1 /\
         f((transition g) q rem) >= f(proper_state q) - 1 /\
         (forall (e : E), f((transition g) q (other e)) >= f(proper_state q))
-    ) -> (forall w, w ==> g -> buffer_count w <= f (extended_transition g (proper_state (initial_state g)) w)).
+    ) -> (forall w, g ==> w -> count_buffer w <= f (extended_transition g (proper_state (initial_state g)) w)).
 Proof.
   intros Q E g f H0 w H2.
   destruct H0 as [H0 H1].
   induction w as [|e w IHw] using @rev_ind.
   - simpl. omega.
-  - assert (H3 : w ==> g).
+  - assert (H3 : g ==> w).
     { apply prefix_closed in H2. apply H2. }
     apply IHw in H3.
-    destruct e.
-    + rewrite buffer_add.
-      assert (f (extended_transition g (proper_state (initial_state g)) (w)) + 1 <= f (extended_transition g (proper_state (initial_state g)) (w ++ [add]))).
-      { rewrite dist_extended_transition. remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
-        - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
-          destruct eq_q.
-        - rewrite extended_transition__transition. assert (f (transition g q add) >= f (proper_state q) + 1).
-          { apply H1. }
-          omega. }
-      omega.
-    + rewrite buffer_rem.
-      assert (f (extended_transition g (proper_state (initial_state g)) (w)) - 1 <= f (extended_transition g (proper_state (initial_state g)) (w ++ [rem]))).
-      { rewrite dist_extended_transition. remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
-        - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
-          destruct eq_q.
-        - rewrite extended_transition__transition. assert (f (transition g q rem) >= f (proper_state q) - 1).
-          { apply H1. }
-          omega. }
-      omega.
-    + rewrite buffer_other.
-      assert (f (extended_transition g (proper_state (initial_state g)) (w)) <= f (extended_transition g (proper_state (initial_state g)) (w ++ [other e]))).
-      { rewrite dist_extended_transition. remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
-        - apply prefix_closed in H2. unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
-          destruct eq_q.
-        - rewrite extended_transition__transition. assert (f (transition g q (other e)) >= f (proper_state q)).
-          { apply H1. }
-          omega. }
-      omega.
+    rewrite dist_extended_transition.
+    rewrite buffer_change.
+    remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q. destruct q.
+    + apply prefix_closed in H2. unfold generated_by in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q. destruct eq_q.
+    + rewrite extended_transition__transition. assert (f (transition g q e) >= f (proper_state q) + count_event e).
+      { destruct e.
+        - simpl. apply H1.
+        - simpl. apply H1.
+        - simpl. Search plus. replace (f (proper_state q) + 0) with (f (proper_state q)). apply H1. omega. }
+    omega.
 Qed.
 
 Theorem th1:
@@ -124,7 +87,7 @@ Proof.
   unfold upper_bound.
   intros Q E g n H0 w H2.
   destruct H0 as [f [H0 H1]].
-  assert (H3: buffer_count w <= f (extended_transition g (proper_state (initial_state g)) w)).
+  assert (H3: count_buffer w <= f (extended_transition g (proper_state (initial_state g)) w)).
   { apply buffer_count_leq_f.
       - split.
         + apply H0.
@@ -132,7 +95,7 @@ Proof.
       - apply H2. }
   remember (extended_transition g (proper_state (initial_state g)) w) as q eqn:eq_q.
   destruct q.
-  - unfold in_language in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
+  - unfold generated_by in H2. unfold not in H2. symmetry in eq_q. apply H2 in eq_q.
     destruct eq_q.
   - assert (f (proper_state q) <= n).
     { apply H1. }

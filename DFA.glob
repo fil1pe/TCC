@@ -1,4 +1,4 @@
-DIGEST b52dc13034b70df5674cc55e08c657fb
+DIGEST ba7979e6297d39763d0b5ef7ff831028
 FDFA
 R15:28 Coq.Lists.List <> <> lib
 ind 151:155 <> state
@@ -67,37 +67,37 @@ R1072:1072 DFA <> g var
 R1049:1049 DFA <> g var
 R1257:1282 DFA <> transition_over_sink_state thm
 R1257:1282 DFA <> transition_over_sink_state thm
-def 1361:1371 <> in_language
-R1391:1393 DFA <> dfa rec
-R1397:1397 DFA <> E var
-R1395:1395 DFA <> Q var
-R1414:1415 Coq.Init.Logic <> :type_scope:'~'_x not
-R1472:1474 Coq.Init.Logic <> :type_scope:x_'='_x not
-R1416:1434 DFA <> extended_transition def
-R1471:1471 DFA <> w var
-R1439:1450 DFA <> proper_state constr
-R1453:1465 DFA <> initial_state proj
-R1467:1467 DFA <> g var
-R1436:1436 DFA <> g var
-R1475:1484 DFA <> sink_state constr
-R1513:1523 DFA <> in_language def
-not 1497:1497 <> ::x_'==>'_x
-prf 1562:1574 <> prefix_closed
-R1604:1606 DFA <> dfa rec
-R1610:1610 DFA <> E var
-R1608:1608 DFA <> Q var
-R1638:1641 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R1643:1647 DFA <> ::x_'==>'_x not
-R1648:1648 DFA <> g var
-R1642:1642 DFA <> w var
-R1623:1623 DFA <> ::x_'==>'_x not
-R1631:1636 DFA <> ::x_'==>'_x not
-R1637:1637 DFA <> g var
-R1625:1628 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R1624:1624 DFA <> w var
-R1629:1630 DFA <> w' var
-R1667:1677 DFA <> in_language def
-R1680:1682 Coq.Init.Logic <> not def
-R1722:1745 DFA <> dist_extended_transition thm
-R1722:1745 DFA <> dist_extended_transition thm
-R1722:1745 DFA <> dist_extended_transition thm
+def 1361:1372 <> generated_by
+R1392:1394 DFA <> dfa rec
+R1398:1398 DFA <> E var
+R1396:1396 DFA <> Q var
+R1415:1416 Coq.Init.Logic <> :type_scope:'~'_x not
+R1473:1475 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1417:1435 DFA <> extended_transition def
+R1472:1472 DFA <> w var
+R1440:1451 DFA <> proper_state constr
+R1454:1466 DFA <> initial_state proj
+R1468:1468 DFA <> g var
+R1437:1437 DFA <> g var
+R1476:1485 DFA <> sink_state constr
+R1514:1525 DFA <> generated_by def
+not 1498:1498 <> ::x_'==>'_x
+prf 1564:1576 <> prefix_closed
+R1606:1608 DFA <> dfa rec
+R1612:1612 DFA <> E var
+R1610:1610 DFA <> Q var
+R1640:1643 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R1645:1649 DFA <> ::x_'==>'_x not
+R1644:1644 DFA <> g var
+R1650:1650 DFA <> w var
+R1626:1631 DFA <> ::x_'==>'_x not
+R1639:1639 DFA <> ::x_'==>'_x not
+R1625:1625 DFA <> g var
+R1633:1636 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R1632:1632 DFA <> w var
+R1637:1638 DFA <> w' var
+R1669:1680 DFA <> generated_by def
+R1683:1685 Coq.Init.Logic <> not def
+R1725:1748 DFA <> dist_extended_transition thm
+R1725:1748 DFA <> dist_extended_transition thm
+R1725:1748 DFA <> dist_extended_transition thm

@@ -16,7 +16,7 @@ SEDs são comumente representados por redes de Petri e autômatos determinístic
 
 \section{Autômatos finitos determinísticos}
 
-Autômato -- palavra derivada do termo em latim \textit{automatu} -- é ``maquinismo que se move por meios mecânicos'' e ``(...) imita os movimentos humanos'' \cite[p. 81]{aurelio}. Esse termo tem sido usado na Ciência da Computação desde a década de 1930 para descrever importantes modelos da Teoria dos Autômatos, que aborda máquinas de Turing, por exemplo. Nesse contexto, um autômato é uma máquina abstrata descrita matematicamente e idealizada em termos de limitações físicas \cite{hopcroft}.
+Autômato -- palavra derivada do termo em latim \textit{automatu} -- é ``maquinismo que se move por meios mecânicos'' e ``imita os movimentos humanos'' \cite[p. 81]{aurelio}. Esse termo tem sido usado na ciência da computação desde a década de 1930 para descrever importantes modelos da Teoria dos Autômatos, que aborda máquinas de Turing, por exemplo. Nesse contexto, um autômato é uma máquina abstrata descrita matematicamente e idealizada em termos de limitações físicas \cite{hopcroft}.
 
 Um autômato finito determinístico (\acs{AFD}), ou máquina de estados finitos determinística, é uma máquina dotada de fita, unidade de controle e função de transição. A fita de um autômato é um espaço ilimitado utilizado para armazenar uma sequência de símbolos que serão lidos e computados. Já a unidade de controle contém as variáveis do estado atual da máquina, que servem de parâmetro para a computação da função de transição. Para determinar o estado de um autômato, há uma cabeça de leitura sobre a fita e um conjunto de elementos abstratos que norteiam a evolução do funcionamento da máquina: os estados \cite{hopcroft}. A Figura \ref{fig:afd_componentes} esquematiza a transição de estado de um AFD com a cabeça de leitura inicialmente posicionada sobre a segunda célula da fita.
 
@@ -73,7 +73,7 @@ Um AFD $G$ é uma quíntupla \begin{equation}
 \langle Q, E, \delta, q_0, Q_m \rangle
 \end{equation} em que \begin{itemize}[label={}]
   \item $Q$ é o conjunto finito de estados
-  \item $E$ é o conjunto finito de eventos
+  \item $E$ é o conjunto finito de símbolos ou eventos
   \item $\delta:Q \times E \nrightarrow Q$ é a função de transição
   \item $q_0 $ é o estado inicial
   \item $Q_m \subseteq Q$ é o conjunto de estados marcados
@@ -110,7 +110,7 @@ Nesta classe de diagramas, os estados inicial e final podem ser destacados de al
     \end{tikzpicture}
 }{fig:afd_estado_inicial}
 
-Pode-se citar outros aspectos desta representação de autômatos: a possibilidade de adicionar rótulos aos nós, a opção de omitir os nomes dos estados nos nós quando não forem necessários e a aglutinação de transições que partem e terminam no mesmo estado em uma mesma aresta, com os símbolos neste trabalho separados por vírgula.
+Pode-se citar outros aspectos desta representação de autômatos: a possibilidade de adicionar rótulos aos nós, a opção de omitir os nomes dos estados nos nós quando não forem necessários e a aglutinação de transições que partem e terminam no mesmo estado em uma mesma aresta, com os símbolos separados por vírgula.
 
 \subsection{Linguagem marcada}
 
@@ -147,7 +147,10 @@ Haja vista que não é possível formular funções parciais no assistente de pr
 
 O autômato $G$ é muito semelhante ao $$G' = \langle Q \cup \{ \otimes \}, E, \delta', q_0, Q_m \rangle$$ uma vez que a única diferença entre eles é que, em $G'$, ao realizar-se uma transição que seria indefinida em $G$, alcança-se um estado do qual não se pode sair.
 
-Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do que se estabeleceu como linguagem gerada anteriormente. Pode-se, não obstante, modificar a definição dela de forma que $G$ e $G'$ sejam equivalentes em se tratando de linguagens: \begin{equation}L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_0, w) \neq \otimes \}\end{equation} é a linguagem gerada pelo autômato $G'$. Então $$L'(G') = L'(G) = L(G)$$
+Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do que se estabeleceu como linguagem gerada anteriormente. Pode-se, não obstante, modificar a definição dela de forma que $G$ e $G'$ sejam equivalentes em se tratando de linguagens: \begin{equation}
+\label{eq:ling_ralo}
+L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_0, w) \neq \otimes \}
+\end{equation} é a linguagem gerada pelo autômato $G'$. Então $$L'(G') = L'(G) = L(G)$$
 
 É possível visualizar as formulações de um AFD usando função de transição parcial e total na Figura \ref{fig:afd_funcao_total}, que a exemplifica para um AFD de alfabeto $\{ a, b \}$.
 
@@ -174,31 +177,31 @@ Como a função $\delta'$ é total, tem-se que $$L(G') = E^\star$$ em termos do 
 
 \hl{E OS BLOQUEIOS?}
 
-É evidente que um AFD cuja função de transição não é total pode ser modelado matematicamente utilizando funções totais. Isso é importante para que se possa representá-lo na linguagem do Coq.
+Isso posto, é evidente que um AFD cuja função de transição não é total pode ser modelado matematicamente utilizando funções totais. Esse fato é importante para que se possa representá-lo na linguagem do Coq.
 
 \subsection{Formulação em Coq}
 
 Todas as definições acerca de AFDs supracitadas utilizam conjuntos, mas, para representar os autômatos no assistente de provas Coq, é necessário que sejam usados tipos. Assim, estados e eventos terão tipos específicos.
 
-Conforme a subseção 3.1.5, a formulação de AFDs em Coq precisa considerar o estado de ralo para que a função de transição seja sempre total. Nesse sentido, pode-se definir os estados como do seguinte tipo paramétrico: $$\text{\texttt{Inductive state \{Q : Type\} := sink\_state | proper\_state (q : Q).}}$$ sendo \textit{proper state} -- estado próprio -- qualquer estado do autômato exceto o de ralo. Ao invés de usar apenas o tipo \texttt{Q}, essa definição é importante para facilitar a caracterização das linguagens geradas, já que o estado de ralo tem de estar bem delimitado para defini-las, como demonstra a equação 3.1.
+Conforme a subseção 3.1.5, a formulação de AFDs em Coq precisa considerar o estado de ralo para que a função de transição seja sempre total. Nesse sentido, pode-se definir os estados como do seguinte tipo paramétrico: $$\text{\texttt{Inductive state \{Q : Type\} := sink\_state | proper\_state (q : Q).}}$$ sendo \textit{proper state} -- estado próprio -- qualquer estado do autômato exceto o de ralo. Ao invés de usar apenas o tipo \texttt{Q}, essa definição é importante para facilitar a caracterização das linguagens geradas, já que o estado de ralo tem de estar bem delimitado para defini-las, como demonstra a equação \ref{eq:ling_ralo}.
 
 A função de transição será do tipo \texttt{Q$\rightarrow$E$\rightarrow$state}, e não \texttt{state$\rightarrow$E$\rightarrow$state}, o que permitiria quaisquer transições partindo do estado de ralo. Ademais, é importante especificar quais estados são marcados com uma função do tipo \texttt{Q$\rightarrow$bool} que retorna \texttt{true} se e somente se o estado for marcado.
 
-Com isso, um autômato determinístico \texttt{g : dfa} é uma quíntupla $$\langle\texttt{Q}, \texttt{E}, \texttt{transition}, \texttt{initial\_state}, \texttt{is\_marked}\rangle$$ em que: \begin{itemize}[label={}]
-	\item \texttt{Q} é o tipo dos estados próprios
-	\item \texttt{E} é o tipo dos eventos
-	\item  \texttt{transition : Q$\rightarrow$E$\rightarrow$@state Q} é a função de transição
-	\item \texttt{initial\_state : Q} é o estado inicial
-	\item \texttt{is\_marked : Q$\rightarrow$bool} é a função de demarcação dos estados
+Com isso, um autômato determinístico \texttt{g : dfa} terá estes elementos: \begin{itemize}
+	\item \texttt{Q}: o tipo dos estados próprios
+	\item \texttt{E}: o tipo dos eventos
+	\item  \texttt{transition : Q$\rightarrow$E$\rightarrow$@state Q}: a função de transição
+	\item \texttt{initial\_state : Q}: o estado inicial
+	\item \texttt{is\_marked : Q$\rightarrow$bool}: a função de demarcação dos estados
 \end{itemize}
 
-Essa definição permite que [instâncias] do tipo \texttt{dfa} sejam, com efeito, autômatos infinitos determinísticos -- se o tipo \texttt{Q} for o tipo dos números naturais, por exemplo. O presente trabalho, porém, assume que os tipos dos estados e eventos são sempre finitos. A implementação do tipo \texttt{dfa} proposta é apresentada pela Figura \ref{fig:dfa_record}.
+Essa definição permite que \hl{instâncias} do tipo \texttt{dfa} sejam, com efeito, autômatos infinitos determinísticos. O presente trabalho, porém, assume que os tipos dos estados e eventos são sempre finitos. A implementação do tipo \texttt{dfa} proposta é apresentada pela Figura \ref{fig:dfa_record}.
 
-\figuradoautor{Implementação do tipo dos AFDs}{
+\figuradoautor{Implementação do tipo dos AFDs em Coq}{
 	\includegraphics[width=8cm]{figuras/dfa_record.png}
 }{fig:dfa_record}
 
-Toda sequência de eventos será representada por uma lista, e a função de transição estendida \texttt{extended\_transition} será do tipo \texttt{dfa$\rightarrow$@state Q$\rightarrow$list E$\rightarrow$@state Q} e definida recursivamente. Se o estado de origem for o de ralo, ele será o retorno da função; senão, \texttt{extended\_transition} computará a função de transição para a cabeça da lista de eventos e fará recursão destarte: \begin{gather*}
+Toda sequência de eventos será representada por uma lista, e a função de transição estendida \texttt{extended\_transition} será do tipo \texttt{dfa$\rightarrow$@state Q$\rightarrow$list E$\rightarrow$@state Q} e definida recursivamente. Se o estado de origem for o de ralo, ele será o próprio retorno da função; senão, \texttt{extended\_transition} computará a função de transição para a cabeça da lista de eventos e fará recursão destarte: \begin{gather*}
 \texttt{extended\_transition g (proper\_state q) [] = proper\_state q;}\\\texttt{extended\_transition g (proper\_state q) e::w =}\\\texttt{extended\_transition g (transition q e) w}\end{gather*}
 
-Dir-se-á que uma lista de eventos \texttt{w} está na linguagem gerada por \texttt{g}, ou \texttt{w ==> g}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w != sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a equação 3.1.
+Por definição, uma lista de eventos \texttt{w} será gerada por \texttt{g}, ou \texttt{g ==> w}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w != sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a equação \ref{eq:ling_ralo}. Sendo $G$ o AFD definido conforme a equação \ref{eq:afd} e equivalente ao \texttt{g}, podemos notar $$L(G) = \{ a_1a_2...a_n \in E^\star \mid \texttt{g ==> [$a_1$;$a_2$;$...$;$a_n$]} \}$$ evidenciando a correlação entre as diferentes definições supracitadas para a mesma classe de máquinas abstratas.

@@ -51,16 +51,16 @@ Qed.
 
 (* Generated language: *)
 
-Definition in_language {Q E : Type} (g : dfa Q E) w : Prop :=
+Definition generated_by {Q E : Type} (g : dfa Q E) w : Prop :=
   ~ extended_transition g (proper_state (initial_state g)) w = sink_state.
 
-Notation " x ==> g " := (in_language g x) (at level 60). (* ? *)
+Notation " g ==> w " := (generated_by g w) (at level 60). (* ? *)
 
 Theorem prefix_closed:
   forall (Q E : Type) (g : dfa Q E) w w',
-    (w ++ w') ==> g -> w ==> g.
+    g ==> (w ++ w') -> g ==> w.
 Proof.
-  unfold in_language, not.
+  unfold generated_by, not.
   intros Q E g w w' H0 H1.
   rewrite dist_extended_transition in H0. rewrite H1 in H0. apply H0.
   destruct w'. reflexivity. reflexivity.
@@ -69,10 +69,7 @@ Qed.
 (*
 Example:
 
-Inductive states1 : Type :=
-  q0 (* initial state *) |
-  q1 |
-  q2 (* final state *).
+Inductive states1 : Type := q0 | q1 | q2.
 
 Inductive events1 : Type := a | b.
 
@@ -97,9 +94,9 @@ Check dfa1.
 
 Compute extended_transition dfa1 (proper_state q0) [a;b;a;b;a;b].
 
-Theorem dfa1_test1 : [a;b;a;b;a;b] ==> dfa1.
+Theorem dfa1_test1 : dfa1 ==> [a;b;a;b;a;b].
 Proof.
-  unfold in_language.
+  unfold generated_by.
   unfold not.
   intros H.
   discriminate H.
