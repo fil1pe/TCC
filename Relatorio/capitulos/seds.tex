@@ -130,19 +130,20 @@ Denomina-se linguagem regular a linguagem marcada por qualquer AFD \cite{hopcrof
     \end{tikzpicture}
 }{fig:afd_pares}
 
-Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, \citeonline{cassandras} \hl{...}
+Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, alcançar um estado marcado implica a conclusão de alguma tarefa \cite{cassandras}. A impossibilidade de concluir tarefas, os bloqueios ocorrem quando não é possível sair de um estado não marcado e chegar a um marcado, tema da subseção seguinte, \ref{subsec:ling_ger}.
 
 \subsection{Linguagem gerada e bloqueios}
+\label{subsec:ling_ger}
 
 A linguagem gerada por um AFD $G$ é o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado definido.
 
-Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \varnothing$, diz-se que há um \textit{deadlock}. Um \textit{livelock} se configura quando não é possível alcançar, a partir de um estado a que se chegou, um estado marcado. Se qualquer bloqueio acontece, tem-se que $$\overline{L_m(G)} \subset L(G)$$ em que $\overline{L_m(G)}$ é o conjunto de todos os prefixos de todas as cadeias pertencentes a $L_m(G)$, ou $$\overline{L_m(G)} = \{ w \in E^\star \mid \exists w' \in E^\star, w w' \in L_m(G) \}$$ Isso é devido a \hl{...} \cite{cassandras}.
+Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \varnothing$, diz-se que há um \textit{deadlock}, já que não existe evento que pode ser executado a partir de $q$. Um \textit{livelock} se configura quando, mesmo não havendo \textit{deadlock}, não é possível alcançar um estado marcado. Se qualquer bloqueio acontece $$\overline{L_m(G)} \subset L(G)$$ em que $\overline{L_m(G)}$ é o conjunto de todos os prefixos de todas as cadeias pertencentes a $L_m(G)$, ou $$\overline{L_m(G)} = \{ w \in E^\star \mid \exists w' \in E^\star, w w' \in L_m(G) \}$$ Isso é devido à constatação de que, tendo sido executada uma cadeia de eventos $w \in E^\star$ e estando em um bloqueio, $w$ pertencerá a $L(G)$, mas não será prefixo de alguma cadeia da linguagem marcada: não haverá $w' \in E^\star$ tal que $ww' \in L_m(G)$, por definição \cite{cassandras}.
 
 \subsection{Função de transição total}
 
 Haja vista que não é possível formular funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é impreterível alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \rightarrow Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
-\delta(q, e) & se$ $q \in Q \wedge \delta(q, e) \in Q \\
-\otimes & se$ $q \not\in Q \vee \delta(q, e) \not\in Q
+\delta(q, e) & \text{se $\delta(q, e) \in Q$} \\
+\otimes & \text{senão}
 \end{cases}$$ em que $\otimes$ é um estado novo, não pertencente a $Q$: o estado de ralo.
 
 O autômato $G$ é muito semelhante ao $$G' = \langle Q \cup \{ \otimes \}, E, \delta', q_0, Q_m \rangle$$ uma vez que a única diferença entre eles é que, em $G'$, ao realizar-se uma transição que seria indefinida em $G$, alcança-se um estado do qual não se pode sair.
@@ -175,8 +176,6 @@ L'(G') = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \wedge \hat{\delta}(q_
 	\end{tikzpicture}}
 }{fig:afd_funcao_total}
 
-\hl{E OS BLOQUEIOS?}
-
 Isso posto, é evidente que um AFD cuja função de transição não é total pode ser modelado matematicamente utilizando funções totais. Esse fato é importante para que se possa representá-lo na linguagem do Coq.
 
 \subsection{Formulação em Coq}
@@ -189,19 +188,24 @@ A função de transição será do tipo \texttt{Q$\rightarrow$E$\rightarrow$stat
 
 Com isso, um autômato determinístico \texttt{g : dfa} terá estes elementos: \begin{itemize}
 	\item \texttt{Q}: o tipo dos estados próprios
-	\item \texttt{E}: o tipo dos eventos
-	\item  \texttt{transition : Q$\rightarrow$E$\rightarrow$@state Q}: a função de transição
+	\item \texttt{E}: o tipo dos símbolos ou eventos
+	\item  \texttt{transition : Q$\to$E$\to$@state Q}: a função de transição
 	\item \texttt{initial\_state : Q}: o estado inicial
-	\item \texttt{is\_marked : Q$\rightarrow$bool}: a função de demarcação dos estados
+	\item \texttt{is\_marked : Q$\to$bool}: a função de demarcação dos estados
 \end{itemize}
 
-Essa definição permite que \hl{instâncias} do tipo \texttt{dfa} sejam, com efeito, autômatos infinitos determinísticos. O presente trabalho, porém, assume que os tipos dos estados e eventos são sempre finitos. A implementação do tipo \texttt{dfa} proposta é apresentada pela Figura \ref{fig:dfa_record}.
+Esta definição permite que \hl{instâncias} do tipo \texttt{dfa} sejam, com efeito, autômatos infinitos determinísticos. O presente trabalho, porém, assume que os tipos dos estados e eventos são sempre finitos. A implementação do tipo \texttt{dfa} proposta é apresentada pela Figura \ref{fig:dfa_record}.
 
 \figuradoautor{Implementação do tipo dos AFDs em Coq}{
 	\includegraphics[width=8cm]{figuras/dfa_record.png}
 }{fig:dfa_record}
 
+A definição de AFD anterior é equivalente a esta. Sejam $q_1$, $q_2$, $...$ e $q_n$, $q^*$ e $e_1$, $e_2$, $...$ e $e_m$, respectivamente, todos os estados, o estado inicial e todos os possíveis símbolos de um AFD, podemos construir os tipos que seguem: $$\texttt{Inductive Q := $q_1$ | $q_2$ | $...$ | $q_n$.}$$ $$\texttt{Inductive E := $e_1$ | $e_2$ | $...$ | $e_m$.}$$ que são os respectivos tipos dos estados e eventos do autômato na definição para o Coq. Seja $\delta : \{ q_1, q_2, ..., q_n, \otimes \} \times \{ e_1, e_2, ..., e_m \} \to \{ q_1, q_2, ..., q_n, \otimes \}$ a função de transição de estados tal que $$\delta(q, e) = \begin{cases}
+q' & \text{se $q \neq \otimes$ e \texttt{transition $q$ $e$ $=$ proper\_state $q'$}} \\
+\otimes & \text{senão}
+\end{cases}$$ ou, por outro lado, seja \texttt{transition : Q$\to$E$\to$@state Q} definida de acordo com o quadro \ref{quad:transition}. Além disso, determinemos o conjunto de estados marcados: $$Q_m = \{ q_i \mid i \in \{ 1, 2, ..., n \} \wedge \texttt{is\_marked $q_i$ $=$ true} \}$$ ou, de outra parte, construamos a função \texttt{is\_marked} com base no quadro \ref{quad:is_marked}. O autômato $\langle \{ q_1, q_2, ..., q_n \}, \{ e_1, e_2, ..., e_m \}, \delta, q^*, Q_m \rangle$ pode ser formulado em termos dos elementos \texttt{Q}, \texttt{E}, \texttt{transition} e \texttt{is\_marked} e vice-versa.
+
 Toda sequência de eventos será representada por uma lista, e a função de transição estendida \texttt{extended\_transition} será do tipo \texttt{dfa$\rightarrow$@state Q$\rightarrow$list E$\rightarrow$@state Q} e definida recursivamente. Se o estado de origem for o de ralo, ele será o próprio retorno da função; senão, \texttt{extended\_transition} computará a função de transição para a cabeça da lista de eventos e fará recursão destarte: \begin{gather*}
 \texttt{extended\_transition g (proper\_state q) [] = proper\_state q;}\\\texttt{extended\_transition g (proper\_state q) e::w =}\\\texttt{extended\_transition g (transition q e) w}\end{gather*}
 
-Por definição, uma lista de eventos \texttt{w} será gerada por \texttt{g}, ou \texttt{g ==> w}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w != sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a equação \ref{eq:ling_ralo}. Sendo $G$ o AFD definido conforme a equação \ref{eq:afd} e equivalente ao \texttt{g}, podemos notar $$L(G) = \{ a_1a_2...a_n \in E^\star \mid \texttt{g ==> [$a_1$;$a_2$;$...$;$a_n$]} \}$$ evidenciando a correlação entre as diferentes definições supracitadas para a mesma classe de máquinas abstratas.
+Por definição, uma lista de eventos \texttt{w} será gerada por \texttt{g}, ou \texttt{g ==> w}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w != sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a equação \ref{eq:ling_ralo}. Sendo $G$ o AFD definido conforme a equação \ref{eq:afd} e equivalente ao \texttt{g}, podemos notar $$L(G) = \{ a_1a_2...a_n \in E^\star \mid \texttt{g ==> [$a_1$;$a_2$;$...$;$a_n$]} \}$$ evidenciando também a correlação entre as diferentes definições supracitadas para a mesma classe de máquinas abstratas.
