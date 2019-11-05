@@ -26,6 +26,16 @@ Fixpoint extended_transition {Q E : Type} (g : dfa Q E) q w : state :=
                         end
   end.
 
+Lemma extended_transition__transition: forall (Q E : Type) (g : dfa Q E) q e,
+  extended_transition g (proper_state q) [e] = (transition g) q e.
+Proof.
+  intros Q E g q e.
+  simpl.
+  destruct (transition g q e).
+  - reflexivity.
+  - reflexivity.
+Qed.
+
 Lemma transition_over_sink_state:
   forall (Q E : Type) (g : dfa Q E) w,
     extended_transition g sink_state w = sink_state.

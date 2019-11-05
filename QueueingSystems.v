@@ -36,16 +36,6 @@ Proof.
   - simpl. rewrite IH. omega.
 Qed.
 
-Lemma extended_transition__transition: forall (Q E : Type) (g : dfa Q E) q e,
-  extended_transition g (proper_state q) [e] = (transition g) q e.
-Proof.
-  intros Q E g q e.
-  simpl.
-  destruct (transition g q e).
-  - reflexivity.
-  - reflexivity.
-Qed.
-
 Lemma buffer_count_leq_f:
   forall (Q E : Type) (g : dfa Q (@event E)) (f : @state Q->Z),
     (f(proper_state (initial_state g)) = 0 /\
@@ -70,7 +60,7 @@ Proof.
       { destruct e.
         - simpl. apply H1.
         - simpl. apply H1.
-        - simpl. Search plus. replace (f (proper_state q) + 0) with (f (proper_state q)). apply H1. omega. }
+        - simpl. replace (f (proper_state q) + 0) with (f (proper_state q)). apply H1. omega. }
     omega.
 Qed.
 

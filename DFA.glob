@@ -1,4 +1,4 @@
-DIGEST ba7979e6297d39763d0b5ef7ff831028
+DIGEST 3176410032dc7f3992cec6c9a2d8d231
 FDFA
 R15:28 Coq.Lists.List <> <> lib
 ind 151:155 <> state
@@ -37,67 +37,85 @@ R623:641 DFA <> extended_transition def
 R647:656 DFA <> transition proj
 R658:658 DFA <> g var
 R643:643 DFA <> g var
-prf 712:737 <> transition_over_sink_state
-R767:769 DFA <> dfa rec
-R773:773 DFA <> E var
-R771:771 DFA <> Q var
-R817:819 Coq.Init.Logic <> :type_scope:x_'='_x not
-R783:801 DFA <> extended_transition def
-R816:816 DFA <> w var
-R805:814 DFA <> sink_state constr
-R803:803 DFA <> g var
-R820:829 DFA <> sink_state constr
-prf 915:938 <> dist_extended_transition
-R968:970 DFA <> dfa rec
-R974:974 DFA <> E var
-R972:972 DFA <> Q var
-R1022:1028 Coq.Init.Logic <> :type_scope:x_'='_x not
-R989:1007 DFA <> extended_transition def
-R1015:1018 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R1014:1014 DFA <> w var
-R1019:1020 DFA <> w' var
-R1011:1011 DFA <> q var
-R1009:1009 DFA <> g var
-R1029:1047 DFA <> extended_transition def
-R1079:1080 DFA <> w' var
-R1052:1070 DFA <> extended_transition def
-R1076:1076 DFA <> w var
-R1074:1074 DFA <> q var
-R1072:1072 DFA <> g var
-R1049:1049 DFA <> g var
-R1257:1282 DFA <> transition_over_sink_state thm
-R1257:1282 DFA <> transition_over_sink_state thm
-def 1361:1372 <> generated_by
-R1392:1394 DFA <> dfa rec
-R1398:1398 DFA <> E var
-R1396:1396 DFA <> Q var
-R1415:1416 Coq.Init.Logic <> :type_scope:'~'_x not
-R1473:1475 Coq.Init.Logic <> :type_scope:x_'='_x not
-R1417:1435 DFA <> extended_transition def
-R1472:1472 DFA <> w var
-R1440:1451 DFA <> proper_state constr
-R1454:1466 DFA <> initial_state proj
-R1468:1468 DFA <> g var
-R1437:1437 DFA <> g var
-R1476:1485 DFA <> sink_state constr
-R1514:1525 DFA <> generated_by def
-not 1498:1498 <> ::x_'==>'_x
-prf 1564:1576 <> prefix_closed
-R1606:1608 DFA <> dfa rec
-R1612:1612 DFA <> E var
-R1610:1610 DFA <> Q var
-R1640:1643 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R1645:1649 DFA <> ::x_'==>'_x not
-R1644:1644 DFA <> g var
-R1650:1650 DFA <> w var
-R1626:1631 DFA <> ::x_'==>'_x not
-R1639:1639 DFA <> ::x_'==>'_x not
-R1625:1625 DFA <> g var
-R1633:1636 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R1632:1632 DFA <> w var
-R1637:1638 DFA <> w' var
-R1669:1680 DFA <> generated_by def
-R1683:1685 Coq.Init.Logic <> not def
-R1725:1748 DFA <> dist_extended_transition thm
-R1725:1748 DFA <> dist_extended_transition thm
-R1725:1748 DFA <> dist_extended_transition thm
+prf 712:742 <> extended_transition__transition
+R770:772 DFA <> dfa rec
+R776:776 DFA <> E var
+R774:774 DFA <> Q var
+R828:830 Coq.Init.Logic <> :type_scope:x_'='_x not
+R786:804 DFA <> extended_transition def
+R825:825 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R827:827 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R826:826 DFA <> e var
+R809:820 DFA <> proper_state constr
+R822:822 DFA <> q var
+R806:806 DFA <> g var
+R832:841 DFA <> transition proj
+R843:843 DFA <> g var
+R848:848 DFA <> e var
+R846:846 DFA <> q var
+R899:908 DFA <> transition proj
+R899:908 DFA <> transition proj
+prf 964:989 <> transition_over_sink_state
+R1019:1021 DFA <> dfa rec
+R1025:1025 DFA <> E var
+R1023:1023 DFA <> Q var
+R1069:1071 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1035:1053 DFA <> extended_transition def
+R1068:1068 DFA <> w var
+R1057:1066 DFA <> sink_state constr
+R1055:1055 DFA <> g var
+R1072:1081 DFA <> sink_state constr
+prf 1167:1190 <> dist_extended_transition
+R1220:1222 DFA <> dfa rec
+R1226:1226 DFA <> E var
+R1224:1224 DFA <> Q var
+R1274:1280 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1241:1259 DFA <> extended_transition def
+R1267:1270 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R1266:1266 DFA <> w var
+R1271:1272 DFA <> w' var
+R1263:1263 DFA <> q var
+R1261:1261 DFA <> g var
+R1281:1299 DFA <> extended_transition def
+R1331:1332 DFA <> w' var
+R1304:1322 DFA <> extended_transition def
+R1328:1328 DFA <> w var
+R1326:1326 DFA <> q var
+R1324:1324 DFA <> g var
+R1301:1301 DFA <> g var
+R1509:1534 DFA <> transition_over_sink_state thm
+R1509:1534 DFA <> transition_over_sink_state thm
+def 1613:1624 <> generated_by
+R1644:1646 DFA <> dfa rec
+R1650:1650 DFA <> E var
+R1648:1648 DFA <> Q var
+R1667:1668 Coq.Init.Logic <> :type_scope:'~'_x not
+R1725:1727 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1669:1687 DFA <> extended_transition def
+R1724:1724 DFA <> w var
+R1692:1703 DFA <> proper_state constr
+R1706:1718 DFA <> initial_state proj
+R1720:1720 DFA <> g var
+R1689:1689 DFA <> g var
+R1728:1737 DFA <> sink_state constr
+R1766:1777 DFA <> generated_by def
+not 1750:1750 <> ::x_'==>'_x
+prf 1816:1828 <> prefix_closed
+R1858:1860 DFA <> dfa rec
+R1864:1864 DFA <> E var
+R1862:1862 DFA <> Q var
+R1892:1895 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R1897:1901 DFA <> ::x_'==>'_x not
+R1896:1896 DFA <> g var
+R1902:1902 DFA <> w var
+R1878:1883 DFA <> ::x_'==>'_x not
+R1891:1891 DFA <> ::x_'==>'_x not
+R1877:1877 DFA <> g var
+R1885:1888 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R1884:1884 DFA <> w var
+R1889:1890 DFA <> w' var
+R1921:1932 DFA <> generated_by def
+R1935:1937 Coq.Init.Logic <> not def
+R1977:2000 DFA <> dist_extended_transition thm
+R1977:2000 DFA <> dist_extended_transition thm
+R1977:2000 DFA <> dist_extended_transition thm
