@@ -5,11 +5,11 @@ Os sistemas de filas constituem importante classe de sistemas a eventos discreto
 	\item consumidor: entidade que espera por um recurso;
 	\item servidor: o recurso que é aguardado;
 	\item fila: o espaço em que os consumidores esperam.
-\end{itemize} Os recursos são genericamente denominados servidores por geralmente proverem serviço \cite{cassandras}. O presente trabalho aborda uma ótica abstrata dos sistemas de filas, já que há a possibilidade de reduzir problemas a esses sistemas.
+\end{itemize} Os recursos são genericamente denominados servidores por geralmente proverem serviço \cite{cassandras}. O presente trabalho aborda uma ótica abstrata dos sistemas de filas, já que há a possibilidade de reduzir problemas a estes sistemas.
 
-Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila até que as pessoas a sua frente sejam atendidas. Esse sistema de filas pode ser modelado pelo autômato infinito determinístico ilustrado pela Figura \ref{fig:sist_enfil_simples_infinito}, em que $+$ e $-$ são os respectivos eventos de chegada e partida de pessoa da fila.
+Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila até que as pessoas a sua frente sejam atendidas. Esse sistema de filas pode ser modelado pelo autômato infinito determinístico ilustrado pela figura \ref{fig:fila_simples_infinito}, em que $+$ e $-$ são os respectivos eventos de chegada e partida de pessoa da fila.
 
-\figuradoautor{Um sistema de filas simples}{
+\figura{Um sistema de filas simples}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
 		\node[state,initial] (q0) {}; 
 		\node[state] at (3,0) (q1) {};
@@ -23,17 +23,46 @@ Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila 
 		(q2) edge[bend left, above] node{$+$} (q3)
 		(q3) edge[bend left, below] node{$-$} (q2);
 	\end{tikzpicture}
-}{fig:fila_simples_infinito}
+}{fig:fila_simples_infinito}{CASSANDRAS; LAFORTUNE, 1999}
 
-Na Figura \ref{fig:fila_simples_infinito} é assumido que a fila de pessoas pode crescer indefinidamente, o que não é possível na realidade. Assumindo que as filas têm um tamanho máximo, faz-se possível modelar vários sistemas de filas por meio de autômatos finitos determinísticos (AFDs).
+Na figura \ref{fig:fila_simples_infinito} é assumido que a fila de pessoas pode crescer indefinidamente, o que não é possível na realidade. Assumindo que as filas têm um tamanho máximo, faz-se possível modelar os sistemas de filas por meio de autômatos finitos determinísticos (AFDs). Para muitos destes sistemas, além do mais, deseja-se que as filas respeitem uma capacidade máxima, sem que operações de adição sejam permitidas quando ela é alcançada. Outra propriedade frequentemente esperada é a de que nenhum evento de retirada seja possível quando há zero elementos na fila. A garantia de tais restrições é o que configura o problema do produtor-consumidor \cite{mehmood}, mas não se restringe a ele.
 
-Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados (\acs{VANT}s). Nele as demandas são os consumidores, e os VANTs, os servidores.
+Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados (\acs{VANT}s). Nele as demandas são os consumidores, e os VANTs, os servidores. Seja o AFD da figura \ref{fig:demandas_vants}, em que os eventos $+$, $a$ e $-$ indicam a chegada, atribuição e conclusão de demanda. O modelo representa um sistema de fila de demandas para VANTs, cujas atribuições só podem ser retiradas da fila depois de concluídas. O AFD torna-se complexo se consideramos a possibilidade de falhas e reatribuição, e determinar se restrições são atendidas fica ainda mais difícil.
+
+\figuradoautor{Um sistema de demandas para VANTs}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+	\node[state,initial] (q0) {};
+	\node[state] at (3, 0) (q1) {};
+	\node[state] at (3, -3) (q2) {};
+	\node[state] at (3, -6) (q3) {};
+	\node[state] at (0, -6) (q4) {};
+	\node[state] at (6, 0) (q5) {};
+	\node[state] at (6, -3) (q6) {};
+	\node[state] at (6, -6) (q7) {};
+	\draw
+	(q0) edge node{$+$} (q1)
+	(q1) edge node{$+$} (q5)
+	(q1) edge node{$a$} (q2)
+	(q2) edge node{$-$} (q0)
+	(q2) edge[left] node{$+$} (q3)
+	(q3) edge node{$a$} (q4)
+	(q4) edge node{$-$} (q2)
+	(q3) edge node{$-$} (q5)
+	(q5) edge node{$a$} (q6)
+	(q6) edge node{$-$} (q1)
+	(q6) edge node{$a$} (q7)
+	(q7) edge node{$-$} (q2);
+	\end{tikzpicture}
+}{fig:demandas_vants} 
+
+A julgar pela dificuldade de garantir características em SEDs, é eminente a relevância de métodos formais para inferências a respeito de propriedades dos AFDs. Antes de formular esses meios matemáticos, duas importantes propriedades dos sistemas de filas são expostas na próxima seção, \ref{sec:props}.
 
 \section{Propriedades desejadas}
+\label{sec:props}
 
-Um sistema de filas geralmente requer que duas propriedades inerentes sejam satisfeitas: que o tamanho máximo de cada fila não possa exceder uma capacidade máxima e não seja possível realizar operações de retirada em uma fila vazia. Isso decorre do fato de que normalmente as filas destes sistemas são representações de espaços físicos, com limitações que devem ser respeitadas nos modelos de SEDs.
+Como citado para o problema do produtor-consumidor, um sistema de filas geralmente requer que duas propriedades inerentes sejam satisfeitas: que o tamanho máximo de cada fila não possa exceder uma capacidade máxima e não seja possível realizar operações de retirada em uma fila vazia. Isso decorre do fato de que normalmente as filas destes sistemas são representações de espaços físicos, com limitações que devem ser respeitadas nos modelos de SEDs.
 
-O problema do produtor-consumidor é um exemplo de aplicação destas propriedades. Na ciência da computação, a concorrência entre threads sobre os mesmos recursos impõe que alguns artifícios de software e hardware sejam empregados a fim de respeitá-las. Sem estes, o desenvolvimento de aplicações computacionais com recursos compartilhados gera defeitos que são manifestados no uso. \hl{exemplificar}. Para a automação industrial, \hl{exemplificar}.
+O problema do produtor-consumidor decorre da necessidade de sincronizar um \textit{buffer} -- uma fila -- entre threads. Na ciência da computação, a concorrência entre threads sobre os mesmos recursos impõe que alguns artifícios de software e hardware sejam empregados a fim de respeitar as propriedades explanadas por esta seção. Sem eles, o desenvolvimento de aplicações computacionais com recursos compartilhados gera defeitos que são manifestados no uso [CITAR OS]. \hl{exemplificar}. Para a automação industrial, \hl{exemplificar}.
 
 Apesar de as representações de filas físicas requererem um volume mínimo de zero itens, esta pode não ser uma condição para filas abstratas. A subseção a seguir aborda estes e outros casos, em que é possível reduzir problemas abstraindo a noção de filas, servidores e consumidores.
 
