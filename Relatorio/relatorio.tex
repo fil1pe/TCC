@@ -63,6 +63,19 @@
 \newcommand{\figuradoautor}[3]{
     \figura{#1}{#2}{#3}{Elaborada pelo autor, 2019}
 }
+\newcommand{\novoquadro}[4]{
+	\begin{quadro}[!ht]
+		\footnotesize
+		\caption{#1}
+		\label{#3}
+		\centering
+		#2
+		\legend{Fonte: #4.}
+	\end{quadro}
+}
+\newcommand{\quadrodoautor}[3]{
+	\novoquadro{#1}{#2}{#3}{Elaborada pelo autor, 2019}
+}
 
 % Dados da capa:
 \titulo{Especificação e prova de propriedade acerca de autômatos finitos determinísticos assistidas por Coq}
