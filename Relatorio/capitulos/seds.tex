@@ -1,4 +1,5 @@
 \chapter{Sistemas a eventos discretos}
+\label{cap:seds}
 
 Segundo \citeonline[p. 142, tradução do autor]{lafortune} \begin{citacao} Sistemas a eventos discretos (\acs{SED}s) são sistemas dinâmicos com duas características definidoras: seus espaços de estados são discretos e potencialmente infinitos, e sua dinâmica é orientada a eventos, em vez de tempo. (...) Eventos que ocorrem de forma assíncrona (em geral) causam um salto no espaço de estados, de um estado para outro. \end{citacao} \citeonline{cassandras} argumentam que os SEDs, diferentemente dos sistemas orientados pelo tempo e governados pelas leis da natureza, não podem ser modelados e estudados usando equações diferenciais. Os SEDs requerem outras técnicas de análise, ferramentas de projeto, métodos de teste, entre outros.
 
@@ -12,7 +13,7 @@ O advento das tecnologias de comunicação, sensoriamento e computação impulsi
 	\includegraphics[width=.6 \textwidth]{figuras/rdt2_0-destinatario.png}
 }{fig:protocolo_rede}{KUROSE, J.; ROSS K. \textbf{Redes de computadores e a internet}: uma abordagem top-down. 6. ed. São Paulo: Pearson, 2013}
 
-Na Figura \ref{fig:protocolo_rede}, tem-se representado um protocolo de redes em que há estados de espera e transições que dependem de eventos discretos -- neste caso, procedimentos computacionais. A representação supracitada é uma evidência do caráter de SED do protocolo, e a figura é um diagrama de estados, que será introduzido mais adiante.
+Na figura \ref{fig:protocolo_rede}, tem-se representado um protocolo de redes em que há estados de espera e transições que dependem de eventos discretos -- neste caso, procedimentos computacionais. A representação supracitada é uma evidência do caráter de SED do protocolo, e a figura é um diagrama de estados, que será introduzido mais adiante.
 
 SEDs são comumente modelados por redes de Petri e autômatos determinísticos. Redes de Petri são uma classe de grafos direcionados que têm duas variedades de nós: posições e transições. Nelas, os arcos podem ligar dois nós apenas se forem diferentes -- não pode haver arcos entre duas posições, por exemplo -- e têm pesos que indicam a quantidade de tokens que serão consumidos ou produzidos. Geralmente, os tokens, posições e transições representam recursos, condições e eventos respectivamente e permitem modelar atividades paralelas, protocolos de comunicação, sistemas de produtor-consumidor com prioridade, etc. \cite{petrinets} Este trabalho de conclusão de concurso, todavia, tem enfoque na representação por autômatos finitos determinísticos. A seção \ref{sec:afd}, que segue, introduz os principais conceitos desses modelos.
 
@@ -193,7 +194,7 @@ Conforme a subseção 3.1.5, a formulação de AFDs em Coq precisa considerar o 
 
 A função de transição será do tipo \texttt{Q$\to$E$\to$state}, e não \texttt{state$\to$E$\to$state}, o que permitiria quaisquer transições partindo do estado de ralo. Ademais, é importante especificar quais estados são marcados com uma função do tipo \texttt{Q$\to$bool} que retorna \texttt{true} se e somente se o estado for marcado.
 
-Com isso, um autômato determinístico \texttt{g : dfa} terá estes elementos: \begin{itemize}
+Com isso, um autômato determinístico \texttt{g : dfa} terá estes campos: \begin{itemize}
 	\item \texttt{Q}: o tipo dos estados próprios
 	\item \texttt{E}: o tipo dos símbolos ou eventos
 	\item  \texttt{transition : Q$\to$E$\to$@state Q}: a função de transição
@@ -201,7 +202,7 @@ Com isso, um autômato determinístico \texttt{g : dfa} terá estes elementos: \
 	\item \texttt{is\_marked : Q$\to$bool}: a função de demarcação dos estados
 \end{itemize}
 
-Esta definição permite que \hl{instâncias} do tipo \texttt{dfa} sejam, com efeito, autômatos infinitos determinísticos. O presente trabalho, porém, assume que os tipos dos estados e eventos são sempre finitos. A implementação do tipo \texttt{dfa} proposta é apresentada pela Figura \ref{fig:dfa_record}.
+Esta definição permite que termos do tipo \texttt{dfa} sejam, com efeito, autômatos infinitos determinísticos. O presente trabalho, porém, assume que os tipos dos estados e eventos são sempre finitos. A implementação do tipo \texttt{dfa} proposta é apresentada pela Figura \ref{fig:dfa_record}.
 
 \figuradoautor{Implementação do tipo dos AFDs em Coq}{
 	\includegraphics[width=8cm]{figuras/dfa_record.png}

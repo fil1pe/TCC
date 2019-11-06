@@ -63,8 +63,10 @@
 \newcommand{\figuradoautor}[3]{
     \figura{#1}{#2}{#3}{Elaborada pelo autor, 2019}
 }
+\def\arraystretch{1.3}
+\usepackage{multirow}
 \newcommand{\novoquadro}[4]{
-	\begin{quadro}[!ht]
+	\begin{quadro}[H]
 		\footnotesize
 		\caption{#1}
 		\label{#3}
@@ -74,7 +76,7 @@
 	\end{quadro}
 }
 \newcommand{\quadrodoautor}[3]{
-	\novoquadro{#1}{#2}{#3}{Elaborada pelo autor, 2019}
+	\novoquadro{#1}{#2}{#3}{Elaborado pelo autor, 2019}
 }
 
 % Dados da capa:
@@ -101,6 +103,7 @@
 % Lista de abreviaturas e siglas:
 \begin{siglas}
     \acro{AFD}{Autômato finito determinístico}
+    \acro{CCI}{Cálculo de construções indutivas}
     \acro{SED}{Sistema a eventos discretos}
     \acro{VANT}{Veículo aéreo não tripulado}
 \end{siglas}

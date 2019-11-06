@@ -1,1 +1,19 @@
 \chapter{Introdução}
+
+Os autômatos são modelos de máquinas abstratas muito importantes para os estudos da computação teórica. Em particular, os autômatos finitos determinísticos (\acs{AFD}s) reconhecem as linguagens regulares, aplicadas na ciência da computação e tecnologia da informação. Sob outra perspectiva, essa classe de autômatos tem sido utilizada para descrever sistemas do mundo hodierno na automação de indústrias e tecnologias, já que o advento dos sistemas a eventos discretos (\acs{SED}s) impôs um novo paradigma, contrário aos sistemas orientados pelo tempo, que são, em geral, muito bem descritos pelos modelos físicos clássicos e modernos.
+
+Sistemas que são orientados a eventos discretos e assíncronos podem ser modelados por formalismos da matemática discreta, entre eles os autômatos determinísticos, as redes de Petri, \textit{timed models} e cadeias de Markov. São exemplos de SEDs vários sistemas de filas, computacionais, de comunicação, manufatura, tráfego, banco de dados, telefonia, etc. Essas classes não são mutuamente exclusivas, no sentido de haver sistemas de filas que são de manufatura, por exemplo. Podemos modelar SEDs com as características dos sistemas de filas a fim de representar plantas industriais, como linhas de produção complexas. Os AFDs, pois, mostram-se como meios eficientes a esse fim, já que permitem análise por meio de formalismos, o que inclui averiguar a satisfação de propriedades.
+
+A demonstração de propriedades a respeito de AFDs pode ser uma tarefa pouco trivial. Por isso, o emprego de assistentes interativos de provas matemáticas é útil a fim de obter demonstrações válidas. Ademais, tais assistentes reúnem meios formais e computacionais que possibilitam a verificação dos passos da demonstração, auferindo rigor. Entre os assistentes de provas, o Coq destaca-se por ter comunidade extensa e qualidades como a construção de tipos dependentes, motivos pelos quais o presente trabalhou optou por empregá-lo.
+
+Os problemas envolvendo filas em processos concorrentes são muito estudados na ciência da computação e dotados de relevância no que tange aos sistemas de produção industrial, onde a falta de sincronização acarreta eventualmente outros problemas. Se um SED é corretamente modelado por AFDs, devemos ser capazes de identificar as eventuais falhas decorrentes da concorrência por recursos distribuídos em filas, justificando o presente estudo.
+
+O objetivo geral deste trabalho de conclusão de curso consiste em provar, mediante o assistente de provas Coq, propriedades sobre sistemas da automação industrial modelados por AFDs. Os objetivos específicos são: \begin{enumerate}
+	\item introduzir os principais conceitos relativos aos SEDs;
+	\item apresentar a classe de sistemas de filas;
+	\item especificar propriedades desejadas para essa classe;
+	\item empregar o assistente Coq na prova de teoremas referentes a essas propriedades;
+	\item demonstrar e explanar tais teoremas e exemplificar suas aplicações. 
+\end{enumerate}
+
+Com a finalidade de atingir os objetivos supracitados, o presente trabalho é estruturados destarte. Primeiramente, apresenta-se uma breve noção sobre assistentes de provas e elencam-se os artifícios do Coq mais importantes para o trabalho. No capítulo \ref{cap:seds}, são introduzidos os SEDs, assim como sua modelagem por AFDs. O capítulo seguinte, \ref{cap:filas}, apresenta os sistemas de filas, problemas relacionados e as propriedades mais importantes acerca desses SEDs. Em seguida, o capítulo \ref{cap:propriedades} demonstra como constatar se sistemas de filas atendem às propriedades. Por fim, são expressas as considerações finais e, depois, as referências bibliográficas.

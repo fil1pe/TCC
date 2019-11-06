@@ -27,7 +27,7 @@ Para ser atendido por um servidor de banco, uma pessoa deve esperar em uma fila 
 
 Na figura \ref{fig:fila_simples_infinito} é assumido que a fila de pessoas pode crescer indefinidamente, o que não é possível na realidade. Assumindo que as filas têm um tamanho máximo, faz-se possível modelar os sistemas de filas por meio de autômatos finitos determinísticos (AFDs). Para muitos destes sistemas, além do mais, deseja-se que as filas respeitem uma capacidade máxima, sem que operações de adição sejam permitidas quando ela é alcançada. Outra propriedade frequentemente esperada é a de que nenhum evento de retirada seja possível quando há zero elementos na fila. A garantia de tais restrições é o que configura o problema do produtor-consumidor \cite{mehmood}, mas não se restringe a ele.
 
-Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados (\acs{VANT}s). Nele as demandas são os consumidores, e os VANTs, os servidores. Seja o AFD da figura \ref{fig:demandas_vants}, em que os eventos $+$, $a$ e $-$ indicam a chegada, atribuição e conclusão de demanda. O modelo representa um sistema de fila de demandas para VANTs, cujas atribuições só podem ser retiradas da fila depois de concluídas. O AFD torna-se complexo se consideramos a possibilidade de falhas e reatribuição, e determinar se restrições são atendidas fica ainda mais difícil.
+Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste em uma planta de fila de demandas para veículos aéreos não tripulados (\acs{VANT}s). Nele as demandas são os consumidores, e os VANTs, os servidores. Seja o AFD da figura \ref{fig:demandas_vants}, em que os eventos $+$, $a$ e $-$ indicam a chegada, atribuição e conclusão de demanda. O modelo representa um sistema de fila de demandas para VANTs, cujas atribuições só podem ser retiradas da fila depois de concluídas e o tamanho da fila é no máximo $2$. O AFD torna-se complexo se consideramos a possibilidade de falhas e reatribuição, e determinar se restrições são atendidas fica ainda mais difícil.
 
 \figuradoautor{Um sistema de demandas para VANTs}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
@@ -55,22 +55,26 @@ Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste
 	\end{tikzpicture}
 }{fig:demandas_vants} 
 
-A julgar pela dificuldade de garantir características em SEDs, é eminente a relevância de métodos formais para inferências a respeito de propriedades dos AFDs. Antes de formular esses meios matemáticos, duas importantes propriedades dos sistemas de filas são expostas na próxima seção, \ref{sec:props}.
+A julgar pela dificuldade de garantir consistências em SEDs, é eminente a relevância de métodos formais para inferências a respeito de propriedades dos AFDs. Antes de formular esses meios matemáticos, duas importantes propriedades dos sistemas de filas são expostas na próxima seção, \ref{sec:props}.
 
 \section{Propriedades desejadas}
 \label{sec:props}
 
 Como citado para o problema do produtor-consumidor, um sistema de filas geralmente requer que duas propriedades inerentes sejam satisfeitas: que o tamanho máximo de cada fila não possa exceder uma capacidade máxima e não seja possível realizar operações de retirada em uma fila vazia. Isso decorre do fato de que normalmente as filas destes sistemas são representações de espaços físicos, com limitações que devem ser respeitadas nos modelos de SEDs.
 
-O problema do produtor-consumidor decorre da necessidade de sincronizar um \textit{buffer} -- uma fila -- entre threads. Na ciência da computação, a concorrência entre threads sobre os mesmos recursos impõe que alguns artifícios de software e hardware sejam empregados a fim de respeitar as propriedades explanadas por esta seção. Sem eles, o desenvolvimento de aplicações computacionais com recursos compartilhados gera defeitos que são manifestados no uso [CITAR OS]. \hl{exemplificar}. Para a automação industrial, \hl{exemplificar}.
+O problema do produtor-consumidor decorre da necessidade de sincronizar um \textit{buffer} -- uma fila -- compartilhado entre processos. Na ciência da computação, a concorrência de processos sobre os mesmos recursos impõe que alguns artifícios de software e hardware sejam empregados a fim de respeitar as propriedades explanadas por esta seção. Sem eles, o desenvolvimento de aplicações computacionais com memória compartilhada gera defeitos que são manifestados no uso. Um exemplo deste problema é o caso em que dois processos tentam adicionar arquivo no \textit{spool} de impressão de um sistema operacional, o que, se não for sincronizado, possibilita a ambos os processos escreverem sobre a mesma célula do \textit{spool} \cite{tanenbaum}. No contexto da automação industrial, há também a necessidade de manter processos de produção e manufatura sincronizados. Máquinas que compartilham filas de recursos precisam atuar de modo consistente. 
 
-Apesar de as representações de filas físicas requererem um volume mínimo de zero itens, esta pode não ser uma condição para filas abstratas. A subseção a seguir aborda estes e outros casos, em que é possível reduzir problemas abstraindo a noção de filas, servidores e consumidores.
+Apesar de as representações de filas físicas requererem um volume mínimo de zero itens, esta pode não ser uma condição para filas abstratas. A subseção a seguir aborda esses e outros casos, em que é possível reduzir problemas abstraindo a noção de filas, servidores e consumidores.
 
 \subsection{Redução de problemas}
 
-É possível reduzir problemas à validação das propriedades supracitadas. Seja um SED com a seguinte restrição: há dois subconjuntos de eventos $E_1$ e $E_2$ tais que, em qualquer cadeia de eventos, o número de eventos pertencentes a $E_1$ menos o número de eventos pertencentes a $E_2$ é maior ou igual a $n$ e/ou menor ou igual a $m$. Pode-se modelá-lo como um sistema de filas em que os eventos de $E_1$ e $E_2$ sejam substituídos respectivamente por operações de adição e retirada de fila. Garantido que a lista tem capacidade máxima de $m - n$ itens e volume mínimo de zero itens, a restrição é satisfeita.
+É possível reduzir problemas à validação das propriedades supracitadas. Seja um SED com a seguinte restrição: há dois subconjuntos de eventos $E_1$ e $E_2$ tais que, em qualquer cadeia de eventos, o número de eventos pertencentes a $E_1$ menos o número de eventos pertencentes a $E_2$ deve ser menor ou igual a $n$. Abstraindo, podemos imaginar que um supervisor anota um símbolo em uma fila toda vez que um evento de $E_1$ é executado e apaga dela um símbolo quando um evento de $E_2$ é efetuado, da forma que a figura \ref{fig:reducao_fila} ilustra. Pode-se modelar esse SED como um sistema de filas em que os eventos de $E_1$ e $E_2$ sejam substituídos respectivamente por operações de adição e retirada de fila. Garantido que a fila tem capacidade máxima de $n$ itens, a restrição é satisfeita, porque, sempre que há $x$ símbolos na fila, foram executados $x$ eventos de $E_1$ a mais que de $E_2$.
 
-A exemplo disso, seja o autômato da Figura \ref{fig:exemplo_reducao1}. ... O exemplo é simples, mas ilustra facilmente esta redução de problemas.
+\figuradoautor{Abstração de filas para redução de problemas}{
+	\includegraphics[width=.4 \textwidth]{figuras/reducao_fila.jpg}
+}{fig:reducao_fila}
+
+Há outros meios de reduzir problemas de SEDs à garantia das propriedades de sistemas de filas. Para tanto, deve-se encontrar meios de abstraí-los usando os conceitos que este capítulo apresentou. A exemplo dessas abstrações, seja o autômato da figura \ref{fig:exemplo_reducao1}, que descreve o funcionamento de uma linha de produção em que há uma esteira e dois robôs com sensores embutidos. Quando uma peça passa pela esteira e chega perto de um dos robôs, o sensor deste detecta a peça e emite sinal para que o robô pegue-a, faça algum trabalho nela e coloque-a em outra esteira. Se o primeiro robô está ocupado, o segundo detectará por seu sensor a peça passando e poderá executar o trabalho. Suponhamos que uma análise criteriosa do sistema foi levantada e originou o AFD ilustrado e identifiquemos os respectivos eventos $s_1$, $s_2$, $t_1$ e $t_2$ como a detecção de peça pelos sensores do primeiro e segundo robô e a execução de trabalho na peça pelo primeiro e segundo robô.
 
 \figuradoautor{Autômato para o funcionamento de uma linha de produção simples}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
@@ -89,7 +93,9 @@ A exemplo disso, seja o autômato da Figura \ref{fig:exemplo_reducao1}. ... O ex
 	\end{tikzpicture}
 }{fig:exemplo_reducao1}
 
-\figuradoautor{Autômato da Figura \ref{fig:exemplo_reducao1} reduzido para um sistema de filas}{
+Sobre o sistema modelado pela figura \ref{fig:exemplo_reducao1}, utilizando a abstração por filas, podemos responder à pergunta: há uma carga máxima de trabalho que o segundo robô pode executar a mais que o primeiro? Seja, então, uma fila com todos os trabalhos que o segundo robô executa a mais que o primeiro. O sistema de filas da figura \ref{fig:exemplo_reducao2} apresenta tal redução, e notemos, pelo circuito destacado em vermelho, a existência de um ciclo que pode se repetir indefinidas vezes, adicionando um item à fila por vez. Isso evidencia uma característica da fila: não existe capacidade a limitando. Portanto, respondendo à pergunta, não há carga máxima relativa. O exemplo é simples, mas ilustra claramente uma redução de problema. Para problemas e SEDs complexos, esse procedimento mostra-se interessante, porque propicia o emprego dos métodos matemáticos do presente trabalho na resolução.
+
+\figuradoautor{Autômato da figura \ref{fig:exemplo_reducao1} reduzido a um sistema de filas}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
 	\node[state,initial] (q0) {}; 
 	\node[state] at (3,0) (q1) {};
@@ -97,14 +103,17 @@ A exemplo disso, seja o autômato da Figura \ref{fig:exemplo_reducao1}. ... O ex
 	\node[state] at (9,0) (q3) {};
 	\draw
 	(q0) edge[bend left, above] node{$s_1$} (q1)
-	(q1) edge[above] node{$t_1$} (q0)
-	(q1) edge[above] node{$s_2$} (q2)
-	(q2) edge[bend left, below] node{$t_2$} (q0)
-	(q2) edge[above] node{$s_1$} (q3)
-	(q3) edge[bend left, below] node{$t_1$, $s_2$} (q2)
-	(q3) edge[bend right, above] node{$t_2$} (q1);
+	(q1) edge[above] node{$-$} (q0)
+	(q1) edge[above,draw=red] node{$s_2$} (q2)
+	(q2) edge[bend left, below] node{$+$} (q0)
+	(q2) edge[above,draw=red] node{$s_1$} (q3)
+	(q3) edge[bend left, below] node{$-$, $s_2$} (q2)
+	(q3) edge[bend right, above,draw=red] node{$+$} (q1);
 	\end{tikzpicture}
-}{fig:exemplo_reducao1}
+}{fig:exemplo_reducao2}
+
+Além de entender a redução de problemas, é interessante observar aplicações que as duas propriedades supracitadas nesta seção proporcionam. É sobre isso que a subseção \ref{subsec:aplicacoes} versa adiante.
 
 \subsection{Aplicações}
+\label{subsec:aplicacoes}
 
