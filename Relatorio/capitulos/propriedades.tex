@@ -17,14 +17,14 @@ De modo a facilitar a leitura dos teoremas, simplifiquemos a notação para a tr
 0 & \text{senão}
 \end{cases}$$
 
-As seções \ref{sec:capac_max} e \ref{sec:vol_min} apresentam duas condições necessárias e suficientes para que um dado sistema de filas tenha capacidade máxima e volume mínimo zero respectivamente. Aplicações dos teoremas são exemplificadas após sua introdução.
+As Seções \ref{sec:capac_max} e \ref{sec:vol_min} apresentam duas condições necessárias e suficientes para que um dado sistema de filas tenha capacidade máxima e volume mínimo zero respectivamente. Aplicações dos teoremas são exemplificadas após sua introdução.
 
 \section{Garantia de capacidade máxima}
 \label{sec:capac_max}
 
 O teorema que esta seção aborda surgiu do seguinte questionamento: de que modo é possível mapear cada estado do sistema ao número máximo de itens na fila que pode haver no estado? Com isso, podemos simplesmente verificar o número mapeado por cada estado e obter o maior deles: a capacidade máxima, como desejamos. Há de se salientar que, nos casos de sistemas que permitem um número indefinidamente grande de volume na fila, esse mapeamento não pode existir. Já os sistemas de filas que respeitam a propriedade da capacidade máxima obrigatoriamente permitem o mapeamento.
 
-Obter intuitivamente o mapeamento dos estados para os tamanhos máximos da fila e avaliar seu corretismo pode ser uma tarefa dispendiosa. Verificando um conjunto de regras, não obstante, a atividade torna-se um pouco mais simples. Se um estado $q$ é mapeado por $f : Q \to \mathbb{Z}$ ao máximo volume que pode haver em $q$, qualquer transição partindo de $q$ deve respeitar $$f(qe) \geq m + t(e)$$ para qualquer evento $e \in E$. O teorema \ref{teo:teo1} utiliza essa concepção para exprimir uma condição suficiente pela qual o SED modelado por $G$ tenha uma capacidade máxima.
+Obter intuitivamente o mapeamento dos estados para os tamanhos máximos da fila e avaliar seu corretismo pode ser uma tarefa dispendiosa. Verificando um conjunto de regras, não obstante, a atividade torna-se um pouco mais simples. Se um estado $q$ é mapeado por $f : Q \to \mathbb{Z}$ ao máximo volume que pode haver em $q$, qualquer transição partindo de $q$ deve respeitar $$f(qe) \geq f(q) + t(e)$$ para qualquer evento $e \in E$. O Teorema \ref{teo:teo1} utiliza essa concepção para exprimir uma condição suficiente pela qual o SED modelado por $G$ tenha uma capacidade máxima.
 
 \begin{teo}
 	\label{teo:teo1}
@@ -64,21 +64,21 @@ f(q_0w) \leq f(q_0wu) - t(u)
 A partir das equações \ref{eq:hipindlema1} e \ref{eq:hiplema1}, verifica-se $$n_0 + c(w) \leq f(q_0w) \leq f(q_0wu) - t(u)$$ demonstrando a equação \ref{eq:goallema1}, como queríamos.
 \end{proof}
 
-Dado que o presente relatório é apenas parte de um trabalho de conclusão de curso, justifica-se o caráter parcial que assumirá a prova do teorema \ref{teo:teo1}. Nesse sentido, a demonstração que segue é a respeito da condição unidirecional da esquerda para a direita.
+Dado que o presente relatório é apenas parte de um trabalho de conclusão de curso, justifica-se o caráter parcial que assumirá a prova do Teorema \ref{teo:teo1}. Nesse sentido, a demonstração que segue é a respeito da condição unidirecional da esquerda para a direita.
 
 \begin{proof}
-Aplicando o lema \ref{lem:lema1} na hipótese do teorema, obtemos $$\forall w \in L(G), n_0 + c(w) \leq f(q_0w)$$
+Aplicando o Lema \ref{lem:lema1} na hipótese do teorema, obtemos $$\forall w \in L(G), n_0 + c(w) \leq f(q_0w)$$
 
 Da hipótese também temos $$f(q_0w) \leq n$$
 
 Portanto $$n_0 + c(w) \leq f(q_0w) \leq n$$ como desejávamos demonstrar.
 \end{proof}
 
-A demonstração do lema 1 e teorema 1 foram auxiliadas pelo Coq, no qual a formulação de AFDs seguiu o exposto na subseção \ref{subsec:afd_coq}. Ao ser transcrita a prova do assistente para este trabalho, as noções de tipos foram trocadas pelas de conjuntos, com a qual estamos habituados na teoria dos autômatos.
+A demonstração do Lema 1 e Teorema 1 foram auxiliadas pelo Coq, no qual a formulação de AFDs seguiu o exposto na Subseção \ref{subsec:afd_coq}. Ao ser transcrita a prova do assistente para este trabalho, as noções de tipos foram trocadas pelas de conjuntos, com a qual estamos habituados na teoria dos autômatos.
 
-Na figura \ref{fig:ex1_teo1}, há um exemplo que ilustra um sistema de produtor e consumidor com $n_0 = 0$. Nela os eventos $p$ e $c$ são, respectivamente, a produção e consumo de item. Seja $f_1$ uma função cuja imagem está rotulada nos nós da figura, indicando para cada estado o valor mapeado. Como $f_1$ respeita o teorema \ref{teo:teo1}, podemos concluir que o sistema modelado permite volume máximo de um item na fila.
+Na figura \ref{fig:ex1_teo1}, há um exemplo que ilustra um sistema de produtor e consumidor com $n_0 = 0$. Nela os eventos $p$ e $c$ são, respectivamente, a produção e consumo de item. Seja $f_1$ uma função cuja imagem está rotulada nos nós da figura, indicando para cada estado o valor mapeado. Como $f_1$ respeita o Teorema \ref{teo:teo1}, podemos concluir que o sistema modelado permite volume máximo de um item na fila.
 
-\figuradoautor{Exemplo de aplicação do teorema \ref{teo:teo1} em um sistema com capacidade máxima $1$}{
+\figuradoautor{Exemplo de aplicação do Teorema \ref{teo:teo1} em um sistema com capacidade máxima $1$}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
 	\node[state,initial] (q0) {$0$}; 
 	\node[state] at (3,0) (q1) {$0$};
@@ -98,7 +98,7 @@ Na figura \ref{fig:ex1_teo1}, há um exemplo que ilustra um sistema de produtor 
 	\end{tikzpicture}
 }{fig:ex1_teo1}
 
-Sob outra perspectiva, a figura \ref{fig:ex2_teo1} apresenta um exemplo de AFD modelando um sistema que permite, notavelmente, adição e retirada de um número indefinido de itens da fila. Supondo que tal sistema atenda à propriedade da capacidade máxima, seja $f_2 : \{ q_0, q_1 \} \to \mathbb{Z}$ qualquer função que mapeie cada estado a um número inteiro de forma que $f_2(q_0) = n_0$ e $f_2(qe) \geq f_2(q) + t(e)$ para todo evento $e \in \{+,-\}$. É fácil notar que $f_2$ não existe, pois, como $q_1+ = q_1$, podemos obter o absurdo: $f(q_1) \geq f(q_1) + t(+)$. Com isso, o teorema \ref{teo:teo1} conclui que o sistema não admite capacidade máxima.
+Sob outra perspectiva, a figura \ref{fig:ex2_teo1} apresenta um exemplo de AFD modelando um sistema que permite, notavelmente, adição e retirada de um número indefinido de itens da fila. Supondo que tal sistema atenda à propriedade da capacidade máxima, seja $f_2 : \{ q_0, q_1 \} \to \mathbb{Z}$ qualquer função que mapeie cada estado a um número inteiro de forma que $f_2(q_0) = n_0$ e $f_2(qe) \geq f_2(q) + t(e)$ para todo evento $e \in \{+,-\}$. É fácil notar que $f_2$ não existe, pois, como $q_1+ = q_1$, podemos obter o absurdo: $f(q_1) \geq f(q_1) + t(+)$. Com isso, o Teorema \ref{teo:teo1} conclui que o sistema não admite capacidade máxima.
 
 \figuradoautor{Exemplo de sistema que não tem capacidade máxima definida}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
@@ -110,12 +110,12 @@ Sob outra perspectiva, a figura \ref{fig:ex2_teo1} apresenta um exemplo de AFD m
 	\end{tikzpicture}
 }{fig:ex2_teo1}
 
-Além de provar que determinados sistemas de filas cumprem ou não com a especificação de uma fila com volume máximo, muitas vezes quer-se atestar a impossibilidade de efetuar a operação de retirada de fila vazia. É sobre isso que trata a seção \ref{sec:vol_min}, a seguir.
+Além de provar que determinados sistemas de filas cumprem ou não com a especificação de uma fila com volume máximo, muitas vezes quer-se atestar a impossibilidade de efetuar a operação de retirada de fila vazia. É sobre isso que trata a Seção \ref{sec:vol_min}, a seguir.
 
-\section{GARANTIA DE VOLUME MÍNIMO}
+\section{Garantia de volume mínimo zero}
 \label{sec:vol_min}
 
-Todo sistema de filas especificado com base em \citeonline{cassandras} deve impedir a remoção de itens de filas quando estas forem vazias. Isso é em razão do caráter físico e não abstrato com que se configuram as filas por aquela ótica. Mesmo para filas abstratas, pode ser interessante que esta propriedade seja respeitada. A fim de garantir isso, o teorema \ref{teo:teo2} nos possibilita obter resposta à pergunta: a fila tem volume mínimo de zero itens?
+Todo sistema de filas especificado com base em \citeonline{cassandras} deve impedir a remoção de itens de filas quando estas forem vazias. Isso é em razão do caráter físico e não abstrato com que se configuram as filas por aquela ótica. Mesmo para filas abstratas, pode ser interessante que esta propriedade seja respeitada. A fim de garantir isso, o Teorema \ref{teo:teo2} nos possibilita obter resposta à pergunta: a fila tem volume mínimo de zero itens?
 
 \begin{teo}
 	\label{teo:teo2}
@@ -124,9 +124,9 @@ Todo sistema de filas especificado com base em \citeonline{cassandras} deve impe
 	\end{equation*} se e somente se a fila do sistema modelado por $G$ nunca tem volume negativo.
 \end{teo}
 
-A ideia intuitiva que originou o teorema é semelhante à com que se concebeu o teorema \ref{teo:teo1}. Neste caso, o mapeamento é feito de cada estado $q$ ao número mínimo de itens que podem haver na fila ao se processar qualquer cadeia de eventos fazendo o autômato transicionar de $q_0$ a $q$. Mais uma vez, se é impossível realizar o mapeamento, o sistema não cumpre com a propriedade.
+A ideia intuitiva que originou o teorema é semelhante à com que se concebeu o Teorema \ref{teo:teo1}. Neste caso, o mapeamento é feito de cada estado $q$ ao número mínimo de itens que podem haver na fila ao se processar qualquer cadeia de eventos fazendo o autômato transicionar de $q_0$ a $q$. Mais uma vez, se é impossível realizar o mapeamento, o sistema não cumpre com a propriedade.
 
-Considerando o autômato da figura \ref{fig:ex1_teo2}, verificamos que o sistema nela representado tem uma fila que respeita esta propriedade, embora não garanta capacidade máxima. Tomando a função $f_3$ rotulada nos nós da figura, pode-se notar que ela respeita o teorema \ref{teo:teo2}, evidenciando que tal SED foi modelado de modo a não permitir o evento $-$ nos momentos em que a fila está vazia.
+Considerando o autômato da figura \ref{fig:ex1_teo2}, verificamos que o sistema nela representado tem uma fila que respeita esta propriedade, embora não garanta capacidade máxima. Tomando a função $f_3$ rotulada nos nós da figura, pode-se notar que ela respeita o Teorema \ref{teo:teo2}, evidenciando que tal SED foi modelado de modo a não permitir o evento $-$ nos momentos em que a fila está vazia.
 
 \figuradoautor{Exemplo de sistema que atende à propriedade de volume mínimo zero}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
@@ -140,7 +140,7 @@ Considerando o autômato da figura \ref{fig:ex1_teo2}, verificamos que o sistema
 	\end{tikzpicture}
 }{fig:ex1_teo2}
 
-Como exemplo de aplicação do teorema \ref{teo:teo2} para um caso de não atendimento a esta propriedade, seja o AFD da figura \ref{fig:ex2_teo2}. Supondo que o sistema satisfaça a restrição de volume mínimo zero, deve haver uma função $f_4 : \{ q_0, q_1, q_2 \} \to \mathbb{Z}$ respeitando $f(q_0) = n_0$ e $f_4(qe) \leq f_4(q) + t(e)$ para todo evento $e \in \{+, -\}$. Dessa suposição, obtemos $f_4(q_1) \leq f_4(q_1-) - 1 \leq f_4(q_1--) - 2 \leq f_4(q_1--+) - 1$, um absurdo, uma vez que $q_1--+ = q_1$. Dessarte, o teorema \ref{teo:teo2} implica que, no sistema modelado, há a possibilidade de executar operações de retirada de fila mesmo quando ela está vazia.
+Como exemplo de aplicação do Teorema \ref{teo:teo2} para um caso de não atendimento a esta propriedade, seja o AFD da figura \ref{fig:ex2_teo2}. Supondo que o sistema satisfaça a restrição de volume mínimo zero, deve haver uma função $f_4 : \{ q_0, q_1, q_2 \} \to \mathbb{Z}$ respeitando $f(q_0) = n_0$ e $f_4(qe) \leq f_4(q) + t(e)$ para todo evento $e \in \{+, -\}$. Dessa suposição, obtemos $f_4(q_1) \leq f_4(q_1-) - 1 \leq f_4(q_1--) - 2 \leq f_4(q_1--+) - 1$, um absurdo, uma vez que $q_1--+ = q_1$. Dessarte, o Teorema \ref{teo:teo2} implica que, no sistema modelado, há a possibilidade de executar operações de retirada de fila mesmo quando ela está vazia.
 
 \figuradoautor{Exemplo de sistema que permite operações de retirada de fila vazia}{
 	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
@@ -154,4 +154,4 @@ Como exemplo de aplicação do teorema \ref{teo:teo2} para um caso de não atend
 	\end{tikzpicture}
 }{fig:ex2_teo2}
 
-Quando aplicamos o teorema \ref{teo:teo2} no autômato da figura \ref{fig:ex1_teo1}, notamos que a própria função rotulada nos nós do diagrama respeita as regras da condição apresentada nesta seção. Em razão desse fato, o tamanho da fila do sistema ilustrado é sempre algum inteiro do intervalo $[0,1]$. Os teoremas deste capítulo também podem ser usados nos exemplos do capítulo \ref{cap:filas} para efeito de demonstração de aplicação.
+Quando aplicamos o Teorema \ref{teo:teo2} no autômato da figura \ref{fig:ex1_teo1}, notamos que a própria função rotulada nos nós do diagrama respeita as regras da condição apresentada nesta seção. Em razão desse fato, o tamanho da fila do sistema ilustrado é sempre algum inteiro do intervalo $[0,1]$.

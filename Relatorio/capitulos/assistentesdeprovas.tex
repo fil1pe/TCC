@@ -5,7 +5,7 @@ Um assistente de provas interativo é um artifício de software que auxilia no p
 
 A teoria dos tipos fornece o encontro da ciência da computação com a matemática e a lógica. Ela é simultaneamente um sistema formal e linguagem de programação que permite raciocinar enquanto se programa. Sua relevância se explica por possuir simplicidade, ser robusta, apresentar a propriedade da decidibilidade, ser uma linguagem funcional, entre outros \cite{luo}.
 
-A seção \ref{sec:coq} introduz o assistente de provas empregado neste trabalho de conclusão de curso. A escolha do Coq se deve à confiabilidade, utilidade, usabilidade e facilidade desse assistente.
+A Seção \ref{sec:coq} introduz o assistente de provas empregado neste trabalho de conclusão de curso. A escolha do Coq se deve à confiabilidade, utilidade, usabilidade e facilidade desse assistente.
 
 \section{Coq}
 \label{sec:coq}
@@ -17,13 +17,13 @@ No Coq os tipos são definidos indutivamente pelos comandos \texttt{Inductive}, 
 \end{align*} em que $ident$ é o nome do objeto sendo definido e $term$ é seu tipo. Cada $ident_i$ e $term_i$ são os respectivos nome e tipo do $i$-ésimo construtor ($\forall i=1..n$). O comando \texttt{Fixpoint} define funções de forma recursiva baseada nos $m$ argumentos: \begin{align*}
 &\texttt{Fixpoint $ident$ ($ident_1$ : $term_1$) ($ident_1$ : $term_1$) $...$ ($ident_m$ : $term_m$)}\\&\texttt{: $term$ := $term'$.}
 \end{align*} A definição usando esse comando deve garantir que a recursão sempre para. Para tanto, o usuário precisa especificar a recursão mediante a estrutura \texttt{match with}: \begin{align*}
-term' = \text{} & \texttt{match $ident_1$, $ident_2$, ..., $ident_m$ with}\\
+term' := \text{} & \texttt{match $ident_1$, $ident_2$, $...$, $ident_m$ with}\\
 & \texttt{$a_1^1$, $a_2^1$, $...$, $a_m^1$ => $term_1'$ |}\\
 & \texttt{$a_1^2$, $a_2^2$, $...$, $a_m^2$ => $term_2'$ |}\\
 & \vdots\\
-& \texttt{$a_1^n$, $a_2^n$, $...$, $a_m^n$ => $term_m'$}\\
+& \texttt{$a_1^k$, $a_2^k$, $...$, $a_m^k$ => $term_k'$}\\
 & \texttt{end}
-\end{align*} Já o comando \texttt{Record} aproxima o usuário das linguagens de programação comuns, ao definir estruturas parecidas com as quais desenvolvemos nelas: \begin{align*}
+\end{align*} Quando não é necessário haver recursão, pode-se substituir o comando \texttt{Fixpoint} pelo \texttt{Definition}. Já o comando \texttt{Record} aproxima o usuário das linguagens de programação comuns, ao definir estruturas parecidas com as quais desenvolvemos nelas: \begin{align*}
 &\texttt{Record $ident$ $params$ : $term$ := $ident_0$ \{}\\
 &\texttt{$ident_1$ : $term_1$;}\\
 &\texttt{$ident_2$ : $term_2$;}\\
@@ -31,7 +31,7 @@ term' = \text{} & \texttt{match $ident_1$, $ident_2$, ..., $ident_m$ with}\\
 &\texttt{$ident_n$ : $term_n$ \}.}
 \end{align*} em que $params$, $ident_0$, $ident_i$ e $term_i$ são, respectivamente, os parâmetros ou argumentos, nome do construtor (opcional), nome e tipo do $i$-ésimo campo ($\forall i = 1..n$), havendo $n$ campos. Na linguagem do Coq, o $i$-ésimo campo de um \textit{record} é obtido com esta sintaxe: \texttt{$ident_i$ $x$}, em que $x : ident$. Há outras maneiras de definir termos a partir desses comandos, mas as apresentadas são suficientes para os objetivos do presente trabalho.
 
-A sintaxe que visualizamos é a combinação do CCI com a linguagem de especificação Ganilla, bastante intuitivos. Para provar teoremas e lemas no Coq, além de definir os tipos que usaremos nas proposições, é necessário utilizar o comando \texttt{Theorem} ou \texttt{Lemma}: $$\texttt{Theorem $ident$ := $ident'$. Proof. $tactic_1$. $tactic_2$. $...$. $tactic_m$. Qed.}$$ com $m$ táticas. As táticas são o cerne da interatividade do Coq e facilitam o desenvolvimento de provas. Elas implementam um raciocínio que parte da conclusão para as premissas, denominadas objetivo e subobjetivos respectivamente. Uma tática, aplicada corretamente sobre o objeto, gera subobjetivos que o substituem \cite{manualcoq}. O quadro \ref{quad:taticas_coq} apresenta as principais táticas do Coq utilizadas por este trabalho.
+A sintaxe que visualizamos é a combinação do CCI com a linguagem de especificação Gallina, bastante intuitivos. Para provar teoremas e lemas no Coq, além de definir os tipos que usaremos nas proposições, é necessário utilizar o comando \texttt{Theorem} ou \texttt{Lemma}: $$\texttt{Theorem $ident$ := $ident'$. Proof. $tactic_1$. $tactic_2$. $...$. $tactic_m$. Qed.}$$ com $m$ táticas. As táticas são o cerne da interatividade do Coq e facilitam o desenvolvimento de provas. Elas implementam um raciocínio que parte da conclusão para as premissas, denominadas objetivo e subobjetivos respectivamente. Uma tática, aplicada corretamente sobre o objeto, gera subobjetivos que o substituem \cite{manualcoq}. O Quadro \ref{quad:taticas_coq} apresenta as principais táticas do Coq utilizadas por este trabalho.
 
 \novoquadro{Principais táticas do Coq}{
 	\begin{tabular}{|c|c|}
@@ -51,4 +51,4 @@ A sintaxe que visualizamos é a combinação do CCI com a linguagem de especific
 
 Outras táticas importantes são: \texttt{unfold} -- para expandir expressões reduzidas --, \texttt{discriminate} -- usada quando os elementos de uma igualdade são construídos diferentemente, como $1 = 0$ -- e \texttt{inversion}. Esta última faz o Coq analisar outras condições para que uma hipótese seja verdadeira. A fim de exemplificar o uso das táticas do Coq, provemos o teorema $$\texttt{Theorem plus\_n\_O : $\forall$ n : nat, n = n + 0.}$$ em que $nat$ é o tipo dos números naturais. Comecemos removendo o quantificador universal e introduzindo a variável \texttt{n}: $$\texttt{Proof. intros n.}$$ Agora, iniciemos a indução sobre \texttt{n}: $$\texttt{induction n as [|n' IHn'].}$$ em que os símbolos após o ``\texttt{|}'' nomeiam as variáveis a serem utilizadas no passo indutivo. Para a base $\texttt{n} = \texttt{0}$, basta simplificar e aplicar a tática \texttt{reflexivity}. Como esta já simplifica a expressão, não é necessário aplicar \texttt{simpl}. No passo indutivo, temos $\texttt{n} = \texttt{S n'}$, sendo \texttt{S x} a função sucessor de $\texttt{x} : \texttt{nat}$. O objetivo atual é $$\texttt{S n' = S n' + 0}$$ Simplificando com \texttt{simpl}, obtemos $$\texttt{S n' = S (n' + 0)}$$ Agora podemos aplicar a hipótese de indução $\texttt{IHn'} = \texttt{(n' = n' + 0)}$ mediante a tática $$\texttt{rewrite <- IHn'.}$$ com \texttt{<-} indicando que o lado direito da hipótese \texttt{IHn'} deve ser reescrito pelo esquerdo no objetivo, o que gera $$\texttt{S n' = S n'}$$ Por fim, $$\texttt{reflexivity. Qed.}$$ como queríamos demonstrar.
 
-O capítulo seguinte, \ref{cap:seds}, conceitua os sistemas a eventos discretos e autômatos finitos determinísticos, objetos das demonstrações do capítulo \ref{cap:propriedades}. Essas provas foram obtidas e validadas no ambiente do assistente Coq.
+O capítulo seguinte, \ref{cap:seds}, conceitua os sistemas a eventos discretos e autômatos finitos determinísticos, objetos das demonstrações do Capítulo \ref{cap:propriedades}. Essas provas foram obtidas e validadas no ambiente do assistente Coq.
