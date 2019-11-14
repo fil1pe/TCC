@@ -228,3 +228,16 @@ Toda sequência de eventos será representada por uma lista, e a função de tra
 \texttt{extended\_transition g (proper\_state q) [] = proper\_state q;}\\\texttt{extended\_transition g (proper\_state q) e::w =}\\\texttt{extended\_transition g (transition q e) w}\end{gather*}
 
 Por definição, uma lista de eventos \texttt{w} será gerada por \texttt{g}, ou \texttt{g ==> w}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w $\neq$ sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a equação \ref{eq:ling_ralo}. Sendo $G$ o AFD definido conforme a equação \ref{eq:afd} e equivalente ao \texttt{g}, podemos notar $$L(G) = \{ a_1a_2...a_n \in E^\star \mid \texttt{g ==> [$a_1$;$a_2$;$...$;$a_n$]} \}$$ evidenciando também a correlação entre as diferentes definições supracitadas para a mesma classe de máquinas abstratas.
+
+\section{Autômatos finitos não determinísticos}
+
+Um autômato finito não determinístico (\acs{AFND}) é um modelo diferenciado com a capacidade de estar em mais de um estado ao mesmo tempo \cite{hopcroft}. Essa característica configura a predição dessas máquinas abstratas, permitindo estimar os possíveis estados em que um SED se encontra. Para um AFND $G = \langle Q, E, \delta, q_0, Q_m \rangle$, a função de transição é do tipo $\delta : Q \times Q \to 2^Q$, retornando um conjunto de estados.
+
+A função de transição estendida $\hat{\delta} : Q \times E^\star \to 2^Q$ é tal que para todo estado $q \in Q$, cadeia $w \in E^\star$ e evento $e \in E$ $$\hat{\delta}(q, w) = \begin{cases}
+\{ q \} & \text{se $w = \varepsilon$}\\
+\displaystyle\bigcup_{q' \in \delta(q, e)} \hat{\delta}(q', w') & \text{se $w = ew'$}
+\end{cases}$$ Com ela, as linguagens gerada e marcada por um AFND $G$ são respectivamente $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \neq \varnothing \}$$ e $$L_m(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \cap Q_m \neq \varnothing \}$$ isto é, os conjuntos de todas as cadeias de eventos que fazem o autômato transicionar a algum estado qualquer e marcado respectivamente.
+
+A vantagem de empregar AFNDs reside no fato de que a modelagem de SEDs é facilitada. Quando a execução de um evento resulta em diferentes significados, podemos designar a transição levando a um conjunto de estados cujo nome expressa algum resultado. Por exemplo, supondo que um sistema contém três produtores e um sensor que indica a produção de algum item, um jeito de modelar o sistema é por meio de uma máquina abstrata que vai do estado $\langle n_1, n_2, n_3 \rangle$, ao ser executado um evento de produção, para os pertencentes a $\{ \langle n_1+1, n_2, n_3 \rangle, \langle n_1, n_2+1, n_3 \rangle, \langle n_1, n_2, n_3+1 \rangle \}$, em que $n_1$, $n_2$ e $n_3$ são os respectivos números de itens produzidos pelo primeiro, segundo e terceiro agentes.
+
+\citeonline{hopcroft} demonstram a conversão de qualquer AFND $G$ para um AFD $G'$ usando a construção de subconjuntos, de forma que $L(G) = L(G')$ e $L_m(G) = L_m(G')$. Assim, convertendo os modelos, podemos usar os teoremas do capítulo \ref{cap:propriedades} para verificar propriedades de sistemas modelados por AFND.
