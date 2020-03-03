@@ -1,115 +1,71 @@
 Require Import Coq.Lists.List.
 Import ListNotations.
-
 Set Implicit Arguments.
-(*Unset Strict Implicit.
-Unset Printing Implicit Defensive.*)
 
-Inductive state {Q : Type} :=
+Inductive state {Q} :=
   sink_state | proper_state (q : Q).
 
-Record dfa (Q E : Type) := {
+Record DFA {Q E} := {
   transition: Q -> E -> @state Q;
   initial_state: Q;
   is_marked: Q -> bool
 }.
 
+Definition is_proper_transition {Q E} (G:@DFA Q E) q e := exists q',
+  proper_state q' = transition G q e.
+
 (* Extended transition function: *)
 
-Fixpoint extended_transition {Q E : Type} (g : dfa Q E) q w : state :=
+Fixpoint extended_transition {Q E} (G:@DFA Q E) q w : state :=
   match q with
     sink_state => sink_state |
     proper_state q' =>  match w with
                           [] => proper_state q' |
                           e::w' =>
-                            extended_transition g ((transition g) q' e) w'
+                            extended_transition G (transition G q' e) w'
                         end
   end.
 
-Lemma extended_transition__transition: forall (Q E : Type) (g : dfa Q E) q e,
-  extended_transition g (proper_state q) [e] = (transition g) q e.
+Lemma extended_transition__transition: forall {Q E} {G:@DFA Q E} q e,
+  extended_transition G (proper_state q) [e] = transition G q e.
 Proof.
-  intros Q E g q e.
+  intros Q E G q e.
   simpl.
-  destruct (transition g q e).
-  - reflexivity.
-  - reflexivity.
+  destruct (transition G q e); reflexivity.
 Qed.
 
-Lemma transition_over_sink_state:
-  forall (Q E : Type) (g : dfa Q E) w,
-    extended_transition g sink_state w = sink_state.
+Lemma transition_sink_state: forall {Q E} (G:@DFA Q E) w,
+  extended_transition G sink_state w = sink_state.
 Proof.
-  intros Q E g w.
-  destruct w.
-  reflexivity.
-  reflexivity.
+  intros Q E G w.
+  destruct w; reflexivity.
 Qed.
 
-Theorem dist_extended_transition:
-  forall (Q E : Type) (g : dfa Q E) w w' q,
-    extended_transition g q (w ++ w') =
-    extended_transition g (extended_transition g q w) w'.
+Theorem dist_extended_transition: forall {Q E} (G:@DFA Q E) w w' q,
+    extended_transition G q (w ++ w') =
+    extended_transition G (extended_transition G q w) w'.
 Proof.
-  intros Q E g w.
+  intros Q E G w.
   induction w as [|e w IHw].
-  - intros w' q. simpl. destruct q. reflexivity. reflexivity.
+  - intros w' q. simpl. destruct q; reflexivity.
   - intros w' q. simpl. destruct q.
-    + symmetry. apply transition_over_sink_state.
+    + symmetry. apply transition_sink_state.
     + rewrite IHw. reflexivity.
 Qed.
 
 (* Generated language: *)
 
-Definition generated_by {Q E : Type} (g : dfa Q E) w : Prop :=
-  ~ extended_transition g (proper_state (initial_state g)) w = sink_state.
+Definition generates {Q E} (G:@DFA Q E) w : Prop :=
+  ~ extended_transition G (proper_state (initial_state G)) w = sink_state.
 
-Notation " g ==> w " := (generated_by g w) (at level 60). (* ? *)
-
-Theorem prefix_closed:
-  forall (Q E : Type) (g : dfa Q E) w w',
-    g ==> (w ++ w') -> g ==> w.
+Theorem prefix_closed: forall {Q E} (G:@DFA Q E) w w',
+    generates G (w ++ w') -> generates G w.
 Proof.
-  unfold generated_by, not.
-  intros Q E g w w' H0 H1.
-  rewrite dist_extended_transition in H0. rewrite H1 in H0. apply H0.
-  destruct w'. reflexivity. reflexivity.
+  unfold generates, not.
+  intros Q E G w w' H0 H1.
+  rewrite dist_extended_transition in H0.
+  rewrite H1 in H0.
+  apply H0.
+  destruct w'; reflexivity.
 Qed.
-
-(*
-Example:
-
-Inductive states1 : Type := q0 | q1 | q2.
-
-Inductive events1 : Type := a | b.
-
-Definition transition1 (q:states1) (e:events1) : state :=
-  match q, e with
-  q0, a => proper_state q1 |
-  q1, b => proper_state q2 |
-  q2, a => proper_state q1 |
-  _, _ => sink_state
-  end.
-
-Definition is_marked1 (q:states1) : bool :=
-  match q with
-  q2 => true |
-  _ => false
-  end.
-
-Definition dfa1 :=
-  {| transition := transition1; initial_state := q0; is_marked := is_marked1 |}.
-
-Check dfa1.
-
-Compute extended_transition dfa1 (proper_state q0) [a;b;a;b;a;b].
-
-Theorem dfa1_test1 : dfa1 ==> [a;b;a;b;a;b].
-Proof.
-  unfold generated_by.
-  unfold not.
-  intros H.
-  discriminate H.
-Qed.
-*)
 
