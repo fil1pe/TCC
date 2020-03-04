@@ -279,8 +279,34 @@ Admitted.
 Axiom func_choice : forall A B (R : A -> B -> Prop),
   (forall x, exists y, R x y) -> exists f, forall x, R x (f x).
 
+Definition f'_prop pq m := forall q,
+  pq = proper_state q -> is_tangible q -> state_upper_bound pq m.
+
+Lemma f'_def:
+  is_upper_bounded -> exists f, forall q, f'_prop q (f q).
+Proof.
+  intro H.
+  apply func_choice.
+  intro q.
+  exists n.
+  intros q' H0 H1 w H2.
+  rewrite H0 in H2.
+  apply g2__generates in H2.
+  unfold is_upper_bounded in H.
+  apply H in H2.
+  auto.
+Qed.
+
 Definition f_prop pq m := forall q,
   pq = proper_state q -> is_tangible q -> min_state_upper_bound pq m.
+
+Lemma f'__f:
+  (exists f, forall q, f'_prop q (f q)) ->
+  exists f, forall q, f_prop q (f q).
+Proof.
+  intros [f H].
+  apply func_choice.
+  intro q.
 
 Lemma f_def:
   is_upper_bounded -> exists f, forall q, f_prop q (f q).
