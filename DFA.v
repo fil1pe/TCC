@@ -57,10 +57,6 @@ Fixpoint xtransition q w :=
 
 Definition is_generated w := ~ is_sink_state (xtransition 0 w).
 
-Lemma xtransition__transition : forall q e,
-  xtransition q [e] = transition q e.
-Proof. reflexivity. Qed.
-
 Theorem xtransition_distr : forall w w' q,
   xtransition q (w ++ w') = xtransition (xtransition q w) w'.
 Proof.
