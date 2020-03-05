@@ -18,7 +18,7 @@ Fixpoint initial_solution' (n:nat) :=
     S n   => initial_solution' n ++ [-1]
   end.
 
-Definition initial_solution n := initial_solution' n ++ [1].
+Definition initial_solution states_num := initial_solution' states_num ++ [1].
 
 Fixpoint valid (s:list Z) :=
   match s with
