@@ -27,9 +27,9 @@ Definition transition q e :=
     5%nat, add => 1%nat |
       _  ,  _  => 10%nat
   end.
-(* Axiom transition : nat->event->nat. *)
+(* Axiom transition : state->event->state. *)
 
-Definition is_marked (q:nat) :=
+Definition is_marked (q:state) :=
   match q with
     _ => false
   end.

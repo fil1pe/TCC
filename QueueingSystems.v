@@ -3,7 +3,7 @@ Import ListNotations Coq.Bool.Bool.
 Require BinIntDef.
 Local Open Scope Z_scope.
 
-Fixpoint verify_upper_bound' (q:nat) (m:Z) (s:list Z) (n:nat) :=
+Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list Z) (n:nat) :=
   match n with O => s | S n =>
 
     if (states_num <=? q)%nat then
@@ -20,7 +20,7 @@ Fixpoint verify_upper_bound' (q:nat) (m:Z) (s:list Z) (n:nat) :=
 
   end.
 
-Fixpoint verify_upper_bound'' (q:nat) (m:Z) (s:list Z) (n:nat) :=
+Fixpoint verify_upper_bound'' (q:state) (m:Z) (s:list Z) (n:nat) :=
   match n with O => s | S n =>
 
     if (states_num <=? q)%nat then
@@ -38,6 +38,6 @@ Fixpoint verify_upper_bound'' (q:nat) (m:Z) (s:list Z) (n:nat) :=
   end.
 
 Definition verify_upper_bound :=
-  extract_0 (verify_upper_bound'' 0 0 (initial_solution states_num) (states_num+2)) [].
+  extract_0 (verify_upper_bound'' 0%nat 0 (initial_solution states_num) (states_num+2)) [].
 
 Compute verify_upper_bound.
