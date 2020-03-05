@@ -1,131 +1,31 @@
-DIGEST 0302f82ed251134b1d5ff87b9cae7e55
+DIGEST 22f1a42ffa284a18966d009e395ea488
 FDFA
-R15:28 Coq.Lists.List <> <> lib
-ind 92:96 <> state
-constr 108:117 <> sink_state
-constr 121:132 <> proper_state
-R118:118 DFA <> state ind
-R141:141 DFA <> state ind
-rec 153:155 <> DFA
-proj 171:180 <> transition
-proj 206:218 <> initial_state
-proj 227:235 <> is_marked
-R184:187 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R189:192 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R194:198 DFA <> state ind
-R200:200 DFA <> Q var
-R188:188 DFA <> E var
-R183:183 DFA <> Q var
-R221:221 DFA <> Q var
-R239:242 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R243:246 Coq.Init.Datatypes <> bool ind
-R238:238 DFA <> Q var
-def 266:285 <> is_proper_transition
-R297:299 DFA <> DFA rec
-R303:303 DFA <> E var
-R301:301 DFA <> Q var
-R313:319 Coq.Init.Logic <> :type_scope:'exists'_x_'..'_x_','_x not
-R322:326 Coq.Init.Logic <> :type_scope:'exists'_x_'..'_x_','_x not
-R342:344 Coq.Init.Logic <> :type_scope:x_'='_x not
-R327:338 DFA <> proper_state constr
-R340:341 DFA <> q' var
-R345:354 DFA <> transition proj
-R360:360 DFA <> e var
-R358:358 DFA <> q var
-R356:356 DFA <> G var
-def 414:432 <> extended_transition
-R444:446 DFA <> DFA rec
-R450:450 DFA <> E var
-R448:448 DFA <> Q var
-R459:463 DFA <> state ind
-R477:477 DFA <> q var
-R489:498 DFA <> sink_state constr
-R503:512 DFA <> sink_state constr
-R521:532 DFA <> proper_state constr
-R547:547 DFA <> w var
-R581:582 Coq.Lists.List ListNotations :list_scope:'['_']' not
-R587:598 DFA <> proper_state constr
-R633:634 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
-R670:688 DFA <> extended_transition def
-R693:702 DFA <> transition proj
-R704:704 DFA <> G var
-R690:690 DFA <> G var
-prf 761:791 <> extended_transition__transition
-R811:813 DFA <> DFA rec
-R817:817 DFA <> E var
-R815:815 DFA <> Q var
-R870:872 Coq.Init.Logic <> :type_scope:x_'='_x not
-R828:846 DFA <> extended_transition def
-R867:867 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
-R869:869 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
-R868:868 DFA <> e var
-R851:862 DFA <> proper_state constr
-R864:864 DFA <> q var
-R848:848 DFA <> G var
-R873:882 DFA <> transition proj
-R888:888 DFA <> e var
-R886:886 DFA <> q var
-R884:884 DFA <> G var
-R943:952 DFA <> transition proj
-R943:952 DFA <> transition proj
-prf 990:1010 <> transition_sink_state
-R1030:1032 DFA <> DFA rec
-R1036:1036 DFA <> E var
-R1034:1034 DFA <> Q var
-R1079:1081 Coq.Init.Logic <> :type_scope:x_'='_x not
-R1045:1063 DFA <> extended_transition def
-R1078:1078 DFA <> w var
-R1067:1076 DFA <> sink_state constr
-R1065:1065 DFA <> G var
-R1082:1091 DFA <> sink_state constr
-prf 1166:1189 <> dist_extended_transition
-R1209:1211 DFA <> DFA rec
-R1215:1215 DFA <> E var
-R1213:1213 DFA <> Q var
-R1264:1271 Coq.Init.Logic <> :type_scope:x_'='_x not
-R1231:1249 DFA <> extended_transition def
-R1257:1260 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R1256:1256 DFA <> w var
-R1261:1262 DFA <> w' var
-R1253:1253 DFA <> q var
-R1251:1251 DFA <> G var
-R1272:1290 DFA <> extended_transition def
-R1322:1323 DFA <> w' var
-R1295:1313 DFA <> extended_transition def
-R1319:1319 DFA <> w var
-R1317:1317 DFA <> q var
-R1315:1315 DFA <> G var
-R1292:1292 DFA <> G var
-R1493:1513 DFA <> transition_sink_state thm
-R1493:1513 DFA <> transition_sink_state thm
-def 1598:1606 <> generates
-R1618:1620 DFA <> DFA rec
-R1624:1624 DFA <> E var
-R1622:1622 DFA <> Q var
-R1642:1643 Coq.Init.Logic <> :type_scope:'~'_x not
-R1700:1702 Coq.Init.Logic <> :type_scope:x_'='_x not
-R1644:1662 DFA <> extended_transition def
-R1699:1699 DFA <> w var
-R1667:1678 DFA <> proper_state constr
-R1681:1693 DFA <> initial_state proj
-R1695:1695 DFA <> G var
-R1664:1664 DFA <> G var
-R1703:1712 DFA <> sink_state constr
-prf 1726:1738 <> prefix_closed
-R1758:1760 DFA <> DFA rec
-R1764:1764 DFA <> E var
-R1762:1762 DFA <> Q var
-R1799:1802 Coq.Init.Logic <> :type_scope:x_'->'_x not
-R1803:1811 DFA <> generates def
-R1815:1815 DFA <> w var
-R1813:1813 DFA <> G var
-R1778:1786 DFA <> generates def
-R1792:1795 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
-R1791:1791 DFA <> w var
-R1796:1797 DFA <> w' var
-R1788:1788 DFA <> G var
-R1836:1844 DFA <> generates def
-R1847:1849 Coq.Init.Logic <> not def
-R1891:1914 DFA <> dist_extended_transition thm
-R1891:1914 DFA <> dist_extended_transition thm
-R1891:1914 DFA <> dist_extended_transition thm
+R15:26 Coq.Init.Nat <> <> lib
+R28:41 Coq.Lists.List <> <> lib
+R43:47 Coq.omega.Omega <> <> lib
+R59:67 Coq.ZArith.BinIntDef <> <> lib
+ind 110:114 <> event
+constr 119:121 <> add
+constr 125:127 <> rem
+constr 131:133 <> oth
+R122:122 DFA <> event ind
+R128:128 DFA <> event ind
+R134:134 DFA <> event ind
+def 150:160 <> count_event
+R176:176 DFA <> e var
+R188:190 DFA <> add constr
+R205:207 DFA <> rem constr
+R222:224 DFA <> oth constr
+def 254:263 <> states_num
+def 320:329 <> transition
+R334:336 Coq.Init.Datatypes <> nat ind
+R342:346 DFA <> event ind
+R364:364 DFA <> e var
+R361:361 DFA <> q var
+R383:385 DFA <> add constr
+R410:412 DFA <> rem constr
+R437:439 DFA <> add constr
+R464:466 DFA <> rem constr
+R491:493 DFA <> add constr
+R518:520 DFA <> rem constr
+R545:547 DFA <> add constr
