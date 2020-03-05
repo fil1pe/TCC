@@ -9,3 +9,4 @@ Relatorio/**/*.lot
 Relatorio/**/*.out.ps
 Relatorio/**/*.toc
 Relatorio/**/*.synctex.gz
+*.vo.aux
