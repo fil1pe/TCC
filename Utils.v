@@ -5,9 +5,9 @@ Local Open Scope Z_scope.
 
 Definition Return {A} a:A := a.
 
-Fixpoint change {A} (l:list A) (n:nat) (a:A) :=
+Fixpoint update {A} (l:list A) (n:nat) (a:A) :=
   match l, n with
-    x::l, S n => x::change l n a |
+    x::l, S n => x::update l n a |
     x::l,  O  => a::l            |
      l  ,  _  => l
   end.
