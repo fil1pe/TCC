@@ -1,31 +1,31 @@
 Require Import Coq.Init.Nat Coq.Lists.List Omega.
+Import ListNotations.
 Require BinIntDef.
-Local Open Scope Z_scope.
 
 Definition state := nat.
 
-Definition states_num := 6%nat.
+Definition states_num := 6.
 (* Axiom states_num : nat. *)
 
 Inductive event := add | rem | oth.
 
 Definition count_event e :=
   match e with
-    add =>  1 |
-    rem => -1 |
-    oth =>  0
+    add =>   1%Z  |
+    rem => (-1)%Z |
+    oth =>   0%Z
   end.
 
-Definition transition q e :=
+Definition transition (q:state) e :=
   match q, e with
-    0%nat, add => 5%nat |
-    0%nat, rem => 1%nat |
-    1%nat, add => 2%nat |
-    2%nat, rem => 3%nat |
-    3%nat, add => 4%nat |
-    4%nat, rem => 1%nat |
-    5%nat, add => 1%nat |
-      _  ,  _  => 10%nat
+    0, add => 5 |
+    0, rem => 1 |
+    1, add => 2 |
+    2, rem => 3 |
+    3, add => 4 |
+    4, rem => 1 |
+    5, add => 1 |
+    _,  _  => 10
   end.
 (* Axiom transition : state->event->state. *)
 
@@ -36,7 +36,46 @@ Definition is_marked (q:state) :=
 
 Definition DFA := (states_num, transition, is_marked).
 
+Definition is_sink_state q := q >= states_num.
+
+Definition is_sink_stateb q := states_num <=? q.
+
 (*
-  The initial state of the DFA is the state 0.
+  The states of the DFA are {0, 1, ..., states_num-1}.
+  The initial state is the state 0.
   The sink state is any state n where n >= states_num.
 *)
+
+Fixpoint xtransition q w :=
+  match w with
+    a::w => if is_sink_stateb q then
+              q
+            else
+              xtransition (transition q a) w |
+    []  => q
+  end.
+
+Definition is_generated w := ~ is_sink_state (xtransition 0 w).
+
+Lemma xtransition__transition : forall q e,
+  xtransition q [e] = transition q e.
+Proof. reflexivity. Qed.
+
+Theorem xtransition_distr : forall w w' q,
+  xtransition q (w ++ w') = xtransition (xtransition q w) w'.
+Proof.
+  intros w w'.
+  induction w as [|e w IHw].
+  - reflexivity.
+  - intro q.
+    simpl.
+    apply IHw.
+Qed.
+
+Theorem prefix_closed: forall w w',
+  is_generated (w ++ w') -> is_generated w.
+Proof.
+  unfold is_generated, is_sink_state, not.
+  intros w w' H.
+  
+
