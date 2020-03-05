@@ -20,17 +20,17 @@ Fixpoint initial_solution' (n:nat) :=
 
 Definition initial_solution states_num := initial_solution' states_num ++ [1].
 
-Fixpoint valid (s:list Z) :=
+Fixpoint end_0 (s:list Z) :=
   match s with
     x::[] => [0]        |
-    x::l  => x::valid l |
+    x::l  => x::end_0 l |
     []    => []
   end.
 
-Fixpoint invalid (s:list Z) :=
+Fixpoint end_1 (s:list Z) :=
   match s with
-    x::[] => [1]          |
-    x::l  => x::invalid l |
+    x::[] => [1]        |
+    x::l  => x::end_1 l |
     []    => []
   end.
 
@@ -39,15 +39,33 @@ Definition max3 (a b c:Z) :=
   else if (b >=? a) && (b >=? c) then b
   else c.
 
+Definition min3 (a b c:Z) :=
+  if (a <=? b) && (a <=? c) then a
+  else if (b <=? a) && (b <=? c) then b
+  else c.
+
 Fixpoint max3_lists (l1 l2 l3:list Z) :=
   match l1, l2, l3 with
     x1::l1, x2::l2, x3::l3 => max3 x1 x2 x3::max3_lists l1 l2 l3 |
       _   ,   _   ,    _   => []
   end.
 
-Fixpoint extract_invalid (l1 l2:list Z) :=
+Fixpoint min_lists (l1 l2 l3:list Z) :=
+  match l1, l2, l3 with
+    x1::l1, x2::l2, x3::l3 => min3 x1 x2 x3::max3_lists l1 l2 l3 |
+      _   ,   _   ,    _   => []
+  end.
+
+Fixpoint extract_0 (l1 l2:list Z) :=
   match l1 with
     x::[] => if x =? 0 then (l2, true) else (l2, false) |
-    x::l1 => extract_invalid l1 (l2 ++ [x])             |
+    x::l1 => extract_0 l1 (l2 ++ [x])                   |
+      []  => (l2, false)
+  end.
+
+Fixpoint extract_1 (l1 l2:list Z) :=
+  match l1 with
+    x::[] => if x =? 1 then (l2, true) else (l2, false) |
+    x::l1 => extract_1 l1 (l2 ++ [x])                   |
       []  => (l2, false)
   end.
