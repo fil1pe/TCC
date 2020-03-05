@@ -1,4 +1,4 @@
-Require Import Coq.Init.Nat Coq.Lists.List Omega Utils DFA.
+Require Import Coq.Init.Nat Coq.Lists.List Omega QSUtils DFA.
 Import ListNotations Coq.Bool.Bool.
 Require BinIntDef.
 Local Open Scope Z_scope.
@@ -135,6 +135,53 @@ Definition verify_upper_bound :=
   extract_0 (verify_upper_bound' 0%nat 0 (initial_solution states_num) (states_num+2)) [].
 
 (* Compute verify_upper_bound. *)
+
+Lemma initial_solution'_minus_1 :
+  nth 0 (initial_solution' states_num) (-1) = -1.
+Proof.
+  unfold initial_solution'.
+  simpl.
+  induction states_num_minus_1.
+  - reflexivity.
+  - fold initial_solution'.
+    fold initial_solution' in IHn.
+    assert (nth 0 (initial_solution' n ++ [-1]) (-1) = nth 0 ((initial_solution' n ++ [-1]) ++ [-1]) (-1)).
+    unfold nth.
+    destruct (initial_solution' n ++ [-1]); reflexivity.
+    rewrite <- H.
+    apply IHn.
+Qed.
+
+Lemma initial_solution_minus_1 :
+  nth 0 (initial_solution states_num) (-1) = -1.
+Proof.
+  unfold initial_solution.
+  assert (nth 0 (initial_solution' states_num ++ [1]) (-1) = nth 0 (initial_solution' states_num) (-1)).
+  unfold nth.
+  destruct (initial_solution' states_num) eqn:eq.
+  - fold (nth 0 ([] ++ [1]) (-1)).
+    unfold initial_solution' in eq.
+    simpl in eq.
+    fold (initial_solution' states_num_minus_1) in eq.
+    destruct (initial_solution' states_num_minus_1); discriminate eq.
+  - reflexivity.
+  - rewrite H.
+    apply initial_solution'_minus_1.
+Qed.
+
+Theorem verify_upper_bound_correct :
+  snd verify_upper_bound = true <-> upper_bounded.
+Proof.
+  unfold upper_bounded.
+  split; intro H.
+  - intros w H0.
+    admit.
+  - unfold verify_upper_bound.
+    simpl.
+    rewrite initial_solution_minus_1.
+    simpl.
+Admitted.
+
 
 Definition state_upper_bound (q:state) := nth q (fst verify_upper_bound) (-1).
 
