@@ -36,9 +36,9 @@ Definition is_marked (q:state) :=
 
 Definition DFA := (states_num, transition, is_marked).
 
-Definition is_sink_state q := q >= states_num.
+Definition is_sink_state (q:state) := q >= states_num.
 
-Definition is_sink_stateb q := states_num <=? q.
+Definition is_sink_stateb (q:state) := states_num <=? q.
 
 (*
   The states of the DFA are {0, 1, ..., states_num-1}.
@@ -57,6 +57,22 @@ Fixpoint xtransition q w :=
 
 Definition is_generated w := ~ is_sink_state (xtransition 0 w).
 
+Lemma is_sink_stateb__is_sink_state : forall q,
+  is_sink_stateb q = true <-> is_sink_state q.
+Proof.
+Admitted.
+
+Lemma xtransition_sink_state : forall w q,
+  is_sink_stateb q = true -> xtransition q w = q.
+Proof.
+  intros w q H.
+  destruct w.
+  - reflexivity.
+  - simpl.
+    rewrite H.
+    reflexivity.
+Qed.
+
 Theorem xtransition_distr : forall w w' q,
   xtransition q (w ++ w') = xtransition (xtransition q w) w'.
 Proof.
@@ -65,13 +81,24 @@ Proof.
   - reflexivity.
   - intro q.
     simpl.
-    apply IHw.
+    destruct (is_sink_stateb q) eqn:H0.
+    + symmetry; apply xtransition_sink_state.
+      apply H0.
+    + apply IHw.
 Qed.
 
 Theorem prefix_closed: forall w w',
   is_generated (w ++ w') -> is_generated w.
 Proof.
-  unfold is_generated, is_sink_state, not.
-  intros w w' H.
-  
-
+  unfold is_generated, not.
+  intros w w' H H0.
+  rewrite xtransition_distr in H.
+  apply is_sink_stateb__is_sink_state in H0.
+  apply H, is_sink_stateb__is_sink_state.
+  destruct w'.
+  - simpl.
+    apply H0.
+  - simpl.
+    rewrite H0.
+    apply H0.
+Qed.
