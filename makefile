@@ -1,7 +1,7 @@
 all: compile
 
 compile:
-	@coqc DFA Utils
+	@coqc DFA QSUtils
 
 clear:
-	@rm *.glob *.vo
+	@rm *.glob *.vo -f

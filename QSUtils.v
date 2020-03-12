@@ -12,13 +12,11 @@ Fixpoint update {A} (l:list A) (n:nat) (a:A) :=
      l  ,  _  => l
   end.
 
-Fixpoint initial_solution' (n:nat) :=
+Fixpoint initial_solution (n:nat) :=
   match n with
      O    => []                         |
-    S n   => initial_solution' n ++ [-1]
+    S n   => initial_solution n ++ [-1]
   end.
-
-Definition initial_solution states_num := initial_solution' states_num ++ [1].
 
 Fixpoint end_0 (s:list Z) :=
   match s with
@@ -32,6 +30,13 @@ Fixpoint end_1 (s:list Z) :=
     x::[] => [1]        |
     x::l  => x::end_1 l |
     []    => []
+  end.
+
+Fixpoint all_but_last_le (l:list Z) n :=
+  match l with
+    x::[] => true                             |
+    x::l  => (x <=? n) && all_but_last_le l n |
+     []   => true
   end.
 
 Definition max3 (a b c:Z) :=
@@ -56,16 +61,16 @@ Fixpoint min_lists (l1 l2 l3:list Z) :=
       _   ,   _   ,    _   => []
   end.
 
-Fixpoint extract_0 (l1 l2:list Z) :=
+Fixpoint extract_0 (l1 l2:list Z) b :=
   match l1 with
-    x::[] => if x =? 0 then (l2, true) else (l2, false) |
-    x::l1 => extract_0 l1 (l2 ++ [x])                   |
+    x::[] => if x =? 0 then (l2, b) else (l2, false) |
+    x::l1 => extract_0 l1 (l2 ++ [x]) b              |
       []  => (l2, false)
   end.
 
-Fixpoint extract_1 (l1 l2:list Z) :=
+Fixpoint extract_1 (l1 l2:list Z) b :=
   match l1 with
-    x::[] => if x =? 1 then (l2, true) else (l2, false) |
-    x::l1 => extract_1 l1 (l2 ++ [x])                   |
+    x::[] => if x =? 1 then (l2, b) else (l2, false) |
+    x::l1 => extract_1 l1 (l2 ++ [x]) b              |
       []  => (l2, false)
   end.

@@ -132,42 +132,15 @@ Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list Z) (n:nat) :=
   end.
 
 Definition verify_upper_bound :=
-  extract_0 (verify_upper_bound' 0%nat 0 (initial_solution states_num) (states_num+2)) [].
+  let s := verify_upper_bound' 0%nat 0 (initial_solution states_num ++ [1]) (states_num+2) in
+  extract_0 s [] (all_but_last_le s upper_bound).
 
 (* Compute verify_upper_bound. *)
 
-Lemma initial_solution'_minus_1 :
-  nth 0 (initial_solution' states_num) (-1) = -1.
+Lemma initial_solution_minus_1 : forall m,
+  nth 0 (initial_solution states_num ++ [1]) m = -1.
 Proof.
-  unfold initial_solution'.
-  simpl.
-  induction states_num_minus_1.
-  - reflexivity.
-  - fold initial_solution'.
-    fold initial_solution' in IHn.
-    assert (nth 0 (initial_solution' n ++ [-1]) (-1) = nth 0 ((initial_solution' n ++ [-1]) ++ [-1]) (-1)).
-    unfold nth.
-    destruct (initial_solution' n ++ [-1]); reflexivity.
-    rewrite <- H.
-    apply IHn.
-Qed.
-
-Lemma initial_solution_minus_1 :
-  nth 0 (initial_solution states_num) (-1) = -1.
-Proof.
-  unfold initial_solution.
-  assert (nth 0 (initial_solution' states_num ++ [1]) (-1) = nth 0 (initial_solution' states_num) (-1)).
-  unfold nth.
-  destruct (initial_solution' states_num) eqn:eq.
-  - fold (nth 0 ([] ++ [1]) (-1)).
-    unfold initial_solution' in eq.
-    simpl in eq.
-    fold (initial_solution' states_num_minus_1) in eq.
-    destruct (initial_solution' states_num_minus_1); discriminate eq.
-  - reflexivity.
-  - rewrite H.
-    apply initial_solution'_minus_1.
-Qed.
+Admitted.
 
 Theorem verify_upper_bound_correct :
   snd verify_upper_bound = true <-> upper_bounded.
