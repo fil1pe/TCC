@@ -39,38 +39,30 @@ Fixpoint all_but_last_le (l:list (option Z)) n :=
        _      => true
   end.
 
-Definition max (a b:Z) :=
-  if (a >=? b) then a
-  else b.
-
-Definition max3 (a b c:option Z) :=
-  match a, b, c with
-    None, None, None       => None                  |
-    Some a, None, None     => Some a                |
-    None, Some a, None     => Some a                |
-    None, None, Some a     => Some a                |
-    Some a, None, Some b   => Some (max a b)        |
-    Some a, Some b, None   => Some (max a b)        |
-    None, Some a, Some b   => Some (max a b)        |
-    Some a, Some b, Some c => Some (max (max a b) c)
+Definition max (a b:option Z) :=
+  match a, b with
+    None, None => None
+    Some x, None => Some x
+    None, Some x => Some x
+    Some x, Some y => if (x >=? y) then Some x else Some y
   end.
 
 Fixpoint max3_lists (l1 l2 l3:list (option Z)) :=
   match l1, l2, l3 with
-    Some m1::l1, Some m2::l2, Some m3::l3 => Some (max3 m1 m2 m3)::max3_lists l1 l2 l3 |
-    Some m1::l1, None::l2, Some m3::l3 => Some (max3 m1 m2 m3)::max3_lists l1 l2 l3 |
+    x::l1, y::l2, z::l3 => max (max x y) z::(max3_lists l1 l2 l3) |
+    [],[],[] => []
   end.
 
 Fixpoint extract_0 (l1 l2:list Z) b :=
   match l1 with
-    x::[] => if x =? 0 then (l2, b) else (l2, false) |
+    Some x::[] => if x =? 0 then (l2, b) else (l2, false) |
     x::l1 => extract_0 l1 (l2 ++ [x]) b              |
       []  => (l2, false)
   end.
 
 Fixpoint extract_1 (l1 l2:list Z) b :=
   match l1 with
-    x::[] => if x =? 1 then (l2, b) else (l2, false) |
+    Some x::[] => if x =? 1 then (l2, b) else (l2, false) |
     x::l1 => extract_1 l1 (l2 ++ [x]) b              |
       []  => (l2, false)
   end.
