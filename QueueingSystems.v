@@ -35,16 +35,20 @@ Proof.
 Qed.
 
 Axiom upper_bound : Z.
-(* Definition upper_bound := 100. *)
+Axiom n0 : Z.
+(*
+  Definition upper_bound := 100.
+  Definition n0 := 0.
+*)
 
-Definition upper_bounded := forall w, is_generated w -> count_buffer w <= upper_bound.
+Definition upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= upper_bound.
 
 Definition is_tangible q := ~ is_sink_state q /\ exists w, q = ixtransition w.
 
 Lemma buffer_count_leq_f : forall (f:state->Z),
-  ( f(0%nat) = 0 /\ forall q, is_tangible q -> forall e,
+  ( f(0%nat) = n0 /\ forall q, is_tangible q -> forall e,
     is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )
-  -> forall w, is_generated w -> count_buffer w <= f(ixtransition w).
+  -> forall w, is_generated w -> n0 + count_buffer w <= f(ixtransition w).
 Proof.
   intros f [H H0] w H1.
   induction w as [|e w IHw] using @rev_ind.
@@ -88,14 +92,14 @@ Proof.
 Qed.
 
 Theorem exists_function__upper_bounded :
-  ( exists f, f(0%nat) = 0 /\ forall q, is_tangible q -> 
+  ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
      f(q) <= upper_bound /\ (forall e,
         is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
   -> upper_bounded.
 Proof.
   unfold upper_bounded.
   intros [f [H H0]] w H1.
-  assert (H2: count_buffer w <= f(ixtransition w)). {
+  assert (H2: n0 + count_buffer w <= f(ixtransition w)). {
     apply buffer_count_leq_f; try split; try (apply H); try (apply H0); try (apply H1).
   }
   assert (f (ixtransition w) <= upper_bound). {
@@ -114,33 +118,56 @@ Proof.
   omega.
 Qed.
 
-Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list Z) (n:nat) :=
+Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list (option Z)) (n:nat) :=
   match n with O => s | S n =>
 
-    if (states_num <=? q)%nat then
+    if is_sink_stateb q then
         Return end_0 s
-    else if nth q s (-1) =? -1 then
+    else if optZ_eq (nth q s None) None then (* if s[q] is empty *)
         let s' := update s q m in
         Return max3_lists (verify_upper_bound' (transition q add) (m+1) s' n)
                           (verify_upper_bound' (transition q rem) (m-1) s' n)
                           (verify_upper_bound' (transition q oth)   m   s' n)
-    else if nth q s (-1) >=? m then
+    else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
         Return end_0 s
-    else
+    else (* if s[q] < m *)
         Return end_1 s
 
   end.
 
 Definition verify_upper_bound :=
-  let s := verify_upper_bound' 0%nat 0 (initial_solution states_num ++ [1]) (states_num+2) in
+  let s := verify_upper_bound' 0%nat n0 (initial_solution states_num ++ [Some 1]) states_num in
   extract_0 s [] (all_but_last_le s upper_bound).
 
 (* Compute verify_upper_bound. *)
 
-Lemma initial_solution_minus_1 : forall m,
-  nth 0 (initial_solution states_num ++ [1]) m = -1.
+Lemma initial_solution_none : forall m,
+  nth 0 (initial_solution states_num ++ [Some 1]) m = None.
 Proof.
-Admitted.
+  intro m.
+  assert (H: forall l1 l2, l1 <> [] -> nth 0 (l1 ++ l2) m = nth 0 l1 m). {
+    intros l1 l2 H.
+    destruct l1.
+    - contradiction.
+    - reflexivity.
+  }
+  simpl.
+  induction states_num_minus_1.
+  - reflexivity.
+  - assert (H1: initial_solution n ++ [None] <> []). {
+      unfold not; intro contra; destruct (initial_solution n); discriminate contra.
+    }
+    pose H1 as H2.
+    apply H with (l2:=[Some 1]) in H2.
+    rewrite IHn in H2.
+    simpl.
+    rewrite <- app_assoc.
+    remember (nth 0 ((initial_solution n ++ [None]) ++ [None] ++ [Some 1]) m) as aux.
+    rewrite H2.
+    rewrite Heqaux.
+    apply H.
+    apply H1.
+Qed.
 
 Theorem verify_upper_bound_correct :
   snd verify_upper_bound = true <-> upper_bounded.
@@ -151,15 +178,18 @@ Proof.
     admit.
   - unfold verify_upper_bound.
     simpl.
-    rewrite initial_solution_minus_1.
+    rewrite initial_solution_none.
     simpl.
 Admitted.
 
-
-Definition state_upper_bound (q:state) := nth q (fst verify_upper_bound) (-1).
+Definition state_upper_bound (q:state) :=
+  match nth q (fst verify_upper_bound) None with
+    Some x => x          |
+     None  => upper_bound
+  end.
 
 Theorem upper_bounded__exists_function : upper_bounded ->
-  ( exists f, f(0%nat) = 0 /\ forall q, is_tangible q -> 
+  ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
      f(q) <= upper_bound /\ (forall e,
         is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )).
 Proof.
@@ -168,7 +198,7 @@ Proof.
 Admitted.
 
 Theorem iff_exists_function__upper_bounded :
-  ( exists f, f(0%nat) = 0 /\ forall q, is_tangible q -> 
+  ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
      f(q) <= upper_bound /\ (forall e,
         is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
   <-> upper_bounded.
