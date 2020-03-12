@@ -12,53 +12,53 @@ Fixpoint update {A} (l:list A) (n:nat) (a:A) :=
      l  ,  _  => l
   end.
 
-Fixpoint initial_solution (n:nat) :=
+Fixpoint initial_solution (n:nat) : list (option Z) :=
   match n with
      O    => []                         |
-    S n   => initial_solution n ++ [-1]
+    S n   => initial_solution n ++ [None]
   end.
 
-Fixpoint end_0 (s:list Z) :=
+Fixpoint end_0 s:list (option Z) :=
   match s with
-    x::[] => [0]        |
+    x::[] => [Some 0]   |
     x::l  => x::end_0 l |
     []    => []
   end.
 
-Fixpoint end_1 (s:list Z) :=
+Fixpoint end_1 s:list (option Z) :=
   match s with
-    x::[] => [1]        |
+    x::[] => [Some 1]   |
     x::l  => x::end_1 l |
     []    => []
   end.
 
-Fixpoint all_but_last_le (l:list Z) n :=
+Fixpoint all_but_last_le (l:list (option Z)) n :=
   match l with
-    x::[] => true                             |
-    x::l  => (x <=? n) && all_but_last_le l n |
-     []   => true
+      x::[]   => true                             |
+    Some m::l => (m <=? n) && all_but_last_le l n |
+       _      => true
   end.
 
-Definition max3 (a b c:Z) :=
-  if (a >=? b) && (a >=? c) then a
-  else if (b >=? a) && (b >=? c) then b
-  else c.
+Definition max (a b:Z) :=
+  if (a >=? b) then a
+  else b.
 
-Definition min3 (a b c:Z) :=
-  if (a <=? b) && (a <=? c) then a
-  else if (b <=? a) && (b <=? c) then b
-  else c.
-
-Fixpoint max3_lists (l1 l2 l3:list Z) :=
-  match l1, l2, l3 with
-    x1::l1, x2::l2, x3::l3 => max3 x1 x2 x3::max3_lists l1 l2 l3 |
-      _   ,   _   ,    _   => []
+Definition max3 (a b c:option Z) :=
+  match a, b, c with
+    None, None, None       => None                  |
+    Some a, None, None     => Some a                |
+    None, Some a, None     => Some a                |
+    None, None, Some a     => Some a                |
+    Some a, None, Some b   => Some (max a b)        |
+    Some a, Some b, None   => Some (max a b)        |
+    None, Some a, Some b   => Some (max a b)        |
+    Some a, Some b, Some c => Some (max (max a b) c)
   end.
 
-Fixpoint min_lists (l1 l2 l3:list Z) :=
+Fixpoint max3_lists (l1 l2 l3:list (option Z)) :=
   match l1, l2, l3 with
-    x1::l1, x2::l2, x3::l3 => min3 x1 x2 x3::max3_lists l1 l2 l3 |
-      _   ,   _   ,    _   => []
+    Some m1::l1, Some m2::l2, Some m3::l3 => Some (max3 m1 m2 m3)::max3_lists l1 l2 l3 |
+    Some m1::l1, None::l2, Some m3::l3 => Some (max3 m1 m2 m3)::max3_lists l1 l2 l3 |
   end.
 
 Fixpoint extract_0 (l1 l2:list Z) b :=
