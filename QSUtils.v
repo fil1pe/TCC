@@ -31,10 +31,10 @@ Fixpoint initial_solution (n:nat) : list (option Z) :=
     S n   => initial_solution n ++ [None]
   end.
 
-Fixpoint list_end o s:list (option Z) :=
+Fixpoint update_last {A} (o:A) (s:list (option A)) :=
   match s with
-    x::[] => [Some o]        |
-    x::l  => x::list_end o l |
+    x::[] => [Some o]           |
+    x::l  => x::update_last o l |
     []    => []
   end.
 

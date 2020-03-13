@@ -122,16 +122,16 @@ Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list (option Z)) (n:nat) :=
   match n with O => s | S n =>
 
     if is_sink_stateb q then
-        Return list_end 0 s
+        Return update_last 0 s
     else if optZ_eq (nth q s None) None then (* if s[q] is empty *)
         let s' := update s q m in
         Return max3_lists (verify_upper_bound' (transition q add) (m+1) s' n)
                           (verify_upper_bound' (transition q rem) (m-1) s' n)
                           (verify_upper_bound' (transition q oth)   m   s' n)
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
-        Return list_end 0 s
+        Return update_last 0 s
     else (* if s[q] < m *)
-        Return list_end 1 s
+        Return update_last 1 s
 
   end.
 
