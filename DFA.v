@@ -39,7 +39,7 @@ Definition is_sink_stateb (q:state) := states_num <=? q.
 (*
   The states of the DFA are {0, 1, ..., states_num-1}.
   The initial state is the state 0.
-  The sink state is any state n where n >= states_num.
+  A sink state is any state n where n >= states_num.
 *)
 
 Fixpoint xtransition q w :=
