@@ -8,6 +8,7 @@ Definition Return {A} a:A := a.
 Definition optZ_eq (a b:option Z) :=
   match a, b with
     Some x, Some y => x =? y |
+     None ,  None  => true   |
       _   ,   _    => false
   end.
 
@@ -30,17 +31,10 @@ Fixpoint initial_solution (n:nat) : list (option Z) :=
     S n   => initial_solution n ++ [None]
   end.
 
-Fixpoint end_0 s:list (option Z) :=
+Fixpoint list_end o s:list (option Z) :=
   match s with
-    x::[] => [Some 0]   |
-    x::l  => x::end_0 l |
-    []    => []
-  end.
-
-Fixpoint end_1 s:list (option Z) :=
-  match s with
-    x::[] => [Some 1]   |
-    x::l  => x::end_1 l |
+    x::[] => [Some o]        |
+    x::l  => x::list_end o l |
     []    => []
   end.
 
@@ -65,16 +59,30 @@ Fixpoint max3_lists l1 l2 l3 :=
       _  ,   _  ,   _   => []
   end.
 
-Fixpoint extract_0 l1 l2 b :=
+Fixpoint extract o l1 l2 b :=
   match l1 with
-    Some a::[] => if a =? 0 then (l2, b) else (l2, false) |
-       x::l1   => extract_0 l1 (l2 ++ [x]) b              |
-        []     => (l2, false)
+    x::[] => if optZ_eq x (Some o) then (l2, b) else (l2, false) |
+    x::l1 => extract o l1 (l2 ++ [x]) b                          |
+     []   => (l2, false)
   end.
 
-Fixpoint extract_1 l1 l2 b :=
-  match l1 with
-    Some a::[] => if a =? 1 then (l2, b) else (l2, false) |
-       x::l1   => extract_1 l1 (l2 ++ [x]) b              |
-        []     => (l2, false)
-  end.
+Lemma fst_extract : forall o a l1 l2 b,
+  fst (extract o (l1 ++ [a]) l2 b) = l2 ++ l1.
+Proof.
+  intros o a l1 l2 b.
+  generalize dependent l2.
+  induction l1.
+  - intro l2.
+    destruct a as [z|]; simpl; try (destruct (z =? o), b; simpl);
+    rewrite app_nil_r; reflexivity.
+  - intro l2.
+    simpl.
+    destruct (l1 ++ [a]) eqn:eq.
+      * destruct l1; discriminate eq.
+      * destruct a0 eqn:eqa0;
+        rewrite IHl1;
+        rewrite <- app_assoc;
+        rewrite <- eqa0;
+        replace ([a0] ++ l1) with (a0 :: l1);
+        reflexivity.
+Qed.

@@ -122,22 +122,22 @@ Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list (option Z)) (n:nat) :=
   match n with O => s | S n =>
 
     if is_sink_stateb q then
-        Return end_0 s
+        Return list_end 0 s
     else if optZ_eq (nth q s None) None then (* if s[q] is empty *)
         let s' := update s q m in
         Return max3_lists (verify_upper_bound' (transition q add) (m+1) s' n)
                           (verify_upper_bound' (transition q rem) (m-1) s' n)
                           (verify_upper_bound' (transition q oth)   m   s' n)
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
-        Return end_0 s
+        Return list_end 0 s
     else (* if s[q] < m *)
-        Return end_1 s
+        Return list_end 1 s
 
   end.
 
 Definition verify_upper_bound :=
   let s := verify_upper_bound' 0%nat n0 (initial_solution states_num ++ [Some 1]) states_num in
-  extract_0 s [] (all_but_last_le s upper_bound).
+  extract 0 s [] (all_but_last_le s upper_bound).
 
 (* Compute verify_upper_bound. *)
 
@@ -184,9 +184,17 @@ Admitted.
 
 Definition state_upper_bound (q:state) :=
   match nth q (fst verify_upper_bound) None with
-    Some x => x          |
-     None  => upper_bound
+    Some x => x              |
+     None  => upper_bound + 1
   end.
+
+Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
+Proof.
+  unfold state_upper_bound, verify_upper_bound.
+  simpl.
+  rewrite initial_solution_none.
+  simpl.
+Admitted.
 
 Theorem upper_bounded__exists_function : upper_bounded ->
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
