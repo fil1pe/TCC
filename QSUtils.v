@@ -3,8 +3,6 @@ Import ListNotations Coq.Bool.Bool.
 Require BinIntDef.
 Local Open Scope Z_scope.
 
-Definition Return {A} a:A := a.
-
 Definition optZ_eq (a b:option Z) :=
   match a, b with
     Some x, Some y => x =? y |
@@ -16,6 +14,12 @@ Definition optZ_ge (a b:option Z) :=
   match a, b with
     Some x, Some y => x >=? y |
       _   ,   _    => false
+  end.
+
+Fixpoint count_none (l:list (option Z)) : nat :=
+  match l with
+     []  => 0                                                        |
+    x::l => if optZ_eq x None then 1 + count_none l else count_none l
   end.
 
 Fixpoint update {A} (l:list (option A)) (n:nat) (a:A) :=
@@ -66,7 +70,7 @@ Fixpoint extract o l1 l2 b :=
      []   => (l2, false)
   end.
 
-Lemma fst_extract : forall o a l1 l2 b,
+Lemma fst_extract' : forall o a l1 l2 b,
   fst (extract o (l1 ++ [a]) l2 b) = l2 ++ l1.
 Proof.
   intros o a l1 l2 b.
@@ -85,4 +89,15 @@ Proof.
         rewrite <- eqa0;
         replace ([a0] ++ l1) with (a0 :: l1);
         reflexivity.
+Qed.
+
+Lemma fst_extract : forall o a l b,
+  fst (extract o (l ++ [a]) [] b) = l.
+Proof.
+  intros o a l b.
+  remember (fst (extract o (l ++ [a]) [] b)) as aux.
+  replace l with ([] ++ l).
+  rewrite Heqaux.
+  apply fst_extract'.
+  reflexivity.
 Qed.

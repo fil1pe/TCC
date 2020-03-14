@@ -118,25 +118,49 @@ Proof.
   omega.
 Qed.
 
-Fixpoint verify_upper_bound' (q:state) (m:Z) (s:list (option Z)) (n:nat) :=
-  match n with O => s | S n =>
+Require Import Recdef.
 
-    if is_sink_stateb q then
-        Return update_last 0 s
-    else if optZ_eq (nth q s None) None then (* if s[q] is empty *)
+Lemma verify_upper_bound'_halts: forall q m s,
+  (length s <=? q)%nat = false ->
+  optZ_eq (nth q s None) None = true ->
+  (count_none (update s q m) < count_none s)%nat.
+Proof.
+  intros q m s H H0.
+  apply leb_iff_conv in H.
+  generalize dependent s.
+  induction q.
+  + intros s H H0.
+    destruct s; simpl in H. omega.
+    simpl.
+    simpl in H0.
+    rewrite H0.
+    omega.
+  + intros s H H0.
+    destruct s. simpl in H; omega.
+    simpl in H; apply lt_S_n in H.
+    simpl in H0.
+    simpl.
+    destruct (optZ_eq o None); try (apply lt_n_S); apply IHq; auto.
+Qed.
+
+Function verify_upper_bound' (q:state) (m:Z) (s:list (option Z)) {measure count_none s} :=
+    if (length s <=? q)%nat then (* if q is a sink state *)
+        update_last 0 s
+    else if optZ_eq (nth q s None) None then
         let s' := update s q m in
-        Return max3_lists (verify_upper_bound' (transition q add) (m+1) s' n)
-                          (verify_upper_bound' (transition q rem) (m-1) s' n)
-                          (verify_upper_bound' (transition q oth)   m   s' n)
+        max3_lists (verify_upper_bound' (transition q add) (m+1) s')
+                   (verify_upper_bound' (transition q rem) (m-1) s')
+                   (verify_upper_bound' (transition q oth)   m   s')
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
-        Return update_last 0 s
+        update_last 0 s
     else (* if s[q] < m *)
-        Return update_last 1 s
-
-  end.
+        update_last 1 s.
+Proof.
+  apply verify_upper_bound'_halts. apply verify_upper_bound'_halts. apply verify_upper_bound'_halts.
+Qed.
 
 Definition verify_upper_bound :=
-  let s := verify_upper_bound' 0%nat n0 (initial_solution states_num ++ [Some 1]) states_num in
+  let s := verify_upper_bound' 0%nat n0 (initial_solution states_num ++ [Some 1]) in
   extract 0 s [] (all_but_last_le s upper_bound).
 
 (* Compute verify_upper_bound. *)
@@ -188,12 +212,22 @@ Definition state_upper_bound (q:state) :=
      None  => upper_bound + 1
   end.
 
+Require Import Coq.ZArith.Zbool.
+
 Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
 Proof.
   unfold state_upper_bound, verify_upper_bound.
   simpl.
   rewrite initial_solution_none.
   simpl.
+  induction states_num_minus_1.
+  - simpl.
+    assert (H: n0 >=? n0 = true). { apply Z.geb_le; omega. }
+    rewrite H.
+    simpl.
+    rewrite H.
+    reflexivity.
+  - simpl.
 Admitted.
 
 Theorem upper_bounded__exists_function : upper_bounded ->
