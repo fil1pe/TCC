@@ -5,9 +5,9 @@ Local Open Scope Z_scope.
 
 Definition count_event e :=
   match e with
-    add =>   1%Z  |
-    rem => (-1)%Z |
-    oth =>   0%Z
+     add  =>   1%Z  |
+     rem  => (-1)%Z |
+    oth e =>   0%Z
   end.
 
 Fixpoint count_buffer w :=
@@ -34,20 +34,16 @@ Proof.
   omega.
 Qed.
 
-Axiom upper_bound : Z.
+Axiom n : Z.
 Axiom n0 : Z.
-(*
-  Definition upper_bound := 100.
-  Definition n0 := 0.
-*)
 
-Definition upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= upper_bound.
+Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
 Definition is_tangible q := ~ is_sink_state q /\ exists w, q = ixtransition w.
 
 Lemma buffer_count_leq_f : forall (f:state->Z),
-  ( f(0%nat) = n0 /\ forall q, is_tangible q -> forall e,
-    is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )
+  ( f(0%nat) = n0 /\ forall q, is_tangible q -> forall e, event_is_valid e = true ->
+    transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e )
   -> forall w, is_generated w -> n0 + count_buffer w <= f(ixtransition w).
 Proof.
   intros f [H H0] w H1.
@@ -83,7 +79,15 @@ Proof.
           apply H3.
         + exists w.
           apply eq_q.
-      - unfold is_proper_transition.
+      - pose eq_q' as H5.
+        unfold xtransition in H5.
+        rewrite H3 in H5.
+        destruct (event_is_valid e).
+        * reflexivity.
+        * apply isnt_sink_stateb__isnt_sink_state in H4.
+          unfold is_sink_state in H4.
+          omega.
+      - unfold transition_is_proper.
         rewrite <- eq_q'.
         apply isnt_sink_stateb__isnt_sink_state.
         apply H4.
@@ -93,16 +97,16 @@ Qed.
 
 Theorem exists_function__upper_bounded :
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-     f(q) <= upper_bound /\ (forall e,
-        is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
-  -> upper_bounded.
+     f(q) <= n /\ (forall e, event_is_valid e = true ->
+        transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e ))
+  -> n_upper_bounded.
 Proof.
-  unfold upper_bounded.
+  unfold n_upper_bounded.
   intros [f [H H0]] w H1.
   assert (H2: n0 + count_buffer w <= f(ixtransition w)). {
     apply buffer_count_leq_f; try split; try (apply H); try (apply H0); try (apply H1).
   }
-  assert (f (ixtransition w) <= upper_bound). {
+  assert (f (ixtransition w) <= n). {
     destruct (is_sink_stateb (ixtransition w)) eqn:H3.
     - apply is_sink_stateb__is_sink_state in H3.
       contradiction.
@@ -120,12 +124,12 @@ Qed.
 
 Require Import Recdef.
 
-Lemma verify_upper_bound'_halts: forall q m s,
+Lemma verify_upper_bound'_halts: forall m s q,
   (length s <=? q)%nat = false ->
   optZ_eq (nth q s None) None = true ->
   (count_none (update s q m) < count_none s)%nat.
 Proof.
-  intros q m s H H0.
+  intros m s q H H0.
   apply leb_iff_conv in H.
   generalize dependent s.
   induction q.
@@ -143,97 +147,53 @@ Proof.
     destruct (optZ_eq o None); try (apply lt_n_S); apply IHq; auto.
 Qed.
 
-Function verify_upper_bound' (q:state) (m:Z) (s:list (option Z)) {measure count_none s} :=
+Function verify_upper_bound' (m:Z) (s:list (option Z)) (q:state) {measure count_none s} :=
     if (length s <=? q)%nat then (* if q is a sink state *)
         update_last 0 s
     else if optZ_eq (nth q s None) None then
-        let s' := update s q m in
-        max3_lists (verify_upper_bound' (transition q add) (m+1) s')
-                   (verify_upper_bound' (transition q rem) (m-1) s')
-                   (verify_upper_bound' (transition q oth)   m   s')
+        let s'  := update s q m in
+        let s'' := max_lists (verify_upper_bound' (m+1) s' (transition q add)) (verify_upper_bound' (m-1) s' (transition q rem)) in
+        s''
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
         update_last 0 s
     else (* if s[q] < m *)
         update_last 1 s.
 Proof.
-  apply verify_upper_bound'_halts. apply verify_upper_bound'_halts. apply verify_upper_bound'_halts.
+  apply verify_upper_bound'_halts. apply verify_upper_bound'_halts.
 Qed.
 
 Definition verify_upper_bound :=
-  let s := verify_upper_bound' 0%nat n0 (initial_solution states_num ++ [Some 1]) in
-  extract 0 s [] (all_but_last_le s upper_bound).
+  let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) 0%nat in
+  extract 0 s [] (all_but_last_le s n).
 
 (* Compute verify_upper_bound. *)
 
 Lemma initial_solution_none : forall m,
   nth 0 (initial_solution states_num ++ [Some 1]) m = None.
 Proof.
-  intro m.
-  assert (H: forall l1 l2, l1 <> [] -> nth 0 (l1 ++ l2) m = nth 0 l1 m). {
-    intros l1 l2 H.
-    destruct l1.
-    - contradiction.
-    - reflexivity.
-  }
-  simpl.
-  induction states_num_minus_1.
-  - reflexivity.
-  - assert (H1: initial_solution n ++ [None] <> []). {
-      unfold not; intro contra; destruct (initial_solution n); discriminate contra.
-    }
-    pose H1 as H2.
-    apply H with (l2:=[Some 1]) in H2.
-    rewrite IHn in H2.
-    simpl.
-    rewrite <- app_assoc.
-    remember (nth 0 ((initial_solution n ++ [None]) ++ [None] ++ [Some 1]) m) as aux.
-    rewrite H2.
-    rewrite Heqaux.
-    apply H.
-    apply H1.
-Qed.
+Admitted.
 
 Theorem verify_upper_bound_correct :
-  snd verify_upper_bound = true <-> upper_bounded.
+  snd verify_upper_bound = true <-> n_upper_bounded.
 Proof.
-  unfold upper_bounded.
-  split; intro H.
-  - intros w H0.
-    admit.
-  - unfold verify_upper_bound.
-    simpl.
-    rewrite initial_solution_none.
-    simpl.
 Admitted.
 
 Definition state_upper_bound (q:state) :=
   match nth q (fst verify_upper_bound) None with
-    Some x => x              |
-     None  => upper_bound + 1
+    Some x => x    |
+     None  => n + 1
   end.
 
 Require Import Coq.ZArith.Zbool.
 
 Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
 Proof.
-  unfold state_upper_bound, verify_upper_bound.
-  simpl.
-  rewrite initial_solution_none.
-  simpl.
-  induction states_num_minus_1.
-  - simpl.
-    assert (H: n0 >=? n0 = true). { apply Z.geb_le; omega. }
-    rewrite H.
-    simpl.
-    rewrite H.
-    reflexivity.
-  - simpl.
 Admitted.
 
-Theorem upper_bounded__exists_function : upper_bounded ->
+Theorem upper_bounded__exists_function : n_upper_bounded ->
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-     f(q) <= upper_bound /\ (forall e,
-        is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )).
+     f(q) <= n /\ (forall e, event_is_valid e = true ->
+        transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e )).
 Proof.
   intro H.
   exists state_upper_bound.
@@ -241,9 +201,9 @@ Admitted.
 
 Theorem iff_exists_function__upper_bounded :
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-     f(q) <= upper_bound /\ (forall e,
-        is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
-  <-> upper_bounded.
+     f(q) <= n /\ (forall e, event_is_valid e = true ->
+        transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e ))
+  <-> n_upper_bounded.
 Proof.
   split. apply exists_function__upper_bounded. apply upper_bounded__exists_function.
 Qed.

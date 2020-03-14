@@ -57,10 +57,10 @@ Definition max a b :=
     Some x, Some y => if (x >=? y) then Some x else Some y
   end.
 
-Fixpoint max3_lists l1 l2 l3 :=
-  match l1, l2, l3 with
-    x::l1, y::l2, z::l3 => max (max x y) z::(max3_lists l1 l2 l3) |
-      _  ,   _  ,   _   => []
+Fixpoint max_lists l1 l2 :=
+  match l1, l2 with
+    x::l1, y::l2 => max x y :: (max_lists l1 l2) |
+      _  ,   _   => []
   end.
 
 Fixpoint extract o l1 l2 b :=
