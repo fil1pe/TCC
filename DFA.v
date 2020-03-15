@@ -3,27 +3,26 @@ Import ListNotations.
 Require BinIntDef.
 
 Definition state := nat.
-Axiom states_num_minus_1 : nat.
-(* Definition states_num_minus_1 := 7. *)
+(* Axiom states_num_minus_1 : nat. *)
+Definition states_num_minus_1 := 5.
 Definition states_num := S states_num_minus_1.
 
 Inductive event := add | rem | oth (e : nat).
-Axiom oth_events_num : nat.
-(* Definition oth_events_num := 0. *)
+(* Axiom oth_events_num : nat. *)
+Definition oth_events_num := 1.
 
-Axiom transition : state->event->state.
-(* Definition transition (q:state) e : state :=
+(* Axiom transition : state->event->state. *)
+Definition transition (q:state) e : state :=
   match q, e with
-    0, add => 1 |
-    1, add => 2 |
-    2, rem => 3 |
-    3, rem => 1 |
-    0, rem => 4 |
-    4, add => 5 |
-    5, add => 6 |
-    6, add => 1 |
-    _,  _  => 8
-  end. *)
+    0,  add  => 1 |
+    1,  add  => 2 |
+    2,  rem  => 3 |
+    3,  rem  => 1 |
+    0, oth 0 => 4 |
+    4,  add  => 5 |
+    5,  add  => 1 |
+    _,   _   => 6
+  end.
 
 Axiom is_marked : state->bool.
 
