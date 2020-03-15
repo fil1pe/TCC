@@ -34,18 +34,18 @@ Proof.
   omega.
 Qed.
 
-(* Axiom n : Z. *)
-Definition n := 3.
-(* Axiom n0 : Z. *)
-Definition n0 := 0.
+Axiom n : Z.
+(* Definition n := 3. *)
+Axiom n0 : Z.
+(* Definition n0 := 0. *)
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
 Definition is_tangible q := ~ is_sink_state q /\ exists w, q = ixtransition w.
 
 Lemma buffer_count_leq_f : forall (f:state->Z),
-  ( f(0%nat) = n0 /\ forall q, is_tangible q -> forall e, event_is_valid e = true ->
-    transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e )
+  ( f(0%nat) = n0 /\ forall q, is_tangible q -> forall e, is_valid_event e = true ->
+    is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )
   -> forall w, is_generated w -> n0 + count_buffer w <= f(ixtransition w).
 Proof.
   intros f [H H0] w H1.
@@ -84,12 +84,12 @@ Proof.
       - pose eq_q' as H5.
         unfold xtransition in H5.
         rewrite H3 in H5.
-        destruct (event_is_valid e).
+        destruct (is_valid_event e).
         * reflexivity.
         * apply isnt_sink_stateb__isnt_sink_state in H4.
           unfold is_sink_state in H4.
           omega.
-      - unfold transition_is_proper.
+      - unfold is_proper_transition.
         rewrite <- eq_q'.
         apply isnt_sink_stateb__isnt_sink_state.
         apply H4.
@@ -99,8 +99,8 @@ Qed.
 
 Theorem exists_function__upper_bounded :
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-     f(q) <= n /\ (forall e, event_is_valid e = true ->
-        transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e ))
+     f(q) <= n /\ (forall e, is_valid_event e = true ->
+        is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
   -> n_upper_bounded.
 Proof.
   unfold n_upper_bounded.
@@ -153,7 +153,7 @@ Definition verify_upper_bound :=
   let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) (S states_num) 0%nat in
   extract 0 s [] (all_but_last_le s n).
 
-Compute verify_upper_bound.
+(* Compute verify_upper_bound. *)
 
 Lemma initial_solution_none : forall m,
   nth 0 (initial_solution states_num ++ [Some 1]) m = None.
@@ -179,8 +179,8 @@ Admitted.
 
 Theorem upper_bounded__exists_function : n_upper_bounded ->
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-     f(q) <= n /\ (forall e, event_is_valid e = true ->
-        transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e )).
+     f(q) <= n /\ (forall e, is_valid_event e = true ->
+        is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )).
 Proof.
   intro H.
   exists state_upper_bound.
@@ -188,8 +188,8 @@ Admitted.
 
 Theorem iff_exists_function__upper_bounded :
   ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-     f(q) <= n /\ (forall e, event_is_valid e = true ->
-        transition_is_proper q e -> f(xtransition q [e]) >= f(q) + count_event e ))
+     f(q) <= n /\ (forall e, is_valid_event e = true ->
+        is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
   <-> n_upper_bounded.
 Proof.
   split. apply exists_function__upper_bounded. apply upper_bounded__exists_function.

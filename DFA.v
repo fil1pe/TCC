@@ -3,13 +3,13 @@ Import ListNotations.
 Require BinIntDef.
 
 Definition state := nat.
-(* Axiom states_num_minus_1 : nat. *)
-Definition states_num_minus_1 := 7.
+Axiom states_num_minus_1 : nat.
+(* Definition states_num_minus_1 := 7. *)
 Definition states_num := S states_num_minus_1.
 
 Inductive event := add | rem | oth (e : nat).
-(* Axiom other_event_list : list nat. *)
-Definition other_event_list : list nat := [].
+Axiom other_event_list : list nat.
+(* Definition other_event_list : list nat := []. *)
 Fixpoint nl2el l :=
   match l with
     x::l => oth x :: nl2el l |
@@ -17,8 +17,8 @@ Fixpoint nl2el l :=
   end.
 Definition event_list := [add; rem] ++ nl2el other_event_list.
 
-(* Axiom transition : state->event->state. *)
-Definition transition (q:state) e : state :=
+Axiom transition : state->event->state.
+(* Definition transition (q:state) e : state :=
   match q, e with
     0, add => 1 |
     1, add => 2 |
@@ -29,7 +29,7 @@ Definition transition (q:state) e : state :=
     5, add => 6 |
     6, add => 1 |
     _,  _  => 8
-  end.
+  end. *)
 
 Axiom is_marked : state->bool.
 
@@ -60,12 +60,12 @@ Fixpoint search_event (l:list event) (e:event) :=
       _   => false
   end.
 
-Fixpoint event_is_valid e := search_event event_list e.
+Fixpoint is_valid_event e := search_event event_list e.
 
 Fixpoint xtransition q w :=
   if is_sink_stateb q then states_num else
     match w with
-      e::w => if event_is_valid e then
+      e::w => if is_valid_event e then
                 xtransition (transition q e) w
               else
                 states_num |
@@ -80,7 +80,7 @@ Proof.
   reflexivity.
 Qed.
 
-Definition transition_is_proper q e := ~ is_sink_state (xtransition q [e]).
+Definition is_proper_transition q e := ~ is_sink_state (xtransition q [e]).
 
 Definition is_generated w := ~ is_sink_state (ixtransition w).
 
@@ -145,7 +145,7 @@ Proof.
     apply xtransition_sink_state with (w:=w') in H.
     destruct (is_sink_stateb q) eqn:eq.
     + rewrite H. reflexivity.
-    + destruct (event_is_valid a).
+    + destruct (is_valid_event a).
       * apply IHw.
       * rewrite H. reflexivity.
 Qed.
