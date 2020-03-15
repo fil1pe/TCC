@@ -42,6 +42,12 @@ Fixpoint update_last {A} (o:A) (s:list (option A)) :=
     []    => []
   end.
 
+Fixpoint foreach {A B} (l:list A) (f:A->B) (c:B->B->B) (b:B) :=
+  match l with
+     []  => b                        |
+    x::l => c (f x) (foreach l f c b)
+  end.
+
 Fixpoint all_but_last_le l n :=
   match l with
       x::[]   => true                             |

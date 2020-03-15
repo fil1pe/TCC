@@ -122,51 +122,33 @@ Proof.
   omega.
 Qed.
 
-Require Import Recdef.
+Fixpoint oth_trans' q l : list state :=
+  match l with
+    e::l => xtransition q [oth e] :: oth_trans' q l |
+     []  => []
+  end.
+Fixpoint oth_trans q := oth_trans' q other_event_list.
 
-Lemma verify_upper_bound'_halts: forall m s q,
-  (length s <=? q)%nat = false ->
-  optZ_eq (nth q s None) None = true ->
-  (count_none (update s q m) < count_none s)%nat.
-Proof.
-  intros m s q H H0.
-  apply leb_iff_conv in H.
-  generalize dependent s.
-  induction q.
-  + intros s H H0.
-    destruct s; simpl in H. omega.
-    simpl.
-    simpl in H0.
-    rewrite H0.
-    omega.
-  + intros s H H0.
-    destruct s. simpl in H; omega.
-    simpl in H; apply lt_S_n in H.
-    simpl in H0.
-    simpl.
-    destruct (optZ_eq o None); try (apply lt_n_S); apply IHq; auto.
-Qed.
+Fixpoint verify_upper_bound' (m:Z) (s:list (option Z)) (fuel:nat) (q:state) :=
+match fuel with O => s | S fuel =>
 
-Function verify_upper_bound' (m:Z) (s:list (option Z)) (q:state) {measure count_none s} :=
     if (length s <=? q)%nat then (* if q is a sink state *)
         update_last 0 s
     else if optZ_eq (nth q s None) None then
-        let s'  := update s q m in
-        let s'' := max_lists (verify_upper_bound' (m+1) s' (transition q add)) (verify_upper_bound' (m-1) s' (transition q rem)) in
-        s''
+        let  s' := update s q m in
+        let s'' := max_lists (verify_upper_bound' (m+1) s' fuel (transition q add)) (verify_upper_bound' (m-1) s' fuel (transition q rem)) in
+        let  f  := verify_upper_bound' m s' fuel in
+        foreach (oth_trans q) f max_lists s''
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
         update_last 0 s
     else (* if s[q] < m *)
-        update_last 1 s.
-Proof.
-  apply verify_upper_bound'_halts. apply verify_upper_bound'_halts.
-Qed.
+        update_last 1 s
+
+end.
 
 Definition verify_upper_bound :=
-  let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) 0%nat in
+  let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) states_num 0%nat in
   extract 0 s [] (all_but_last_le s n).
-
-(* Compute verify_upper_bound. *)
 
 Lemma initial_solution_none : forall m,
   nth 0 (initial_solution states_num ++ [Some 1]) m = None.
