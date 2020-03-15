@@ -3,30 +3,31 @@ Import ListNotations.
 Require BinIntDef.
 
 Definition state := nat.
-(* Axiom states_num_minus_1 : nat. *)
-Definition states_num_minus_1 := 5.
+Axiom states_num_minus_1 : nat.
+(* Definition states_num_minus_1 := 5. *)
 Definition states_num := S states_num_minus_1.
 
-Inductive event := add | rem | oth (e : nat).
-(* Axiom oth_events_num : nat. *)
-Definition oth_events_num := 1.
+Definition event := nat.
+Axiom oth_events_num : nat.
+(* Definition oth_events_num := 1. *)
+Definition events_num := oth_events_num + 2.
 
-(* Axiom transition : state->event->state. *)
-Definition transition (q:state) e : state :=
+Axiom transition : state->event->state.
+(* Definition transition (q:state) e : state :=
   match q, e with
-    0,  add  => 1 |
-    1,  add  => 2 |
-    2,  rem  => 3 |
-    3,  rem  => 1 |
-    0, oth 0 => 4 |
-    4,  add  => 5 |
-    5,  add  => 1 |
-    _,   _   => 6
-  end.
+    0, 0 => 1 |
+    1, 0 => 2 |
+    2, 1 => 3 |
+    3, 1 => 1 |
+    0, 2 => 4 |
+    4, 0 => 5 |
+    5, 0 => 1 |
+    _, _=> 6
+  end. *)
 
 Axiom is_marked : state->bool.
 
-Definition DFA := (states_num, transition, is_marked).
+Definition DFA := (states_num, events_num, transition, is_marked).
 
 (*
   The states of the DFA are 0, 1, ... and states_num-1.
@@ -34,27 +35,14 @@ Definition DFA := (states_num, transition, is_marked).
   The sink state is the state n where n = states_num.
   All transitions to states n where n > states_num will be considered
   transitions to the sink state.
-  The events are add, rem, oth 0, oth 1, ... and oth (oth_events_num-1).
+  The events are 0, 1, ... and events_num-1.
 *)
 
 Definition is_sink_state (q:state) := q >= states_num.
 
 Definition is_sink_stateb (q:state) := states_num <=? q.
 
-Definition event_eq e1 e2 :=
-  match e1, e2 with
-     add  ,  add   => true     |
-     rem  ,  rem   => true     |
-    oth e1, oth e2 => e1 =? e2 |
-      _   ,    _   => false
-  end.
-
-Definition is_valid_event e :=
-  match e with
-     add  => true               |
-     rem  => true               |
-    oth e => e <? oth_events_num
-  end.
+Definition is_valid_event (e:event) := e <? oth_events_num.
 
 Fixpoint xtransition q w :=
   if is_sink_stateb q then states_num else

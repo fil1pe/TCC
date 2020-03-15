@@ -3,11 +3,11 @@ Import ListNotations Coq.Bool.Bool.
 Require BinIntDef.
 Local Open Scope Z_scope.
 
-Definition count_event e :=
+Definition count_event (e:event) :=
   match e with
-     add  =>   1%Z  |
-     rem  => (-1)%Z |
-    oth e =>   0%Z
+    0%nat =>   1%Z  |
+    1%nat => (-1)%Z |
+      _   =>   0%Z
   end.
 
 Fixpoint count_buffer w :=
@@ -34,10 +34,10 @@ Proof.
   omega.
 Qed.
 
-(* Axiom n : Z. *)
-Definition n := 3.
-(* Axiom n0 : Z. *)
-Definition n0 := 0.
+Axiom n : Z.
+(* Definition n := 3. *)
+Axiom n0 : Z.
+(* Definition n0 := 0. *)
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
@@ -126,8 +126,8 @@ Qed.
 
 Fixpoint oth_trans' q n : list state :=
   match n with
-    0%nat => []                                     |
-     S n  => xtransition q [oth n] :: oth_trans' q n
+    S n => xtransition q [S (S n)] :: oth_trans' q n |
+     O  => []
   end.
 Definition oth_trans q := oth_trans' q oth_events_num.
 
@@ -138,7 +138,7 @@ match fuel with O => s | S fuel =>
         update_last 0 s
     else if optZ_eq (nth q s None) None then
         let  s' := update s q m in
-        let s'' := max_lists (verify_upper_bound' (m+1) s' fuel (transition q add)) (verify_upper_bound' (m-1) s' fuel (transition q rem)) in
+        let s'' := max_lists (verify_upper_bound' (m+1) s' fuel (transition q 0%nat)) (verify_upper_bound' (m-1) s' fuel (transition q 1%nat)) in
         let  f  := verify_upper_bound' m s' fuel in
         foreach (oth_trans q) f max_lists s''
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
@@ -152,7 +152,7 @@ Definition verify_upper_bound :=
   let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) (S states_num) 0%nat in
   extract 0 s [] (all_but_last_le s n).
 
-Compute verify_upper_bound.
+(* Compute verify_upper_bound. *)
 
 Lemma initial_solution_none : forall m,
   nth 0 (initial_solution states_num ++ [Some 1]) m = None.
