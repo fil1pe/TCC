@@ -3,11 +3,13 @@ Import ListNotations.
 Require BinIntDef.
 
 Definition state := nat.
-Axiom states_num_minus_1 : nat.
+(* Axiom states_num_minus_1 : nat. *)
+Definition states_num_minus_1 := 7.
 Definition states_num := S states_num_minus_1.
 
 Inductive event := add | rem | oth (e : nat).
-Axiom other_event_list : list nat.
+(* Axiom other_event_list : list nat. *)
+Definition other_event_list : list nat := [].
 Fixpoint nl2el l :=
   match l with
     x::l => oth x :: nl2el l |
@@ -15,7 +17,19 @@ Fixpoint nl2el l :=
   end.
 Definition event_list := [add; rem] ++ nl2el other_event_list.
 
-Axiom transition : state->event->state.
+(* Axiom transition : state->event->state. *)
+Definition transition (q:state) e : state :=
+  match q, e with
+    0, add => 1 |
+    1, add => 2 |
+    2, rem => 3 |
+    3, rem => 1 |
+    0, rem => 4 |
+    4, add => 5 |
+    5, add => 6 |
+    6, add => 1 |
+    _,  _  => 8
+  end.
 
 Axiom is_marked : state->bool.
 

@@ -34,8 +34,10 @@ Proof.
   omega.
 Qed.
 
-Axiom n : Z.
-Axiom n0 : Z.
+(* Axiom n : Z. *)
+Definition n := 3.
+(* Axiom n0 : Z. *)
+Definition n0 := 0.
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
@@ -132,13 +134,14 @@ Fixpoint oth_trans q := oth_trans' q other_event_list.
 Fixpoint verify_upper_bound' (m:Z) (s:list (option Z)) (fuel:nat) (q:state) :=
 match fuel with O => s | S fuel =>
 
-    if (length s <=? q)%nat then (* if q is a sink state *)
+    if (length s <=? S q)%nat then (* if q is a sink state *)
         update_last 0 s
     else if optZ_eq (nth q s None) None then
         let  s' := update s q m in
         let s'' := max_lists (verify_upper_bound' (m+1) s' fuel (transition q add)) (verify_upper_bound' (m-1) s' fuel (transition q rem)) in
         let  f  := verify_upper_bound' m s' fuel in
-        foreach (oth_trans q) f max_lists s''
+        s''
+(*         foreach (oth_trans q) f max_lists s'' *)
     else if optZ_ge (nth q s None) (Some m) then (* if s[q] >= m *)
         update_last 0 s
     else (* if s[q] < m *)
@@ -147,8 +150,10 @@ match fuel with O => s | S fuel =>
 end.
 
 Definition verify_upper_bound :=
-  let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) states_num 0%nat in
+  let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) (S states_num) 0%nat in
   extract 0 s [] (all_but_last_le s n).
+
+Compute verify_upper_bound.
 
 Lemma initial_solution_none : forall m,
   nth 0 (initial_solution states_num ++ [Some 1]) m = None.
