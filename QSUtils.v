@@ -16,10 +16,16 @@ Definition optZ_ge (a b:option Z) :=
       _   ,   _    => false
   end.
 
-Fixpoint count_none (l:list (option Z)) : nat :=
+(* Fixpoint count_none (l:list (option Z)) : nat :=
   match l with
      []  => 0                                                        |
     x::l => if optZ_eq x None then 1 + count_none l else count_none l
+  end. *)
+
+Fixpoint initial_solution (n:nat) : list (option Z) :=
+  match n with
+     O    => []                          |
+    S n   => initial_solution n ++ [None]
   end.
 
 Fixpoint update {A} (l:list (option A)) (n:nat) (a:A) :=
@@ -29,17 +35,11 @@ Fixpoint update {A} (l:list (option A)) (n:nat) (a:A) :=
      l  ,  _  => l
   end.
 
-Fixpoint initial_solution (n:nat) : list (option Z) :=
-  match n with
-     O    => []                          |
-    S n   => initial_solution n ++ [None]
-  end.
-
 Fixpoint update_last {A} (o:A) (s:list (option A)) :=
   match s with
     x::[] => [Some o]           |
     x::l  => x::update_last o l |
-    []    => []
+      []  => []
   end.
 
 Fixpoint foreach {A B} (l:list A) (f:A->B) (c:B->B->B) (b:B) :=

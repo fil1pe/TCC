@@ -8,14 +8,8 @@ Axiom states_num_minus_1 : nat.
 Definition states_num := S states_num_minus_1.
 
 Inductive event := add | rem | oth (e : nat).
-Axiom other_event_list : list nat.
-(* Definition other_event_list : list nat := []. *)
-Fixpoint nl2el l :=
-  match l with
-    x::l => oth x :: nl2el l |
-     []  => []
-  end.
-Definition event_list := [add; rem] ++ nl2el other_event_list.
+Axiom oth_events_num : nat.
+(* Definition oth_events_num := 0. *)
 
 Axiom transition : state->event->state.
 (* Definition transition (q:state) e : state :=
@@ -39,7 +33,9 @@ Definition DFA := (states_num, transition, is_marked).
   The states of the DFA are 0, 1, ... and states_num-1.
   The initial state is the state 0.
   The sink state is the state n where n = states_num.
-  The events are the ones in event_list.
+  All transitions to states n where n > states_num will be considered
+  transitions to the sink state.
+  The events are add, rem, oth 0, oth 1, ... and oth (oth_events_num-1).
 *)
 
 Definition is_sink_state (q:state) := q >= states_num.
@@ -54,13 +50,12 @@ Definition event_eq e1 e2 :=
       _   ,    _   => false
   end.
 
-Fixpoint search_event (l:list event) (e:event) :=
-  match l with
-    e'::l => if event_eq e e' then true else search_event l e |
-      _   => false
+Definition is_valid_event e :=
+  match e with
+     add  => true               |
+     rem  => true               |
+    oth e => e <? oth_events_num
   end.
-
-Fixpoint is_valid_event e := search_event event_list e.
 
 Fixpoint xtransition q w :=
   if is_sink_stateb q then states_num else
@@ -72,7 +67,7 @@ Fixpoint xtransition q w :=
       []  => q
     end.
 
-Definition ixtransition w := xtransition 0 w.
+Definition ixtransition := xtransition 0.
 
 Lemma ixtransition_nil__0 : ixtransition [] = 0.
 Proof.

@@ -124,12 +124,12 @@ Proof.
   omega.
 Qed.
 
-Fixpoint oth_trans' q l : list state :=
-  match l with
-    e::l => xtransition q [oth e] :: oth_trans' q l |
-     []  => []
+Fixpoint oth_trans' q n : list state :=
+  match n with
+    0%nat => [xtransition q [oth 0]]                |
+     S n  => xtransition q [oth n] :: oth_trans' q n
   end.
-Fixpoint oth_trans q := oth_trans' q other_event_list.
+Definition oth_trans q := oth_trans' q oth_events_num.
 
 Fixpoint verify_upper_bound' (m:Z) (s:list (option Z)) (fuel:nat) (q:state) :=
 match fuel with O => s | S fuel =>
