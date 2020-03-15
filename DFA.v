@@ -3,17 +3,17 @@ Import ListNotations.
 Require BinIntDef.
 
 Definition state := nat.
-Axiom states_num_minus_1 : nat.
-(* Definition states_num_minus_1 := 5. *)
+(* Axiom states_num_minus_1 : nat. *)
+Definition states_num_minus_1 := 5.
 Definition states_num := S states_num_minus_1.
 
 Definition event := nat.
-Axiom oth_events_num : nat.
-(* Definition oth_events_num := 1. *)
+(* Axiom oth_events_num : nat. *)
+Definition oth_events_num := 1.
 Definition events_num := oth_events_num + 2.
 
-Axiom transition : state->event->state.
-(* Definition transition (q:state) e : state :=
+(* Axiom transition : state->event->state. *)
+Definition transition (q:state) e : state :=
   match q, e with
     0, 0 => 1 |
     1, 0 => 2 |
@@ -23,7 +23,7 @@ Axiom transition : state->event->state.
     4, 0 => 5 |
     5, 0 => 1 |
     _, _=> 6
-  end. *)
+  end.
 
 Axiom is_marked : state->bool.
 
@@ -42,7 +42,7 @@ Definition is_sink_state (q:state) := q >= states_num.
 
 Definition is_sink_stateb (q:state) := states_num <=? q.
 
-Definition is_valid_event (e:event) := e <? oth_events_num.
+Definition is_valid_event (e:event) := e <? events_num.
 
 Fixpoint xtransition q w :=
   if is_sink_stateb q then states_num else

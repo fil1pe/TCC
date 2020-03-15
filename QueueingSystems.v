@@ -34,10 +34,10 @@ Proof.
   omega.
 Qed.
 
-Axiom n : Z.
-(* Definition n := 3. *)
-Axiom n0 : Z.
-(* Definition n0 := 0. *)
+(* Axiom n : Z. *)
+Definition n := 3.
+(* Axiom n0 : Z. *)
+Definition n0 := 0.
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
@@ -152,7 +152,7 @@ Definition verify_upper_bound :=
   let s := verify_upper_bound' n0 (initial_solution states_num ++ [Some 1]) (S states_num) 0%nat in
   extract 0 s [] (all_but_last_le s n).
 
-(* Compute verify_upper_bound. *)
+Compute verify_upper_bound.
 
 Lemma initial_solution_none : forall m,
   nth 0 (initial_solution states_num ++ [Some 1]) m = None.
