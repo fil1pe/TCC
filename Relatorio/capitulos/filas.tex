@@ -55,7 +55,7 @@ Um exemplo de sistema de filas é apresentado por \citeonline{victor} e consiste
 	\end{tikzpicture}
 }{fig:demandas_vants} 
 
-A julgar pela dificuldade de garantir consistências em SEDs, é eminente a relevância de métodos formais para inferências a respeito de propriedades dos AFDs. Antes de formular esses meios matemáticos, duas importantes propriedades dos sistemas de filas são expostas na próxima seção, \ref{sec:props}.
+A julgar pela dificuldade de garantir consistências em SEDs, é eminente a relevância de métodos formais para inferências a respeito de propriedades dos AFDs. Antes de formular esses meios matemáticos, duas importantes propriedades dos sistemas de filas são expostas na Seção \ref{sec:props}.
 
 \section{Propriedades desejadas}
 \label{sec:props}
@@ -64,9 +64,10 @@ Como citado para o problema do produtor-consumidor, um sistema de filas geralmen
 
 O problema do produtor-consumidor decorre da necessidade de sincronizar um \textit{buffer} -- uma fila -- compartilhado entre processos. Na ciência da computação, a concorrência de processos sobre os mesmos recursos impõe que alguns artifícios de software e hardware sejam empregados a fim de respeitar as propriedades explanadas por esta seção. Sem eles, o desenvolvimento de aplicações computacionais com memória compartilhada gera defeitos que são manifestados no uso. Um exemplo deste problema é o caso em que dois processos tentam adicionar arquivo no \textit{spool} de impressão de um sistema operacional, o que, se não for sincronizado, possibilita a ambos os processos escreverem sobre a mesma célula do \textit{spool} \cite{tanenbaum}. No contexto da automação industrial, há também a necessidade de manter processos de produção e manufatura sincronizados. Máquinas que compartilham filas de recursos precisam atuar de modo consistente. 
 
-Apesar de as representações de filas físicas requererem um volume mínimo de zero itens, esta pode não ser uma condição para filas abstratas. A subseção a seguir aborda esses e outros casos, em que é possível reduzir problemas abstraindo a noção de filas, servidores e consumidores.
+Apesar de as representações de filas físicas requererem um volume mínimo de zero itens, esta pode não ser uma condição para filas abstratas. A subseção \ref{subsec:reducao} aborda esses e outros casos, em que é possível reduzir problemas abstraindo a noção de filas, servidores e consumidores.
 
 \subsection{Redução de problemas}
+\label{subsec:reducao}
 
 É possível reduzir problemas à validação das propriedades supracitadas. Seja um SED com a seguinte restrição: há dois subconjuntos de eventos $E_1$ e $E_2$ tais que, em qualquer cadeia de eventos executada pelo sistema, o número de elementos pertencentes a $E_1$ menos o número de elementos pertencentes a $E_2$ deve ser menor ou igual a $n$. Abstraindo, podemos imaginar que um supervisor anota um símbolo em uma fila toda vez que um evento de $E_1$ é executado e apaga dela um símbolo quando um evento de $E_2$ é efetuado, da forma que a Figura \ref{fig:reducao_fila} ilustra. Pode-se modelar esse SED como um sistema de filas em que os eventos de $E_1$ e $E_2$ sejam substituídos respectivamente por operações de adição e retirada de fila. Garantido que a fila tem capacidade máxima de $n$ itens, a restrição é satisfeita, porque, sempre que há $x$ símbolos na fila, foram executados $x$ eventos de $E_1$ a mais que de $E_2$.
 
@@ -112,5 +113,5 @@ Sobre o sistema modelado pela Figura \ref{fig:exemplo_reducao1}, utilizando a ab
 	\end{tikzpicture}
 }{fig:exemplo_reducao2}
 
-Especificadas as propriedades acima, resta-nos encontrar formalismos capazes de auxiliar a garantia delas. O capítulo seguinte, \ref{cap:propriedades}, propõe e exemplifica teoremas para esse propósito.
+Especificadas as propriedades acima, resta encontrar formalismos capazes de auxiliar a garantia delas. O capítulo seguinte, \ref{cap:propriedades}, propõe e exemplifica teoremas para esse propósito.
 

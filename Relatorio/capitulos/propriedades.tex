@@ -3,7 +3,7 @@
 
 Posto que é desejável a constatação de certas propriedades referentes a sistema de filas, um grupo de sistemas a eventos discretos (SEDs), este capítulo visa demonstrar a garantia de capacidade máxima e volume mínimo zero destes sistemas. Na visão de \citeonline{reisig}, provas acerca de tais propriedades não são completamente triviais, o que destaca a conveniência auferida com a assistência do provador de teoremas Coq.
 
-Introduzamos algumas notações e definições úteis para nosso propósito. A fim de representar as operações de adição e retirada de fila, utilizemos os respectivos símbolos $+$ e $-$. Seja $G = \langle Q, E, \delta, q_0, Q_m \rangle$ um autômato finito determinístico (AFD) definido conforme a equação \ref{eq:afd} em que $E \supseteq \{ +, - \}$, queremos provar que o sistema de filas modelado por $G$ satisfaz as duas propriedades supracitadas no capítulo \ref{cap:filas}: que a fila tenha uma capacidade máxima e não seja permitido efetuar a operação de retirada de item quando ela estiver vazia.
+Introduzamos algumas notações e definições úteis para nosso propósito. A fim de representar as operações de adição e retirada de fila, utilizemos os respectivos símbolos $+$ e $-$. Seja $G = \langle Q, E, \delta, q_0, Q_m \rangle$ um autômato finito determinístico (AFD) definido conforme a Equação \ref{eq:afd} em que $E \supseteq \{ +, - \}$, queremos provar que o sistema de filas modelado por $G$ satisfaz as duas propriedades citadas no Capítulo \ref{cap:filas}: que a fila tenha uma capacidade máxima e não seja permitido efetuar a operação de retirada de item quando ela estiver vazia.
 
 Precisamos de uma função $c : E^\star \to \mathbb{Z}$ que conte o número de itens armazenados em uma fila após uma cadeia de eventos $w \in E^\star$. Uma forma de defini-la é $$c(w) = \begin{cases}
 c(w') + 1 & \text{se $w=+w'$}\\
@@ -11,7 +11,7 @@ c(w') - 1 & \text{se $w=-w'$}\\
 0 & \text{senão}
 \end{cases}$$ Em tal definição, consideramos que o número inicial de itens na fila do sistema é sempre zero. Para sistemas de filas com um número $n_0 \neq 0$ de itens inicialmente dispostos na fila, a quantidade de volume armazenado, após uma cadeia de eventos $w$, será $c(w) + n_0$. Baseado nas propriedades aritméticas da soma de inteiros, podemos observar para quaisquer $w_1$ e $w_2 \in E^\star$ $$c(w_1w_2) = c(w_1) + c(w_2)$$ que será útil para a demonstração dos teoremas a respeito das propriedades que queremos garantir.
 
-De modo a facilitar a leitura dos teoremas, simplifiquemos a notação para a transição estendida de um estado $q$ por uma cadeia de eventos $w$ da seguinte maneira: $$qw \equiv \hat{\delta}(q,w)$$ Pelo mesmo motivo, definamos a função $t : E \to \mathbb{Z}$ desta forma: $$t(e) = \begin{cases}
+De modo a facilitar a leitura dos teoremas, simplifiquemos a notação para a transição estendida de um estado $q$ por uma cadeia de eventos $w$ da seguinte maneira: $$qw \equiv \hat{\delta}(q,w)$$ Pelo mesmo motivo, definamos a função $t : E \to \mathbb{Z}$, que mapeia os eventos ao incremento que eles causam no tamanho da fila, desta forma: $$t(e) = \begin{cases}
 1 & \text{se $e=+$} \\
 -1 & \text{se $e=-$} \\
 0 & \text{senão}
@@ -61,7 +61,7 @@ Com base na hipótese do lema, obtemos \begin{equation}
 f(q_0w) \leq f(q_0wu) - t(u)
 \end{equation}
 
-A partir das equações \ref{eq:hipindlema1} e \ref{eq:hiplema1}, verifica-se $$n_0 + c(w) \leq f(q_0w) \leq f(q_0wu) - t(u)$$ demonstrando a equação \ref{eq:goallema1}, como queríamos.
+A partir das Equações \ref{eq:hipindlema1} e \ref{eq:hiplema1}, verifica-se $$n_0 + c(w) \leq f(q_0w) \leq f(q_0wu) - t(u)$$ demonstrando a Equação \ref{eq:goallema1}, como queríamos.
 \end{proof}
 
 Dado que o presente relatório é apenas parte de um trabalho de conclusão de curso, justifica-se o caráter parcial que assumirá a prova do Teorema \ref{teo:teo1}. Nesse sentido, a demonstração que segue é a respeito da condição unidirecional da esquerda para a direita.
@@ -110,7 +110,7 @@ Sob outra perspectiva, a figura \ref{fig:ex2_teo1} apresenta um exemplo de AFD m
 	\end{tikzpicture}
 }{fig:ex2_teo1}
 
-Além de provar que determinados sistemas de filas cumprem ou não com a especificação de uma fila com volume máximo, muitas vezes quer-se atestar a impossibilidade de efetuar a operação de retirada de fila vazia. É sobre isso que trata a Seção \ref{sec:vol_min}, a seguir.
+Além de provar que determinados sistemas de filas cumprem ou não com a especificação de uma fila com volume máximo, muitas vezes quer-se atestar a impossibilidade de efetuar a operação de retirada de fila vazia. É sobre isso que trata a Seção \ref{sec:vol_min}.
 
 \section{Garantia de volume mínimo zero}
 \label{sec:vol_min}

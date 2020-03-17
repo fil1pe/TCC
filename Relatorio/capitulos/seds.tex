@@ -5,9 +5,9 @@ Segundo \citeonline[p. 142, tradução do autor]{lafortune} \begin{citacao} Sist
 
 O advento das tecnologias de comunicação, sensoriamento e computação impulsionou a caracterização desta nova classe de sistemas. Os SEDs, por não serem adequadamente modelados pelas equações das leis da física clássica e moderna, demandam novos paradigmas de modelagem. ``Intuitivamente, nós podemos pensar em um modelo como um dispositivo que simplesmente duplica o comportamento do próprio sistema'' \cite[p. 3, tradução do autor]{cassandras}. Um modelo descreve um sistema sob uma ótica quantitativa, que é, muitas vezes, mais adequada que uma simples e subjetiva descrição qualitativa. A construção de um modelo considera um conjunto de variáveis de entrada e saída, relacionadas por intermédio de uma função. Assim sendo, os modelos proporcionam a habilidade predizer os comportamentos de sistemas, o que os confere importância. Formas de modelar sistemas que evoluem com base em eventos assíncronos e discretos são discutidas neste capítulo.
 
-\citeonline{cassandras} citam, como exemplos de SEDs, os sistemas de filas, computacionais, de comunicação, de manufatura e de tráfego. A exemplo disso, protocolos de comunicação em redes de computadores são frequentemente modelados por SEDs, como indica a Figura \ref{fig:protocolo_rede}. O presente trabalho enfoca os sistemas relacionados à automação industrial, para os quais a modelagem de filas é conveniente. A espera de entidades por um recurso em uma fábrica é exemplo que justifica isso, porque a abstração por meio de filas ou \textit{buffers} é muito útil nesse caso. O Capítulo \ref{cap:filas} explanará essa e outras situações em que podemos abstrair a noção de filas.
+\citeonline{cassandras} citam, como exemplos de SEDs, os sistemas de filas, computacionais, de comunicação, de manufatura e de tráfego. A exemplo disso, protocolos de comunicação em redes de computadores são frequentemente modelados por SEDs, como indica a Figura \ref{fig:protocolo_rede}. O presente trabalho enfoca os sistemas relacionados à automação industrial, para os quais a modelagem de filas é conveniente. A espera de entidades por um recurso em uma fábrica é exemplo que justifica isso, porque a abstração por meio de filas ou \textit{buffers} é muito útil nesse caso. O Capítulo \ref{cap:filas} explanará sobre essa e outras situações em que se pode abstrair a noção de filas.
 
-\figura{Protocolo para um canal de redes de computadores com erros de bits: lado remetente e (abaixo) destinatário}{
+\figura{Protocolo para um canal de redes de computadores com erros de bits: lado remetente (acima) e destinatário (abaixo)}{
 	\includegraphics[width=.9 \textwidth]{figuras/rdt2_0-remetente.png}\\
 	\vspace{8mm}
 	\includegraphics[width=.6 \textwidth]{figuras/rdt2_0-destinatario.png}
@@ -15,7 +15,7 @@ O advento das tecnologias de comunicação, sensoriamento e computação impulsi
 
 Na Figura \ref{fig:protocolo_rede}, tem-se representado um protocolo de redes em que há estados de espera e transições que dependem de eventos discretos -- neste caso, procedimentos computacionais. A representação supracitada é uma evidência do caráter de SED do protocolo, e a figura é um diagrama de estados, que será introduzido mais adiante.
 
-SEDs são comumente modelados por redes de Petri e autômatos determinísticos. Redes de Petri são uma classe de grafos direcionados que têm duas variedades de nós: posições e transições. Nelas, os arcos podem ligar dois nós apenas se forem diferentes -- não pode haver arcos entre duas posições, por exemplo -- e têm pesos que indicam a quantidade de tokens que serão consumidos ou produzidos. Geralmente, os tokens, posições e transições representam recursos, condições e eventos respectivamente e permitem modelar atividades paralelas, protocolos de comunicação, sistemas de produtor-consumidor com prioridade, etc. \cite{petrinets} Este trabalho de conclusão de concurso, todavia, tem enfoque na representação por autômatos finitos determinísticos. A Seção \ref{sec:afd}, que segue, introduz os principais conceitos desses modelos.
+SEDs são comumente modelados por redes de Petri e autômatos determinísticos. Redes de Petri são uma classe de grafos direcionados que têm duas variedades de nós: posições e transições. Nelas, os arcos podem ligar dois nós apenas se forem diferentes -- não pode haver arcos entre duas posições, por exemplo -- e têm pesos que indicam a quantidade de tokens que serão consumidos ou produzidos. Geralmente, os tokens, posições e transições representam recursos, condições e eventos respectivamente e permitem modelar atividades paralelas, protocolos de comunicação, sistemas de produtor-consumidor com prioridade, etc. \cite{petrinets} Este trabalho de conclusão de concurso, todavia, tem enfoque na representação por autômatos finitos determinísticos. A Seção \ref{sec:afd} introduz os principais conceitos desses modelos.
 
 \section{Autômatos finitos determinísticos}
 \label{sec:afd}
@@ -92,7 +92,7 @@ q & \text{se $w=\varepsilon$} \\
 \hat{\delta}(\delta(q, e), w') & \text{se $w=e w'$}
 \end{cases}$$ e terá valor indefinido quando $\delta(q, e)$ assim for.
 
-Embora a formulação matemática de um AFD seja muito útil e importante para formalizar SEDs e provar propriedades destes, a visualização do funcionamento destes autômatos é facilitada com a representação por diagramas de estados. Ademais, tendo em vista que o presente trabalho dispõe de diversos destes diagramas, a subseção seguinte, \ref{subsec:diagramas}, introduz essas representações.
+Embora a formulação matemática de um AFD seja muito útil e importante para formalizar SEDs e provar propriedades destes, a visualização do funcionamento destes autômatos é facilitada com a representação por diagramas de estados. Ademais, tendo em vista que o presente trabalho dispõe de diversos destes diagramas, a subseção \ref{subsec:diagramas} introduz essas representações.
 
 \subsection{Diagrama de estados}
 \label{subsec:diagramas}
@@ -137,18 +137,31 @@ Denomina-se linguagem regular a linguagem marcada por qualquer AFD \cite{hopcrof
     \end{tikzpicture}
 }{fig:afd_pares}
 
-Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, alcançar um estado marcado implica a conclusão de alguma tarefa \cite{cassandras}. A impossibilidade de concluir tarefas, os bloqueios ocorrem quando não é possível sair de um estado não marcado e chegar a um marcado, tema da subseção seguinte, \ref{subsec:ling_ger}.
+Quando um autômato se destina a verificar padrões em cadeias de eventos, ou palavras, diz-se que ele é um formalismo reconhecedor \cite{menezes} e, portanto, o autômato da Figura \ref{fig:afd_pares} reconhece todos os números naturais pares. No que tange aos \acs{SED}s, alcançar um estado marcado implica a conclusão de alguma tarefa \cite{cassandras}. A impossibilidade de concluir tarefas, os bloqueios ocorrem quando não é possível sair de um estado não marcado e chegar a um marcado, tema da subseção \ref{subsec:ling_ger}.
 
 \subsection{Linguagem gerada e bloqueios}
 \label{subsec:ling_ger}
 
-A linguagem gerada por um AFD $G$ é o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado definido.
+No contextos dos SEDs, designa-se linguagem gerada por um AFD $G$ o conjunto $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \in Q \}$$ Neste caso, a linguagem são todas as cadeias de eventos que fazem o autômato transicionar do estado inicial a um estado definido.
 
 Caso o autômato $G$ chegue a um estado $q \not\in Q_m$ tal que $\Gamma_G(q) = \varnothing$, diz-se que há um \textit{deadlock}, já que não existe evento que pode ser executado a partir de $q$. Um \textit{livelock} se configura quando, mesmo não havendo \textit{deadlock}, não é possível alcançar um estado marcado. Se qualquer bloqueio acontece $$\overline{L_m(G)} \subset L(G)$$ em que $\overline{L_m(G)}$ é o conjunto de todos os prefixos de todas as cadeias pertencentes a $L_m(G)$, ou $$\overline{L_m(G)} = \{ w \in E^\star \mid \exists w' \in E^\star, w w' \in L_m(G) \}$$ Isso é devido à constatação de que, tendo sido executada uma cadeia de eventos $w \in E^\star$ e estando em um bloqueio, $w$ pertencerá a $L(G)$, mas não será prefixo de alguma cadeia da linguagem marcada: não haverá $w' \in E^\star$ tal que $ww' \in L_m(G)$, por definição \cite{cassandras}.
 
+\subsection{Autômatos finitos não determinísticos}
+
+Um autômato finito não determinístico (\acs{AFND}) é um modelo diferenciado com a capacidade de estar em mais de um estado ao mesmo tempo, segundo \citeonline{hopcroft}. Essa característica configura a predição dessas máquinas abstratas, permitindo estimar os possíveis estados em que um SED se encontra. Para um AFND $G = \langle Q, E, \delta, q_0, Q_m \rangle$, a função de transição é do tipo $\delta : Q \times Q \to 2^Q$, retornando um conjunto de estados.
+
+A função de transição estendida $\hat{\delta} : Q \times E^\star \to 2^Q$ é tal que para todo estado $q \in Q$, cadeia $w \in E^\star$ e evento $e \in E$ $$\hat{\delta}(q, w) = \begin{cases}
+\{ q \} & \text{se $w = \varepsilon$}\\
+\displaystyle\bigcup_{q' \in \delta(q, e)} \hat{\delta}(q', w') & \text{se $w = ew'$}
+\end{cases}$$ Com ela, as linguagens gerada e marcada por um AFND $G$ são respectivamente $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \neq \varnothing \}$$ e $$L_m(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \cap Q_m \neq \varnothing \}$$ isto é, os conjuntos de todas as cadeias de eventos que fazem o autômato transicionar a algum estado qualquer e marcado respectivamente.
+
+A vantagem de empregar AFNDs reside no fato de que a modelagem de SEDs é facilitada. Quando a execução de um evento resulta em diferentes significados, pode-se designar a transição levando a um conjunto de estados cujo nome expressa algum resultado. Por exemplo, supondo que um sistema contém três produtores e um sensor que indica a produção de algum item, um jeito de modelar o sistema é por meio de uma máquina abstrata que vai do estado $\langle n_1, n_2, n_3 \rangle$, ao ser executado um evento de produção, para os pertencentes a $\{ \langle n_1+1, n_2, n_3 \rangle, \langle n_1, n_2+1, n_3 \rangle, \langle n_1, n_2, n_3+1 \rangle \}$, em que $n_1$, $n_2$ e $n_3$ são os respectivos números de itens produzidos pelo primeiro, segundo e terceiro agentes.
+
+\citeonline{hopcroft} demonstram a conversão de qualquer AFND $G$ para um AFD $G'$ usando a construção de subconjuntos, de forma que $L(G) = L(G')$ e $L_m(G) = L_m(G')$. Assim, convertendo os modelos, é possível usar os teoremas do Capítulo \ref{cap:propriedades} para verificar propriedades de sistemas modelados por AFND.
+
 \subsection{Função de transição total}
 
-Haja vista que não é possível formular funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é impreterível alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \to Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
+Haja vista que não é possível formular funções parciais no assistente de provas Coq, algumas mudanças na definição de AFD supracitada são necessárias a fim de representar AFDs nessa ferramenta. A começar, é inevitável alterar a função de transição de um AFD $G$ para torná-la total. Seja $\delta' : Q \cup \{ \otimes \} \times E \to Q \cup \{ \otimes \}$ a seguinte função total: $$\delta'(q, e) = \begin{cases}
 \delta(q, e) & \text{se $\delta(q, e) \in Q$} \\
 \otimes & \text{senão}
 \end{cases}$$ em que $\otimes$ é um estado novo, não pertencente a $Q$: o estado de ralo.
@@ -208,7 +221,7 @@ Esta definição permite que termos do tipo \texttt{dfa} sejam, com efeito, aut�
 	\includegraphics[width=8cm]{figuras/dfa_record.png}
 }{fig:dfa_record}
 
-A definição de AFD anterior é equivalente a esta. Sejam $q_1$, $q_2$, $...$ e $q_n$, $q^*$ e $e_1$, $e_2$, $...$ e $e_m$, respectivamente, todos os estados, o estado inicial e todos os possíveis símbolos de um AFD, podemos construir os tipos que seguem: \begin{gather*}\texttt{Inductive Q := $q_1$ | $q_2$ | $...$ | $q_n$.}\\ \texttt{Inductive E := $e_1$ | $e_2$ | $...$ | $e_m$.}\end{gather*} que são os respectivos tipos dos estados e eventos do autômato na definição para o Coq. Seja $\delta : \{ q_1, q_2, ..., q_n \} \times \{ e_1, e_2, ..., e_m \} \nrightarrow \{ q_1, q_2, ..., q_n \}$ a função de transição de estados tal que $$\delta(q, e) = \begin{cases}
+A definição de AFD anterior é equivalente a esta. Sejam $q_1$, $q_2$, $...$ e $q_n$, $q^*$ e $e_1$, $e_2$, $...$ e $e_m$, respectivamente, todos os estados, o estado inicial e todos os possíveis símbolos de um AFD, faz-se a construção dos tipos que seguem: \begin{gather*}\texttt{Inductive Q := $q_1$ | $q_2$ | $...$ | $q_n$.}\\ \texttt{Inductive E := $e_1$ | $e_2$ | $...$ | $e_m$.}\end{gather*} que são os respectivos tipos dos estados e eventos do autômato na definição para o Coq. Seja $\delta : \{ q_1, q_2, ..., q_n \} \times \{ e_1, e_2, ..., e_m \} \nrightarrow \{ q_1, q_2, ..., q_n \}$ a função de transição de estados tal que $$\delta(q, e) = \begin{cases}
 q' & \text{se \texttt{transition $q$ $e$ $=$ proper\_state $q'$}}\\
 \text{indefinido} & \text{senão}
 \end{cases}$$ ou, por outro lado, seja \texttt{transition : Q$\to$E$\to$@state Q} assim definida na linguagem do Coq: 	\begin{align*}
@@ -217,7 +230,7 @@ q' & \text{se \texttt{transition $q$ $e$ $=$ proper\_state $q'$}}\\
 &\texttt{$q'$, $e'$ => proper\_state $\delta(q', e')$ |}\\
 &\texttt{\_, \_ => sink\_state}\\
 &\texttt{end.}
-\end{align*} sendo $x = (q',e')$ todo par tal que $\delta(x)$ é definido. Além disso, determinemos o conjunto de estados marcados: $$Q_m = \{ q_i \mid i \in \{ 1, 2, ..., n \} \wedge \texttt{is\_marked $q_i$ $=$ true} \}$$ ou, de outra parte, construamos a função \texttt{is\_marked}: \begin{align*}
+\end{align*} sendo $x = (q',e')$ todo par tal que $\delta(x)$ é definido. Além disso, determina-se o conjunto de estados marcados: $$Q_m = \{ q_i \mid i \in \{ 1, 2, ..., n \} \wedge \texttt{is\_marked $q_i$ $=$ true} \}$$ ou, de outra parte, constrói-se a função \texttt{is\_marked}: \begin{align*}
 &\texttt{Definition is\_marked (q : Q) : bool :=}\\
 &\texttt{match q with}\\
 &\texttt{$q_m$ => true |}\\
@@ -228,17 +241,33 @@ q' & \text{se \texttt{transition $q$ $e$ $=$ proper\_state $q'$}}\\
 Toda sequência de eventos será representada por uma lista, e a função de transição estendida \texttt{extended\_transition} será do tipo \texttt{dfa$\to$@state Q$\to$list E$\to$@ state Q} e definida recursivamente. Se o estado de origem for o de ralo, ele será o próprio retorno da função; senão, \texttt{extended\_transition} computará a função de transição para a cabeça da lista de eventos e fará recursão destarte: \begin{gather*}
 \texttt{extended\_transition g (proper\_state q) [] := proper\_state q;}\\\texttt{extended\_transition g (proper\_state q) e::w :=}\\\texttt{extended\_transition g (transition q e) w}\end{gather*}
 
-Por definição, uma lista de eventos \texttt{w} será gerada por \texttt{g}, ou \texttt{g ==> w}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w $\neq$ sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a Equação \ref{eq:ling_ralo}. Sendo $G$ o AFD definido conforme a Equação \ref{eq:afd} e equivalente ao \texttt{g}, podemos notar $$L(G) = \{ a_1a_2...a_n \in E^\star \mid \texttt{g ==> [$a_1$;$a_2$;$...$;$a_n$]} \}$$ evidenciando também a correlação entre as diferentes definições supracitadas para a mesma classe de máquinas abstratas.
+Por definição, uma lista de eventos \texttt{w} será gerada por \texttt{g}, ou \texttt{g ==> w}, se $$\texttt{extended\_transition g (proper\_state initial\_state) w $\neq$ sink\_state}$$ ou seja, se a computação da função de transição estendida da lista partindo do estado inicial não resultar no estado de ralo, em conformidade com a Equação \ref{eq:ling_ralo}. Sendo $G$ o AFD definido conforme a Equação \ref{eq:afd} e equivalente ao \texttt{g}, nota-se $$L(G) = \{ a_1a_2...a_n \in E^\star \mid \texttt{g ==> [$a_1$;$a_2$;$...$;$a_n$]} \}$$ evidenciando também a correlação entre as diferentes definições supracitadas para a mesma classe de máquinas abstratas.
 
-\section{Autômatos finitos não determinísticos}
+Com intenção de exemplificar o uso dessa implementação, sejam os tipos \begin{gather*}\texttt{Inductive states : Type := q0 | q1 | q2.} \\ \texttt{Inductive events : Type := a | b.}\end{gather*} e as funções \begin{align*}&\texttt{Definition transition' (q:states) (e:events) : state :=}\\
+&\texttt{match q, e with}\\
+&\texttt{q0, a => proper\_state q1 |}\\
+&\texttt{q1, b => proper\_state q2 |}\\
+&\texttt{q2, a => proper\_state q1 |}\\
+&\texttt{\_, \_ => sink\_state}\\
+&\texttt{end.}\\
+&\texttt{Definition is\_marked' (q:states) : bool :=}\\
+&\texttt{match q with}\\
+&\texttt{q2 => true |}\\
+&\texttt{\_ => false}\\
+&\texttt{end.}
+\end{align*} Com isso, o AFD da figura \ref{fig:afd_coq_cristiano} é definido em Coq deste modo: \begin{align*}&\texttt{Definition dfa := \{|}\\
+&\texttt{transition := transition';}\\&\texttt{initial\_state := q0;}\\&\texttt{is\_marked := is\_marked'}\\&\texttt{|\}.}\end{align*}
 
-Um autômato finito não determinístico (\acs{AFND}) é um modelo diferenciado com a capacidade de estar em mais de um estado ao mesmo tempo, segundo \citeonline{hopcroft}. Essa característica configura a predição dessas máquinas abstratas, permitindo estimar os possíveis estados em que um SED se encontra. Para um AFND $G = \langle Q, E, \delta, q_0, Q_m \rangle$, a função de transição é do tipo $\delta : Q \times Q \to 2^Q$, retornando um conjunto de estados.
+\figuradoautor{AFD cujos tipos dos estados e eventos são \texttt{states} e \texttt{events} respectivamente}{
+	\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+	\node[state] (q0) {\texttt{q0}}; 
+	\node[state] at (2,0) (q1) {\texttt{q1}}; 
+	\node[state,accepting] at (4,0) (q2) {\texttt{q2}};
+	\draw
+	(q0) edge node{\texttt{a}} (q1)
+	(q1) edge[bend left, above] node{\texttt{b}} (q2)
+	(q2) edge[bend left, below] node{\texttt{a}} (q1);
+	\end{tikzpicture}
+}{fig:afd_coq_cristiano}
 
-A função de transição estendida $\hat{\delta} : Q \times E^\star \to 2^Q$ é tal que para todo estado $q \in Q$, cadeia $w \in E^\star$ e evento $e \in E$ $$\hat{\delta}(q, w) = \begin{cases}
-\{ q \} & \text{se $w = \varepsilon$}\\
-\displaystyle\bigcup_{q' \in \delta(q, e)} \hat{\delta}(q', w') & \text{se $w = ew'$}
-\end{cases}$$ Com ela, as linguagens gerada e marcada por um AFND $G$ são respectivamente $$L(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \neq \varnothing \}$$ e $$L_m(G) = \{ w \in E^\star \mid \hat{\delta}(q_0, w) \cap Q_m \neq \varnothing \}$$ isto é, os conjuntos de todas as cadeias de eventos que fazem o autômato transicionar a algum estado qualquer e marcado respectivamente.
-
-A vantagem de empregar AFNDs reside no fato de que a modelagem de SEDs é facilitada. Quando a execução de um evento resulta em diferentes significados, podemos designar a transição levando a um conjunto de estados cujo nome expressa algum resultado. Por exemplo, supondo que um sistema contém três produtores e um sensor que indica a produção de algum item, um jeito de modelar o sistema é por meio de uma máquina abstrata que vai do estado $\langle n_1, n_2, n_3 \rangle$, ao ser executado um evento de produção, para os pertencentes a $\{ \langle n_1+1, n_2, n_3 \rangle, \langle n_1, n_2+1, n_3 \rangle, \langle n_1, n_2, n_3+1 \rangle \}$, em que $n_1$, $n_2$ e $n_3$ são os respectivos números de itens produzidos pelo primeiro, segundo e terceiro agentes.
-
-\citeonline{hopcroft} demonstram a conversão de qualquer AFND $G$ para um AFD $G'$ usando a construção de subconjuntos, de forma que $L(G) = L(G')$ e $L_m(G) = L_m(G')$. Assim, convertendo os modelos, podemos usar os teoremas do Capítulo \ref{cap:propriedades} para verificar propriedades de sistemas modelados por AFND.
+O diagrama da Figura \ref{fig:afd_coq_cristiano} não ilustra o estado de ralo, \texttt{sink\_state}, evidenciando apenas os estados próprios, \texttt{proper\_state}.
