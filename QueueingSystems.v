@@ -30,12 +30,13 @@ Parameter is_marked : state->bool.
 
 Include DFAUtils.
 
-Definition count_event (e:event) :=
+Parameter count_event : event->Z.
+(* Definition count_event (e:event) :=
   match e with
     0%nat =>   1%Z  |
     1%nat => (-1)%Z |
       _   =>   0%Z
-  end.
+  end. *)
 
 Fixpoint count_buffer w :=
   match w with
