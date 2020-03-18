@@ -3,6 +3,29 @@ Import ListNotations Coq.Bool.Bool.
 Require BinIntDef.
 Local Open Scope Z_scope.
 
+Module QS <: DFA.
+
+Parameter states_num_minus_1 : nat.
+(* Definition states_num_minus_1 := 5. *)
+Parameter oth_events_num : nat.
+(* Definition oth_events_num := 1. *)
+Definition events_num_minus_1 := S oth_events_num.
+Parameter transition : state->event->state.
+(* Definition transition (q:state) e : state :=
+  match q, e with
+    0, 0 => 1 |
+    1, 0 => 2 |
+    2, 1 => 3 |
+    3, 1 => 1 |
+    0, 2 => 4 |
+    4, 0 => 5 |
+    5, 0 => 1 |
+    _, _=> 6
+  end. *)
+Parameter is_marked : state->bool.
+
+Include DFAUtils.
+
 Definition count_event (e:event) :=
   match e with
     0%nat =>   1%Z  |
@@ -174,6 +197,10 @@ Qed.
 
 Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
 Proof.
+  unfold state_upper_bound, verify_upper_bound.
+  remember (Some 1 :: initial_solution states_num) as s0;
+  remember (all_but_first_le (verify_upper_bound' n0 s0 (S states_num) 0%nat) n);
+  remember (verify_upper_bound' n0 s0 (S states_num) 0%nat) as s.
 Admitted.
 
 Lemma transition_upper_bound : n_upper_bounded ->
@@ -218,3 +245,5 @@ Proof.
     + apply tangible_state_upper_bound; auto.
     + intros e H1 H2; apply transition_upper_bound; auto.
 Qed.
+
+End QS.

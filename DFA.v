@@ -2,41 +2,30 @@ Require Import Coq.Init.Nat Coq.Lists.List Omega.
 Import ListNotations.
 Require BinIntDef.
 
+
 Definition state := nat.
-Axiom states_num_minus_1 : nat.
-(* Definition states_num_minus_1 := 5. *)
-Definition states_num := S states_num_minus_1.
 
 Definition event := nat.
-Axiom oth_events_num : nat.
-(* Definition oth_events_num := 1. *)
-Definition events_num := oth_events_num + 2.
 
-Axiom transition : state->event->state.
-(* Definition transition (q:state) e : state :=
-  match q, e with
-    0, 0 => 1 |
-    1, 0 => 2 |
-    2, 1 => 3 |
-    3, 1 => 1 |
-    0, 2 => 4 |
-    4, 0 => 5 |
-    5, 0 => 1 |
-    _, _=> 6
-  end. *)
 
-Axiom is_marked : state->bool.
+Module Type DFA.
 
-Definition DFA := (states_num, events_num, transition, is_marked).
+Parameter states_num_minus_1 : nat.
 
-(*
-  The states of the DFA are 0, 1, ... and states_num-1.
-  The initial state is the state 0.
-  The sink state is the state n where n = states_num.
-  All transitions to states n where n > states_num will be considered
-  transitions to the sink state.
-  The events are 0, 1, ... and events_num-1.
-*)
+Parameter events_num_minus_1 : nat.
+
+Parameter transition : state->event->state.
+
+Parameter is_marked : state->bool.
+
+End DFA.
+
+
+Module DFAUtils (G : DFA).
+
+Definition states_num := S G.states_num_minus_1.
+
+Definition events_num := S G.events_num_minus_1.
 
 Definition is_sink_state (q:state) := q >= states_num.
 
@@ -48,7 +37,7 @@ Fixpoint xtransition q w :=
   if is_sink_stateb q then states_num else
     match w with
       e::w => if is_valid_event e then
-                xtransition (transition q e) w
+                xtransition (G.transition q e) w
               else
                 states_num |
       []  => q
@@ -150,3 +139,5 @@ Proof.
   apply H, is_sink_stateb__is_sink_state.
   destruct w'; simpl; rewrite H0; apply first_sink_state.
 Qed.
+
+End DFAUtils.

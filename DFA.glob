@@ -1,0 +1,195 @@
+DIGEST e0deec1f4cb571800857018083091aa7
+FDFA
+R15:26 Coq.Init.Nat <> <> lib
+R28:41 Coq.Lists.List <> <> lib
+R43:47 Coq.omega.Omega <> <> lib
+R80:88 Coq.ZArith.BinIntDef <> <> lib
+def 104:108 <> state
+R113:115 Coq.Init.Datatypes <> nat ind
+def 130:134 <> event
+R139:141 Coq.Init.Datatypes <> nat ind
+modtype 158:160 <> DFA
+ax 174:191 DFA states_num_minus_1
+R195:197 Coq.Init.Datatypes <> nat ind
+ax 211:228 DFA events_num_minus_1
+R232:234 Coq.Init.Datatypes <> nat ind
+ax 248:257 DFA transition
+R266:267 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R273:274 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R275:279 DFA <> state def
+R268:272 DFA <> event def
+R261:265 DFA <> state def
+ax 293:301 DFA is_marked
+R310:311 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R312:315 Coq.Init.Datatypes <> bool ind
+R305:309 DFA <> state def
+R323:325 DFA DFA <> modtype
+R351:353 DFA DFA <> mod
+mod 337:344 <> DFAUtils
+def 369:378 DFAUtils states_num
+R383:383 Coq.Init.Datatypes <> S constr
+R385:404 DFA G states_num_minus_1 defax
+def 419:428 DFAUtils events_num
+R433:433 Coq.Init.Datatypes <> S constr
+R435:454 DFA G events_num_minus_1 defax
+def 469:481 DFAUtils is_sink_state
+R486:490 DFA <> state def
+R497:500 Coq.Init.Peano <> :nat_scope:x_'>='_x not
+R496:496 DFA <> q var
+R501:510 DFA DFAUtils states_num def
+def 525:538 DFAUtils is_sink_stateb
+R543:547 DFA <> state def
+R563:567 Coq.Init.Nat <> :nat_scope:x_'<=?'_x not
+R553:562 DFA DFAUtils states_num def
+R568:568 DFA <> q var
+def 583:596 DFAUtils is_valid_event
+R601:605 DFA <> event def
+R612:615 Coq.Init.Nat <> :nat_scope:x_'<?'_x not
+R611:611 DFA <> e var
+R616:625 DFA DFAUtils events_num def
+def 638:648 DFAUtils xtransition
+R662:675 DFA DFAUtils is_sink_stateb def
+R677:677 DFA <> q var
+R710:710 DFA <> w var
+R724:725 Coq.Init.Datatypes <> :list_scope:x_'::'_x not
+R734:747 DFA DFAUtils is_valid_event def
+R840:849 DFA DFAUtils states_num def
+R772:782 DFA <> xtransition def
+R803:803 DFA <> w var
+R785:796 DFA G transition defax
+R798:798 DFA <> q var
+R859:860 Coq.Lists.List ListNotations :list_scope:'['_']' not
+R866:866 DFA <> q var
+R684:693 DFA DFAUtils states_num def
+def 889:900 DFAUtils ixtransition
+R905:915 DFA DFAUtils xtransition def
+prf 927:945 DFAUtils ixtransition_nil__0
+R964:966 Coq.Init.Logic <> :type_scope:x_'='_x not
+R949:960 DFA DFAUtils ixtransition def
+R962:963 Coq.Lists.List ListNotations :list_scope:'['_']' not
+R986:997 DFA DFAUtils ixtransition def
+def 1032:1051 DFAUtils is_proper_transition
+R1060:1061 Coq.Init.Logic <> :type_scope:'~'_x not
+R1062:1074 DFA DFAUtils is_sink_state def
+R1077:1087 DFA DFAUtils xtransition def
+R1091:1091 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1093:1093 Coq.Lists.List ListNotations :list_scope:'['_x_']' not
+R1092:1092 DFA <> e var
+R1089:1089 DFA <> q var
+def 1109:1120 DFAUtils is_generated
+R1127:1128 Coq.Init.Logic <> :type_scope:'~'_x not
+R1129:1141 DFA DFAUtils is_sink_state def
+R1144:1155 DFA DFAUtils ixtransition def
+R1157:1157 DFA <> w var
+prf 1168:1196 DFAUtils is_sink_stateb__is_sink_state
+R1235:1239 Coq.Init.Logic <> :type_scope:x_'<->'_x not
+R1228:1230 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1212:1225 DFA DFAUtils is_sink_stateb def
+R1227:1227 DFA <> q var
+R1231:1234 Coq.Init.Datatypes <> true constr
+R1240:1252 DFA DFAUtils is_sink_state def
+R1254:1254 DFA <> q var
+R1303:1314 Coq.Arith.Compare_dec <> leb_complete thm
+R1303:1314 Coq.Arith.Compare_dec <> leb_complete thm
+R1330:1340 Coq.Arith.Compare_dec <> leb_correct thm
+R1330:1340 Coq.Arith.Compare_dec <> leb_correct thm
+prf 1358:1390 DFAUtils isnt_sink_stateb__isnt_sink_state
+R1430:1434 Coq.Init.Logic <> :type_scope:x_'<->'_x not
+R1422:1424 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1406:1419 DFA DFAUtils is_sink_stateb def
+R1421:1421 DFA <> q var
+R1425:1429 Coq.Init.Datatypes <> false constr
+R1435:1436 Coq.Init.Logic <> :type_scope:'~'_x not
+R1437:1449 DFA DFAUtils is_sink_state def
+R1451:1451 DFA <> q var
+R1501:1503 Coq.Init.Logic <> not def
+R1534:1562 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R1534:1562 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R1636:1648 DFA DFAUtils is_sink_state def
+R1667:1680 DFA DFAUtils is_sink_stateb def
+R1693:1704 Coq.Arith.Compare_dec <> leb_iff_conv thm
+R1693:1704 Coq.Arith.Compare_dec <> leb_iff_conv thm
+R1717:1722 Coq.Arith.Compare_dec <> not_ge thm
+R1717:1722 Coq.Arith.Compare_dec <> not_ge thm
+prf 1755:1770 DFAUtils first_sink_state
+R1799:1801 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1774:1787 DFA DFAUtils is_sink_stateb def
+R1789:1798 DFA DFAUtils states_num def
+R1802:1805 Coq.Init.Datatypes <> true constr
+R1823:1851 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R1823:1851 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R1863:1875 DFA DFAUtils is_sink_state def
+prf 1899:1920 DFAUtils xtransition_sink_state
+R1961:1964 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R1980:1982 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1965:1975 DFA DFAUtils xtransition def
+R1979:1979 DFA <> w var
+R1977:1977 DFA <> q var
+R1983:1992 DFA DFAUtils states_num def
+R1954:1956 Coq.Init.Logic <> :type_scope:x_'='_x not
+R1938:1951 DFA DFAUtils is_sink_stateb def
+R1953:1953 DFA <> q var
+R1957:1960 Coq.Init.Datatypes <> true constr
+prf 2124:2140 DFAUtils xtransition_distr
+R2184:2186 Coq.Init.Logic <> :type_scope:x_'='_x not
+R2161:2171 DFA DFAUtils xtransition def
+R2177:2180 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R2176:2176 DFA <> w var
+R2181:2182 DFA <> w' var
+R2173:2173 DFA <> q var
+R2187:2197 DFA DFAUtils xtransition def
+R2217:2218 DFA <> w' var
+R2200:2210 DFA DFAUtils xtransition def
+R2214:2214 DFA <> w var
+R2212:2212 DFA <> q var
+R2288:2301 DFA DFAUtils is_sink_stateb def
+R2288:2301 DFA DFAUtils is_sink_stateb def
+R2331:2346 DFA DFAUtils first_sink_state thm
+R2331:2346 DFA DFAUtils first_sink_state thm
+R2366:2387 DFA DFAUtils xtransition_sink_state thm
+R2366:2387 DFA DFAUtils xtransition_sink_state thm
+R2420:2441 DFA DFAUtils xtransition_sink_state thm
+R2420:2441 DFA DFAUtils xtransition_sink_state thm
+R2548:2563 DFA DFAUtils first_sink_state thm
+R2548:2563 DFA DFAUtils first_sink_state thm
+R2581:2602 DFA DFAUtils xtransition_sink_state thm
+R2581:2602 DFA DFAUtils xtransition_sink_state thm
+R2637:2650 DFA DFAUtils is_sink_stateb def
+R2637:2650 DFA DFAUtils is_sink_stateb def
+R2709:2722 DFA DFAUtils is_valid_event def
+R2709:2722 DFA DFAUtils is_valid_event def
+prf 2793:2810 DFAUtils ixtransition_distr
+R2851:2853 Coq.Init.Logic <> :type_scope:x_'='_x not
+R2829:2840 DFA DFAUtils ixtransition def
+R2844:2847 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R2843:2843 DFA <> w var
+R2848:2849 DFA <> w' var
+R2854:2864 DFA DFAUtils xtransition def
+R2883:2884 DFA <> w' var
+R2867:2878 DFA DFAUtils ixtransition def
+R2880:2880 DFA <> w var
+R2918:2929 DFA DFAUtils ixtransition def
+R2940:2956 DFA DFAUtils xtransition_distr thm
+R2940:2956 DFA DFAUtils xtransition_distr thm
+prf 2973:2985 DFAUtils prefix_closed
+R3026:3029 Coq.Init.Logic <> :type_scope:x_'->'_x not
+R3030:3041 DFA DFAUtils is_generated def
+R3043:3043 DFA <> w var
+R3004:3015 DFA DFAUtils is_generated def
+R3019:3022 Coq.Init.Datatypes <> :list_scope:x_'++'_x not
+R3018:3018 DFA <> w var
+R3023:3024 DFA <> w' var
+R3062:3073 DFA DFAUtils is_generated def
+R3076:3087 DFA DFAUtils ixtransition def
+R3090:3092 Coq.Init.Logic <> not def
+R3125:3141 DFA DFAUtils xtransition_distr thm
+R3125:3141 DFA DFAUtils xtransition_distr thm
+R3125:3141 DFA DFAUtils xtransition_distr thm
+R3157:3185 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R3157:3185 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R3205:3233 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R3205:3233 DFA DFAUtils is_sink_stateb__is_sink_state thm
+R3276:3291 DFA DFAUtils first_sink_state thm
+R3276:3291 DFA DFAUtils first_sink_state thm
+R3276:3291 DFA DFAUtils first_sink_state thm
+R3304:3311 DFA DFAUtils <> mod
