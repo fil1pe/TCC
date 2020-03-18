@@ -29,10 +29,10 @@ Fixpoint update {A} (l:list (option A)) (n:nat) (a:A) :=
      l  ,  _  => l
   end.
 
-Fixpoint foreach {A B} (l:list A) (f:A->B) (c:B->B->B) (b:B) :=
+Fixpoint foreach {A B C D} (l:list (A*B)) (f:B->C->D) (g:A->C) (c:D->D->D) (d:D) :=
   match l with
-     []  => b                        |
-    x::l => c (f x) (foreach l f c b)
+       []    => d                                |
+    (a,b)::l => c (f b (g a)) (foreach l f g c d)
   end.
 
 Fixpoint all_le l n :=

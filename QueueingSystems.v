@@ -6,22 +6,26 @@ Local Open Scope Z_scope.
 Module QS <: DFA.
 
 Parameter states_num_minus_1 : nat.
-(* Definition states_num_minus_1 := 5. *)
+(* Definition states_num_minus_1 : nat := 5. *)
+
 Parameter oth_events_num : nat.
-(* Definition oth_events_num := 1. *)
+(* Definition oth_events_num : nat := 1. *)
+
 Definition events_num_minus_1 := S oth_events_num.
+
 Parameter transition : state->event->state.
-(* Definition transition (q:state) e : state :=
+(* Definition transition (q:state) (e:event) : state :=
   match q, e with
-    0, 0 => 1 |
-    1, 0 => 2 |
-    2, 1 => 3 |
-    3, 1 => 1 |
-    0, 2 => 4 |
-    4, 0 => 5 |
-    5, 0 => 1 |
-    _, _=> 6
+    0%nat, 0%nat => 1%nat |
+    1%nat, 0%nat => 2%nat |
+    2%nat, 1%nat => 3%nat |
+    3%nat, 1%nat => 1%nat |
+    0%nat, 2%nat => 4%nat |
+    4%nat, 0%nat => 5%nat |
+    5%nat, 0%nat => 1%nat |
+    _, _=> 6%nat
   end. *)
+
 Parameter is_marked : state->bool.
 
 Include DFAUtils.
@@ -57,9 +61,10 @@ Proof.
   omega.
 Qed.
 
-Axiom n : Z.
+Parameter n : Z.
 (* Definition n := 3. *)
-Axiom n0 : Z.
+
+Parameter n0 : Z.
 (* Definition n0 := 0. *)
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
@@ -120,32 +125,33 @@ Proof.
     omega.
 Qed.
 
-Fixpoint oth_trans' q n : list state :=
-  match n with
-    S n => xtransition q [S (S n)] :: oth_trans' q n |
+Fixpoint trans_list' q events_num :=
+  match events_num with
+    S n => (n, xtransition q [n]) :: trans_list' q n |
      O  => []
   end.
-Definition oth_trans q := oth_trans' q oth_events_num.
+Definition trans_list q := trans_list' q events_num.
 
-Fixpoint verify_upper_bound' (m:Z) (s:list (option Z)) (fuel:nat) (q:state) :=
+Fixpoint verify_upper_bound' (s:list (option Z)) (fuel:nat) (q:state) (m:Z) :=
 match fuel with O => s | S fuel =>
 
     if (length s <=? S q)%nat then (* if q is a sink state *)
-        update s 0%nat 0
+        update s 0 0
     else if optZ_eq (nth (S q) s None) None then
-        let  s' := update s (S q) m in
-        let s'' := max_lists (verify_upper_bound' (m+1) s' fuel (transition q 0%nat)) (verify_upper_bound' (m-1) s' fuel (transition q 1%nat)) in
-        let  f  := verify_upper_bound' m s' fuel in
-        foreach (oth_trans q) f max_lists s''
+        foreach (trans_list q)
+                (verify_upper_bound' (update s (S q) m) fuel)
+                (fun e => m + count_event e)
+                max_lists
+                (Some 0 :: initial_solution states_num)
     else if optZ_ge (nth (S q) s None) (Some m) then (* if s[q+1] >= m *)
-        update s 0%nat 0
+        update s 0 0
     else (* if s[q+1] < m *)
-        update s 0%nat 1
+        update s 0 1
 
 end.
 
 Definition verify_upper_bound :=
-  let s := verify_upper_bound' n0 (Some 1 :: initial_solution states_num) (S states_num) 0%nat in
+  let s := verify_upper_bound' (Some 1 :: initial_solution states_num) (S states_num) 0%nat n0 in
   extract 0 s (all_but_first_le s n).
 
 (* Compute verify_upper_bound. *)
@@ -155,10 +161,10 @@ Lemma initial_solution_none : forall m p,
 Proof.
   intros m p.
   simpl.
-  induction states_num_minus_1. reflexivity.
+  induction states_num_minus_1 as [|sn IHsn]. reflexivity.
   simpl.
   rewrite app_nth1.
-  apply IHn1.
+  apply IHsn.
   rewrite app_length.
   simpl.
   omega.
@@ -182,8 +188,8 @@ Proof.
   apply verify_upper_bound_correct in H; unfold verify_upper_bound in H.
   unfold state_upper_bound, verify_upper_bound.
   remember (Some 1 :: initial_solution states_num) as s0;
-  remember (all_but_first_le (verify_upper_bound' n0 s0 (S states_num) 0%nat) n);
-  remember (verify_upper_bound' n0 s0 (S states_num) 0%nat) as s.
+  remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
+  remember (all_but_first_le s n).
   destruct s. discriminate H.
   apply extract_true in H.
   rewrite fst_extract.
@@ -198,9 +204,6 @@ Qed.
 Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
 Proof.
   unfold state_upper_bound, verify_upper_bound.
-  remember (Some 1 :: initial_solution states_num) as s0;
-  remember (all_but_first_le (verify_upper_bound' n0 s0 (S states_num) 0%nat) n);
-  remember (verify_upper_bound' n0 s0 (S states_num) 0%nat) as s.
 Admitted.
 
 Lemma transition_upper_bound : n_upper_bounded ->
