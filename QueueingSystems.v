@@ -125,20 +125,13 @@ Proof.
     omega.
 Qed.
 
-Fixpoint trans_list' q events_num :=
-  match events_num with
-    S n => (n, xtransition q [n]) :: trans_list' q n |
-     O  => []
-  end.
-Definition trans_list q := trans_list' q events_num.
-
 Fixpoint verify_upper_bound' (s:list (option Z)) (fuel:nat) (q:state) (m:Z) :=
 match fuel with O => s | S fuel =>
 
     if (length s <=? S q)%nat then (* if q is a sink state *)
         update s 0 0
     else if optZ_eq (nth (S q) s None) None then
-        foreach (trans_list q)
+        foreach (transition_list q)
                 (verify_upper_bound' (update s (S q) m) fuel)
                 (fun e => m + count_event e)
                 max_lists

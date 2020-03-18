@@ -45,6 +45,14 @@ Fixpoint xtransition q w :=
 
 Definition ixtransition := xtransition 0.
 
+Fixpoint transition_list' q events_num :=
+  match events_num with
+    S n => (n, xtransition q [n]) :: transition_list' q n |
+     O  => []
+  end.
+
+Definition transition_list q := transition_list' q events_num.
+
 Lemma ixtransition_nil__0 : ixtransition [] = 0.
 Proof.
   unfold ixtransition.
