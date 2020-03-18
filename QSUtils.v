@@ -38,6 +38,7 @@ Fixpoint foreach {A B} (l:list A) (f:A->B) (c:B->B->B) (b:B) :=
 Fixpoint all_le l n :=
   match l with
     Some m::l => (m <=? n) && all_le l n |
+     None ::l => all_le l n              |
         _     => true
   end.
 
@@ -67,15 +68,44 @@ Definition extract o s b :=
      []  => ([], false)
   end.
 
-Lemma extract_true : forall s b,
-  snd (extract 0 s b) = true ->
+Lemma extract_true : forall o s b,
+  snd (extract o s b) = true ->
   b = true.
 Proof.
-  intros s b H.
+  intros o s b H.
   induction s.
   simpl in H. discriminate H.
   simpl in H.
-  destruct (optZ_eq a (Some 0)); simpl in H.
+  destruct (optZ_eq a (Some o)); simpl in H.
   apply H.
   discriminate H.
+Qed.
+
+Lemma fst_extract : forall o a s b,
+  fst (extract o (a::s) b) = s.
+Proof.
+  intros o a s b.
+  simpl.
+  destruct (optZ_eq a (Some o)); reflexivity.
+Qed.
+
+Lemma all_le_nth : forall s n q x,
+  all_le s n = true -> nth q s None = Some x ->
+  x <= n.
+Proof.
+  intros s n q x H H0.
+  generalize dependent s.
+  induction q; intros s H H0. {
+    destruct s. discriminate H0.
+    simpl in H0. simpl in H. rewrite H0 in H.
+      apply andb_true_iff in H. apply Zle_bool_imp_le.
+      apply H.
+  }
+  destruct s.
+  discriminate H0.
+  simpl in H0.
+  eapply IHq.
+  2: apply H0.
+  simpl in H.
+  destruct o; try (apply andb_true_iff in H); apply H.
 Qed.

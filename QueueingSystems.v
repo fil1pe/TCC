@@ -34,10 +34,10 @@ Proof.
   omega.
 Qed.
 
-(* Axiom n : Z. *)
-Definition n := 3.
-(* Axiom n0 : Z. *)
-Definition n0 := 0.
+Axiom n : Z.
+(* Definition n := 3. *)
+Axiom n0 : Z.
+(* Definition n0 := 0. *)
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
@@ -114,9 +114,9 @@ match fuel with O => s | S fuel =>
         let s'' := max_lists (verify_upper_bound' (m+1) s' fuel (transition q 0%nat)) (verify_upper_bound' (m-1) s' fuel (transition q 1%nat)) in
         let  f  := verify_upper_bound' m s' fuel in
         foreach (oth_trans q) f max_lists s''
-    else if optZ_ge (nth (S q) s None) (Some m) then (* if s[q] >= m *)
+    else if optZ_ge (nth (S q) s None) (Some m) then (* if s[q+1] >= m *)
         update s 0%nat 0
-    else (* if s[q] < m *)
+    else (* if s[q+1] < m *)
         update s 0%nat 1
 
 end.
@@ -125,7 +125,7 @@ Definition verify_upper_bound :=
   let s := verify_upper_bound' n0 (Some 1 :: initial_solution states_num) (S states_num) 0%nat in
   extract 0 s (all_but_first_le s n).
 
-Compute verify_upper_bound.
+(* Compute verify_upper_bound. *)
 
 Lemma initial_solution_none : forall m p,
   nth 1 (p::initial_solution states_num) m = None.
@@ -155,18 +155,22 @@ Definition state_upper_bound (q:state) :=
 Lemma tangible_state_upper_bound : n_upper_bounded ->
   forall q, state_upper_bound q <= n.
 Proof.
-  (* intros H q.
+  intros H q.
   apply verify_upper_bound_correct in H; unfold verify_upper_bound in H.
   unfold state_upper_bound, verify_upper_bound.
-  remember (all_but_last_le
-            (verify_upper_bound' n0 (initial_solution states_num ++ [Some 1])
-               (S states_num) 0%nat) n);
-  remember (verify_upper_bound' n0 (initial_solution states_num ++ [Some 1])
-            (S states_num) 0%nat) as s;
-  remember (initial_solution states_num ++ [Some 1]) as s0.
+  remember (Some 1 :: initial_solution states_num) as s0;
+  remember (all_but_first_le (verify_upper_bound' n0 s0 (S states_num) 0%nat) n);
+  remember (verify_upper_bound' n0 s0 (S states_num) 0%nat) as s.
   destruct s. discriminate H.
-  apply extract_true in H. *)
-Admitted.
+  apply extract_true in H.
+  rewrite fst_extract.
+  simpl in Heqb. rewrite Heqb in H.
+  destruct (nth q s) as [x|] eqn:eq.
+  2: omega.
+  eapply all_le_nth.
+  apply H.
+  apply eq.
+Qed.
 
 Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
 Proof.
