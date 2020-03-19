@@ -8,10 +8,8 @@ Module QS <: DFA.
 Parameter states_num_minus_1 : nat.
 (* Definition states_num_minus_1 : nat := 5. *)
 
-Parameter oth_events_num : nat.
-(* Definition oth_events_num : nat := 1. *)
-
-Definition events_num_minus_1 := S oth_events_num.
+Parameter events_num_minus_1 : nat.
+(* Definition events_num_minus_1 : nat := 2. *)
 
 Parameter transition : state->event->state.
 (* Definition transition (q:state) (e:event) : state :=
@@ -28,8 +26,6 @@ Parameter transition : state->event->state.
 
 Parameter is_marked : state->bool.
 
-Include DFAUtils.
-
 Parameter count_event : event->Z.
 (* Definition count_event (e:event) :=
   match e with
@@ -37,6 +33,14 @@ Parameter count_event : event->Z.
     1%nat => (-1)%Z |
       _   =>   0%Z
   end. *)
+
+Parameter n : Z.
+(* Definition n := 3. *)
+
+Parameter n0 : Z.
+(* Definition n0 := 0. *)
+
+Include DFAUtils.
 
 Fixpoint count_buffer w :=
   match w with
@@ -61,12 +65,6 @@ Proof.
   simpl.
   omega.
 Qed.
-
-Parameter n : Z.
-(* Definition n := 3. *)
-
-Parameter n0 : Z.
-(* Definition n0 := 0. *)
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
@@ -127,7 +125,7 @@ Proof.
 Qed.
 
 Fixpoint verify_upper_bound' (s:list (option Z)) (fuel:nat) (q:state) (m:Z) :=
-match fuel with O => s | S fuel =>
+match fuel with O => update s 0 2 | S fuel =>
 
     if (length s <=? S q)%nat then (* if q is a sink state *)
         update s 0 0
@@ -150,22 +148,46 @@ Definition verify_upper_bound :=
 
 (* Compute verify_upper_bound. *)
 
-Lemma initial_solution_none : forall m p,
-  nth 1 (p::initial_solution states_num) m = None.
+Theorem vub_never_runs_out_of_fuel :
+  nth 0
+      (verify_upper_bound' (Some 1 :: initial_solution states_num) (S states_num) 0%nat n0)
+      None
+  <> Some 2.
 Proof.
-  intros m p.
-  simpl.
-  induction states_num_minus_1 as [|sn IHsn]. reflexivity.
-  simpl.
-  rewrite app_nth1.
-  apply IHsn.
-  rewrite app_length.
-  simpl.
-  omega.
+Admitted.
+
+Lemma vub_updated : forall q s s' b m,
+  (S q < length s)%nat ->
+  s' = verify_upper_bound' s (length s) q m ->
+  optZ_eq (nth (S q) s None) None = true ->
+  nth q (fst (extract 0 s' b)) None = Some m.
+Proof.
+  intros q s s' b m H H0 H1; apply leb_iff_conv in H.
+Admitted.
+
+Lemma s0_length : length (Some 1 :: initial_solution states_num) = S states_num.
+Proof.
+  induction states_num as [|n1 IHn1]; simpl;
+  try (simpl in IHn1; rewrite app_length; rewrite <- IHn1;
+  rewrite Nat.add_1_r);
+  reflexivity.
+Qed.
+
+Lemma s0_none : forall q sn,
+  nth (S q) (Some 1::initial_solution sn) None = None.
+Proof.
+  intros q sn; simpl.
+  induction sn as [|sn IH]. destruct q; try (destruct q); reflexivity.
+  simpl; destruct (q <? length (initial_solution sn))%nat eqn:H.
+  apply Nat.ltb_lt in H. rewrite app_nth1. try (apply IH). apply H.
+  rewrite app_nth2.
+    remember (q - length (initial_solution sn))%nat as n1;
+      destruct n1; try (destruct n1); reflexivity.
+    apply Nat.ltb_ge in H; omega.
 Qed.
 
 Theorem verify_upper_bound_correct :
-  snd verify_upper_bound = true <-> n_upper_bounded.
+  n_upper_bounded <-> snd verify_upper_bound = true.
 Proof.
 Admitted.
 
@@ -198,7 +220,25 @@ Qed.
 Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
 Proof.
   unfold state_upper_bound, verify_upper_bound.
-Admitted.
+  remember (Some 1 :: initial_solution states_num) as s0;
+  remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
+  remember (all_but_first_le s n);
+  clear Heqb.
+  assert (s = verify_upper_bound' s0 (S states_num) 0%nat n0). auto.
+  unfold verify_upper_bound' in Heqs.
+  destruct (length s0 <=? 1)%nat eqn:?H. {
+    rewrite Heqs0, s0_length in H0; unfold states_num in H0; apply leb_complete in H0;
+    omega.
+  }
+  destruct (optZ_eq (nth 1 s0 None) None) eqn:?H.
+  rewrite vub_updated with (m:=n0) (s:=s0).
+  reflexivity.
+  apply leb_iff_conv; apply H0.
+  rewrite Heqs0; rewrite s0_length; rewrite <- Heqs0; apply H.
+  apply H1.
+  rewrite Heqs0 in H1; rewrite s0_none in H1; simpl in H1;
+    discriminate H1.
+Qed.
 
 Lemma transition_upper_bound : n_upper_bounded ->
   forall q e, is_tangible q -> is_valid_event e = true -> is_proper_transition q e ->
