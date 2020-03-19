@@ -156,7 +156,7 @@ Definition verify_upper_bound :=
 Proof.
 Admitted. *)
 
-Lemma s0_none : forall q sn o,
+Lemma vub_s0_none : forall q sn o,
   nth (S q) (Some o::initial_solution sn) None = None.
 Proof.
   intros q sn; simpl.
@@ -169,7 +169,7 @@ Proof.
     apply Nat.ltb_ge in H; omega.
 Qed.
 
-Lemma s0_length : forall o,
+Lemma vub_s0_length : forall o,
   length (Some o :: initial_solution states_num) = S states_num.
 Proof.
   intro o.
@@ -190,11 +190,11 @@ Lemma vub_foreach_length' : forall q en s u f,
   length s).
 Proof.
   intros q en s u f H0 H.
-  induction en.
+  induction en as [|en IH].
   remember (Some 0 :: initial_solution states_num) as s0;
-    simpl; rewrite Heqs0; rewrite s0_length; auto.
-  simpl; simpl in IHen; rewrite max_lists_length;
-  rewrite H0; try (rewrite IHen); auto.
+    simpl; rewrite Heqs0; rewrite vub_s0_length; auto.
+  simpl; simpl in IH; rewrite max_lists_length;
+  rewrite H0; try (rewrite IH); auto.
 Qed.
 
 Lemma vub_length : forall s u q m,
@@ -203,22 +203,21 @@ Lemma vub_length : forall s u q m,
 Proof.
   intros s u.
   generalize dependent s.
-  induction u; intros s q m H. apply update_length.
+  induction u as [|u IH]; intros s q m H. apply update_length.
   simpl; destruct (length s <=? S q)%nat.
   2: destruct (optZ_eq (nth (S q) s None)).
   3: destruct (optZ_ge (nth (S q) s None) (Some m)).
   1,3-4: apply update_length.
   rewrite max_lists_length.
-  rewrite IHu; rewrite update_length; auto.
-  rewrite IHu; rewrite update_length; symmetry.
+  rewrite IH; rewrite update_length; auto.
+  rewrite IH; rewrite update_length; symmetry.
   replace (Some 0 :: initial_solution states_num_minus_1 ++ [None])
     with (Some 0 :: initial_solution states_num).
-  2: reflexivity.
+  2-3: auto.
 
-  2: auto.
   rewrite vub_foreach_length'.
   apply update_length.
-  apply IHu.
+  apply IH.
   rewrite <- H; apply update_length.
 Qed.
 
@@ -271,14 +270,14 @@ Proof.
   intros.
   generalize dependent q'.
   induction en as [|en IH]; intro q'. {
-    simpl. rewrite nth_max_lists.
-    2: rewrite s0_length; rewrite vub_length; simpl; rewrite update_length;
+    simpl; rewrite nth_max_lists.
+    2: rewrite vub_s0_length; rewrite vub_length; simpl; rewrite update_length;
       rewrite H; reflexivity.
     rewrite vub_updated'';
     replace (Some 0 :: initial_solution states_num_minus_1 ++ [None])
-      with (Some 0 :: initial_solution states_num); try (rewrite s0_none); auto.
+      with (Some 0 :: initial_solution states_num); try (rewrite vub_s0_none); auto.
   }
-  simpl.
+  simpl;
   replace (initial_solution states_num_minus_1 ++ [None]) with (initial_solution states_num).
   2: reflexivity.
   remember (if is_sink_stateb q then states_num else if is_valid_event en then
@@ -287,7 +286,7 @@ Proof.
   clear Heqq''.
   rewrite nth_max_lists.
   2: rewrite max_lists_length, vub_length, vub_length; auto.
-  4: rewrite vub_length. 4: rewrite vub_foreach_length.
+  4: rewrite vub_length; try (rewrite vub_foreach_length).
   2-6: simpl; rewrite update_length; rewrite H; reflexivity.
   rewrite IH.
   rewrite vub_updated''.
@@ -307,21 +306,18 @@ Proof.
   pose vub_length as s_s'_length; specialize (s_s'_length s (length s) q m);
     rewrite <- H0 in s_s'_length.
   destruct s as [|a s]. apply leb_iff_conv in H; simpl in H; omega.
-  simpl in H. simpl in H1.
-  simpl in H0. rewrite H, H1 in H0.
+  simpl in H; simpl in H1; simpl in H0; rewrite H, H1 in H0;
   destruct s' as [|a' s']. discriminate s_s'_length.
   apply H2.
-  rewrite fst_extract.
+  rewrite fst_extract;
   replace (initial_solution states_num_minus_1 ++ [None]) with (initial_solution states_num) in H0.
   2: reflexivity.
-  apply leb_iff_conv in H.
-  eapply vub_updated' in H.
-  rewrite <- H0 in H.
-  apply H.
+  apply leb_iff_conv in H; eapply vub_updated' in H.
+  rewrite <- H0 in H; apply H.
   injection H2; auto.
 Qed.
 
-Theorem verify_upper_bound_correct :
+Theorem vub_correct :
   n_upper_bounded <-> snd verify_upper_bound = true.
 Proof.
 Admitted.
@@ -336,7 +332,7 @@ Lemma tangible_state_upper_bound : n_upper_bounded ->
   forall q, state_upper_bound q <= n.
 Proof.
   intros H q.
-  apply verify_upper_bound_correct in H; unfold verify_upper_bound in H.
+  apply vub_correct in H; unfold verify_upper_bound in H.
   unfold state_upper_bound, verify_upper_bound.
   remember (Some 1 :: initial_solution states_num) as s0;
   remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
@@ -362,17 +358,17 @@ Proof.
   assert (s = verify_upper_bound' s0 (S states_num) 0%nat n0). auto.
   unfold verify_upper_bound' in Heqs.
   destruct (length s0 <=? 1)%nat eqn:?H. {
-    rewrite Heqs0, s0_length in H0; unfold states_num in H0; apply leb_complete in H0;
+    rewrite Heqs0, vub_s0_length in H0; unfold states_num in H0; apply leb_complete in H0;
     omega.
   }
   destruct (optZ_eq (nth 1 s0 None) None) eqn:?H.
   rewrite vub_updated with (m:=n0) (s:=s0).
   reflexivity.
-  rewrite Heqs0; apply s0_length.
+  rewrite Heqs0; apply vub_s0_length.
   apply leb_iff_conv; apply H0.
-  rewrite Heqs0; rewrite s0_length; rewrite <- Heqs0; apply H.
+  rewrite Heqs0; rewrite vub_s0_length; rewrite <- Heqs0; apply H.
   apply H1.
-  rewrite Heqs0 in H1; rewrite s0_none in H1; simpl in H1;
+  rewrite Heqs0 in H1; rewrite vub_s0_none in H1; simpl in H1;
     discriminate H1.
 Qed.
 
