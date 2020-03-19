@@ -109,3 +109,33 @@ Proof.
   simpl in H.
   destruct o; try (apply andb_true_iff in H); apply H.
 Qed.
+
+Lemma nth_max_lists : forall i l1 l2,
+  length l1 = length l2 ->
+  nth i (max_lists l1 l2) None = max (nth i l1 None) (nth i l2 None).
+Proof.
+  intro i.
+  induction i as [|i IH]; intros l1 l2 H; destruct l1, l2;
+  try reflexivity; try (discriminate H).
+  apply IH; injection H; auto.
+Qed.
+
+Lemma max_lists_length : forall l1 l2,
+  length l1 = length l2 ->
+  length (max_lists l1 l2) = length l1.
+Proof.
+  intro l1.
+  induction l1; intros l2 H. reflexivity.
+  destruct l2. discriminate H.
+  simpl; rewrite IHl1; injection H; auto.
+Qed.
+
+Lemma update_length : forall {A} (l:list (option A)) n a,
+  length (update l n a) = length l.
+Proof.
+  intros A l n a.
+  generalize dependent n.
+  induction l as [|l x IH]; intro n. reflexivity.
+  simpl.
+  destruct n; simpl; try (rewrite IH); reflexivity.
+Qed.
