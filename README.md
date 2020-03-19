@@ -9,12 +9,14 @@ Um autômato finito determinístico (AFD) é definido por este trabalho como a s
 
 em que:
 
-![Conjunto de estados](https://github.com/fil1pe/TCC/blob/master/Imagens/state_set.png) é o conjunto de estados e ![Estado zero](https://github.com/fil1pe/TCC/blob/master/Imagens/0.png) é o estado inicial
+* os dois primeiros elementos são naturais
 
-![Conjunto de eventos](https://github.com/fil1pe/TCC/blob/master/Imagens/event_set.png) é o conjunto de eventos
+* ![Conjunto de estados](https://github.com/fil1pe/TCC/blob/master/Imagens/state_set.png) é o conjunto de estados e ![Estado zero](https://github.com/fil1pe/TCC/blob/master/Imagens/0.png) é o estado inicial
 
-![Função de transição](https://github.com/fil1pe/TCC/blob/master/Imagens/transition_function.png) é a função de transição
+* ![Conjunto de eventos](https://github.com/fil1pe/TCC/blob/master/Imagens/event_set.png) é o conjunto de eventos
 
-![Função de estados marcados](https://github.com/fil1pe/TCC/blob/master/Imagens/marked_states_function.png) é a função de estados marcados
+* ![Função de transição](https://github.com/fil1pe/TCC/blob/master/Imagens/transition_function.png) é a função de transição
 
-As funções são definidas com o conjunto dos números naturais, e não com os próprios conjuntos de estados e eventos, para facilitar a implementação. Como os conjuntos de estados e eventos são subconjuntos dos naturais, quaisquer transições partindo ou chegando a estados e eventos indefinidos são desconsideradas pela função de transição estendida. Ademais, os dois primeiros elementos da quádrupla são naturais. A subtração por um, nesse caso, é para impedir que conjuntos vazios sejam instanciados.
+* ![Função de estados marcados](https://github.com/fil1pe/TCC/blob/master/Imagens/marked_states_function.png) é a função de estados marcados
+
+As funções são definidas com o conjunto dos números naturais, e não com os próprios conjuntos de estados e eventos, para facilitar a implementação. Como os conjuntos de estados e eventos são subconjuntos dos naturais, quaisquer transições partindo ou chegando a estados e eventos indefinidos são desconsideradas pela função de transição estendida. Ademais, a subtração nos dois primeiros elementos da quádrupla é para impedir que conjuntos vazios sejam instanciados.
