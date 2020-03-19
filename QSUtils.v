@@ -139,3 +139,131 @@ Proof.
   simpl.
   destruct n; simpl; try (rewrite IH); reflexivity.
 Qed.
+
+Lemma nth_update : forall {A} i s m,
+  (i < length s)%nat ->
+  nth i (@update A s i m) None = Some m.
+Proof.
+  intros A i s m.
+  generalize dependent i.
+  induction s; intros i H. inversion H.
+  destruct i. reflexivity.
+  apply IHs; simpl in H; apply lt_S_n in H; auto.
+Qed.
+
+Lemma nth_update_update : forall {A} i m s i' m',
+  nth i (@update A (update s i' m') i m) None = nth i (update s i m) None.
+Proof.
+  intros A i m s i' m'.
+  generalize dependent i'.
+  generalize dependent i.
+  induction s as [|o s IH]; intros i i'. simpl; destruct i; reflexivity.
+  simpl; destruct i, i'.
+  1-3: reflexivity.
+  apply IH.
+Qed.
+
+Lemma update_comm : forall {A} s i m i' m', i <> i' ->
+  @update A (update s i m) i' m' = update (update s i' m') i m.
+Proof.
+  intros A s i m i' m'.
+  generalize dependent i'.
+  generalize dependent i.
+  induction s; intros i i' H. reflexivity.
+  simpl; destruct i, i'.
+  - contradiction.
+  - reflexivity.
+  - reflexivity.
+  - simpl; rewrite IHs. reflexivity.
+    apply Nat.succ_inj_wd_neg; auto.
+Qed.
+
+Lemma max_refl : forall a,
+  max a a = a.
+Proof.
+  intros [x|]. 2: reflexivity.
+  simpl; destruct (x >=? x); reflexivity.
+Qed.
+
+Lemma max_comm : forall a b,
+  max a b = max b a.
+Proof.
+  intros a b.
+  destruct a, b; try reflexivity.
+  simpl; destruct (z >=? z0) eqn:H; destruct (z0 >=? z) eqn:H0;
+  try reflexivity.
+  apply Z.geb_le in H; apply Z.geb_le in H0;
+  assert (H1: z = z0); try omega; try (rewrite H1);
+  reflexivity.
+  rewrite Z.geb_leb in H; rewrite Z.geb_leb in H0;
+  apply Z.leb_nle in H; apply Z.leb_nle in H0;
+  assert (z0 = z); omega.
+Qed.
+
+Lemma max_none : forall a,
+  max a None = a.
+Proof.
+  intros [x|]; reflexivity.
+Qed.
+
+Lemma none_max : forall a b,
+  max a b = None -> a = None /\ b = None.
+Proof.
+  intros [x|] [y|] H.
+  2-3:  discriminate H.
+  2:    auto.
+  simpl in H; destruct (x >=? y); discriminate H.
+Qed.
+
+Lemma max__Z_max : forall x y,
+  max (Some x) (Some y) = Some (Z.max x y).
+Proof.
+  intros x y.
+  unfold Z.max. destruct (x ?= y) eqn:H0.
+  - apply Z.compare_eq_iff in H0; rewrite H0; apply max_refl.
+  - simpl; destruct (x >=? y) eqn:H. 2: reflexivity.
+    pose proof Z.compare_lt_iff as H1; specialize (H1 x y); destruct H1 as [H1 H2]; apply H1 in H0;
+      clear H1; clear H2; (* Have I found a bug? *)
+    apply Z.geb_le in H; omega.
+  - apply Z.compare_gt_iff in H0; simpl; destruct (x >=? y) eqn:H. reflexivity.
+    rewrite Z.geb_leb in H; apply Z.leb_nle in H; omega.
+Qed.
+
+Lemma max_swap' : forall x y z,
+  max (Some x) (max (Some y) (Some z)) = max (Some y) (max (Some x) (Some z)).
+Proof.
+  intros x y z.
+  rewrite max__Z_max, max__Z_max, max__Z_max, max__Z_max.
+  rewrite Z.max_assoc; replace (Z.max x y) with (Z.max y x). 2: apply Z.max_comm.
+  rewrite <- Z.max_assoc; reflexivity.
+Qed.
+
+Lemma max_swap : forall a b c,
+  max a (max b c) = max b (max a c).
+Proof.
+  intros a b c.
+  destruct (max b c) eqn:H. {
+    destruct b. {
+      destruct c.
+      2: rewrite max_none in H; injection H; intro H0;
+      rewrite max_none; rewrite H0; apply max_comm.
+      destruct (z0 >=? z1) eqn:H0; destruct a.
+      2,4: simpl; rewrite H0.
+      1,4: rewrite <- H; apply max_swap'.
+      1,2: simpl in H; rewrite H0 in H; auto.
+    }
+    rewrite max_comm, max_none in H; rewrite H;
+    rewrite (max_comm None), max_none; auto.
+  }
+  apply none_max in H; destruct H as [H H0]; rewrite H, H0;
+  rewrite max_none, max_comm, max_none; auto.
+Qed.
+
+Lemma max_distr : forall a b c,
+  max a (max b c) = max (max a b) c.
+Proof.
+  intros a b c.
+  assert (H: max b c = max c b). apply max_comm.
+  rewrite H, max_swap, max_comm.
+  reflexivity.
+Qed.

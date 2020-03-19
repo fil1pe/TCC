@@ -235,25 +235,46 @@ Proof.
   1-2: auto.
 Qed.
 
-(* Lemma vub_updated'' : forall q q' u a s m en,
-  length s = states_num ->
-  (q < length s)%nat ->
-  nth (S q) (verify_upper_bound' (a :: update s q m) u
-    q' (m + count_event en)) None = Some m.
+Lemma vub_updated'' : forall i s u a m m' q',
+  length (a :: update s i m) = S states_num ->
+  nth (S i) (verify_upper_bound' (a :: update s i m) u
+    q' m') None = nth (S i) (a :: update s i m) None.
 Proof.
-  intros q q' u a s m en H H0.
-  induction u. admit.
+  intros i s u.
+  generalize dependent i.
+  generalize dependent s.
+  induction u as [|u IH]; intros s i a m m' q' H. reflexivity.
   simpl.
-Admitted. *)
-
-Lemma vub_updated'' : forall q q' a s m en,
-  length s = states_num ->
-  (q < length s)%nat ->
-  nth (S q) (verify_upper_bound' (a :: update s q m) (length s)
-    q' (m + count_event en)) None = Some m.
-Proof.
-  intros q q' a s m en H H0.
-Admitted.
+  destruct (length (update s i m) <=? q')%nat eqn:H0. reflexivity.
+  destruct (optZ_eq (nth q' (update s i m) None) None) eqn:H1.
+  destruct (q' =? i)%nat eqn:eq.
+  apply beq_nat_true in eq; rewrite eq, nth_update in H1. discriminate H1.
+    rewrite <- eq; rewrite update_length in H0; apply leb_complete_conv in H0; auto.
+  clear H0; clear H1.
+  2: destruct (optZ_ge (nth q' (update s i m) None) (Some m')); reflexivity.
+  rewrite nth_max_lists. {
+    rewrite update_comm.
+    rewrite IH.
+    2: simpl; rewrite update_length, update_length; simpl in H;
+      rewrite update_length in H; auto.
+    2: apply beq_nat_false; rewrite Nat.eqb_sym; auto.
+    induction events_num_minus_1.
+      simpl; replace (nth i (initial_solution states_num_minus_1 ++ [None]) None) with
+        (nth (S i) (Some 0::initial_solution states_num) None). 2: reflexivity.
+        rewrite vub_s0_none, max_none. apply nth_update_update.
+    simpl.
+    simpl in H; rewrite update_length in H.
+    rewrite nth_max_lists.
+    2:    rewrite vub_foreach_length, vub_length; auto.
+    2,3:  simpl; rewrite update_length, update_length; auto.
+    rewrite IH.
+    2: simpl; rewrite update_length, update_length; auto.
+    rewrite max_distr, max_refl; apply IHn1.
+  }
+  rewrite vub_foreach_length, vub_length; simpl.
+  1-3: simpl in H; rewrite <- update_length with (n:=q')(a0:=m') in H;
+    auto.
+Qed.
 
 Lemma vub_updated' : forall q q' a s m en,
   length s = states_num ->
@@ -275,7 +296,10 @@ Proof.
       rewrite H; reflexivity.
     rewrite vub_updated'';
     replace (Some 0 :: initial_solution states_num_minus_1 ++ [None])
-      with (Some 0 :: initial_solution states_num); try (rewrite vub_s0_none); auto.
+      with (Some 0 :: initial_solution states_num); try (rewrite vub_s0_none).
+    simpl; rewrite nth_update.
+    4: simpl; rewrite update_length; apply eq_S.
+    1-5: auto.
   }
   simpl;
   replace (initial_solution states_num_minus_1 ++ [None]) with (initial_solution states_num).
@@ -288,11 +312,10 @@ Proof.
   2: rewrite max_lists_length, vub_length, vub_length; auto.
   4: rewrite vub_length; try (rewrite vub_foreach_length).
   2-6: simpl; rewrite update_length; rewrite H; reflexivity.
-  rewrite IH.
-  rewrite vub_updated''.
+  rewrite IH, vub_updated''; simpl; apply eq_S in H. rewrite nth_update.
   simpl; destruct (m >=? m); reflexivity.
-  apply H.
-  apply H0.
+  2: rewrite update_length.
+  1-2: auto.
 Qed.
 
 Lemma vub_updated : forall q s s' b m,
