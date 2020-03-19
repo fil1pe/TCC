@@ -3,6 +3,7 @@ Import ListNotations Coq.Bool.Bool.
 Require BinIntDef.
 Local Open Scope Z_scope.
 
+
 Definition optZ_eq (a b:option Z) :=
   match a, b with
     Some x, Some y => x =? y |
