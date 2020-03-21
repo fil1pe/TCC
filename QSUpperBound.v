@@ -99,6 +99,15 @@ Module UpperBound (G : QS).
   Proof.
   Admitted. *)
 
+  Inductive is_vub_medsolution : list (option Z) -> Prop :=
+    | vub_sol_0 :
+        is_vub_medsolution (Some 1 :: initial_solution states_num)
+    | vub_sol_1 :
+        is_vub_medsolution (update (Some 1 :: initial_solution states_num) 1 n0)
+    | vub_msol s q e m :
+        is_vub_medsolution s -> is_vub_medsolution (update s (S q) m) ->
+        is_vub_medsolution (update (update s (S q) m) (S (xtransition q [e])) (m + count_event e)).
+
   Lemma vub_s0_none : forall q sn o,
     nth (S q) (Some o::initial_solution sn) None = None.
   Proof.
@@ -302,7 +311,7 @@ Module UpperBound (G : QS).
     unfold state_upper_bound, verify_upper_bound.
     remember (Some 1 :: initial_solution states_num) as s0;
     remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
-    remember (all_but_first_le s n).
+    remember (all_but_first_le s n) as b.
     destruct s. discriminate H.
     apply extract_true in H.
     rewrite fst_extract.
@@ -319,11 +328,11 @@ Module UpperBound (G : QS).
     unfold state_upper_bound, verify_upper_bound.
     remember (Some 1 :: initial_solution states_num) as s0;
     remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
-    remember (all_but_first_le s n);
+    remember (all_but_first_le s n) as b;
     clear Heqb.
     assert (s = verify_upper_bound' s0 (S states_num) 0%nat n0). auto.
     unfold verify_upper_bound' in Heqs.
-    destruct (length s0 <=? 1)%nat eqn:?H. {
+    destruct (length s0 <=? 1)%nat eqn:H0. {
       rewrite Heqs0, vub_s0_length in H0; unfold states_num in H0; apply leb_complete in H0;
       omega.
     }
@@ -338,10 +347,37 @@ Module UpperBound (G : QS).
       discriminate H1.
   Qed.
 
+  Lemma vub_tangible : forall s o q,
+    o::s = verify_upper_bound' (Some 1 :: initial_solution states_num) (S states_num) 0%nat n0 ->
+    (nth q s None <> None <-> is_tangible q).
+  Proof.
+    (* unfold is_tangible.
+    intros s o q H.
+    split; intro H0. {
+      split.
+      - unfold is_sink_state, not; intro H1.
+        assert (length (o::s) = S states_num). {
+          rewrite H. rewrite vub_length; apply vub_s0_length. }
+        simpl in H2; injection H2; intro H3.
+        rewrite nth_overflow in H0. contradiction.
+        omega.
+      - admit.
+    } *)
+  Admitted.
+
   Lemma transition_upper_bound : n_upper_bounded ->
     forall q e, is_tangible q -> is_valid_event e = true -> is_proper_transition q e ->
     state_upper_bound (xtransition q [e]) >= state_upper_bound q + count_event e.
   Proof.
+    intros H q e H0 H1 H2.
+    apply vub_correct in H; unfold verify_upper_bound in H.
+    unfold state_upper_bound, verify_upper_bound.
+    remember (Some 1 :: initial_solution states_num) as s0;
+    remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
+    remember (all_but_first_le s n) as b.
+    destruct s as [|o s]. admit.
+    rewrite fst_extract.
+    simpl in H; destruct (optZ_eq o (Some 0)) eqn:H3. 2: discriminate H.
   Admitted.
 
   Theorem iff_exists_function__upper_bounded :
