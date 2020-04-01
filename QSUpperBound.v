@@ -1,454 +1,404 @@
-Require Import Coq.Init.Nat Coq.Lists.List Omega
-  DFA QueueingSystems QSUtils.
-Require BinIntDef.
+Require Import Coq.Lists.List Omega Psatz Coq.Bool.Bool.
 Import ListNotations.
+Require Import DFA QS.
 Local Open Scope Z_scope.
 
+Section QSUpperBound.
 
-Module UpperBound (G : QS).
+Variables (A : Type) (B : Type) (qs : @qs_dfa A B).
+Definition g := g qs.
 
-  Include G.
+Definition xtransition := xtransition A B g.
+Definition ixtransition := ixtransition A B g.
+Definition is_tangible := is_tangible A B g.
+Definition is_generated := is_generated A B g.
+Definition count_buffer := count_buffer A B qs.
 
-  Include BufferUtils.
+Definition n_upper_bounded := forall w, is_generated w -> n0 qs + count_buffer w <= n qs.
 
-  Include DFAUtils.
-
-  Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
-
-  Lemma buffer_count_leq_f : forall (f:state->Z),
-    ( f(0%nat) = n0 /\ forall q, is_tangible q -> forall e, is_valid_event e = true ->
-      is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e )
-    -> forall w, is_generated w -> n0 + count_buffer w <= f(ixtransition w).
+Lemma buffer_count_leq_f : forall f,
+    ( f (q0 g) >= (n0 qs) /\ forall q, In q (Q g) -> is_tangible q -> forall e, In e (E g) ->
+        f (delta g q e) >= f q + count_event qs e )
+    -> forall w, is_generated w -> n0 qs + count_buffer w <= f (ixtransition w).
   Proof.
-    intros f [H H0] w H1.
-    induction w as [|e w IHw] using @rev_ind.
-    - simpl.
-      rewrite ixtransition_nil__0.
+    intros f [H H0] w H10;
+    induction w as [|e w' IH] using @rev_ind.
+    - unfold ixtransition, DFA.ixtransition; simpl; omega.
+    - pose H10 as H1; apply prefix_closed in H1; fold is_generated in H1; pose H1 as H2;
+        apply IH in H2.
+      unfold ixtransition, count_buffer; rewrite ixtransition_distr, count_buffer_distr';
+        fold ixtransition xtransition count_buffer.
+      unfold is_generated, DFA.is_generated in H1; fold ixtransition in H1;
+        remember (ixtransition w') as q eqn:H3.
+      rewrite H3; simpl; rewrite <- H3.
+      remember (delta g q e) as q' eqn:H4.
+      cut (f q' >= f q + count_event qs e).
       omega.
-    - pose H1 as H2; apply prefix_closed in H2.
-      apply IHw in H2.
-      rewrite ixtransition_distr.
-      rewrite count_buffer_distr'.
-      remember (ixtransition w) as q eqn:eq_q.
-      destruct (is_sink_stateb q) eqn:H3. {
-        apply is_sink_stateb__is_sink_state in H3.
-        apply prefix_closed in H1.
-        unfold is_generated in H1.
-        rewrite <- eq_q in H1.
-        contradiction.
-      }
-      remember (xtransition q [e]) as q' eqn:eq_q'.
-      destruct (is_sink_stateb q') eqn:H4. {
-        unfold is_generated in H1.
-        rewrite ixtransition_distr in H1.
-        rewrite <- eq_q, <- eq_q' in H1.
-        apply is_sink_stateb__is_sink_state in H4.
-        contradiction.
-      }
-      assert (f q' >= f q + count_event e). {
-        rewrite eq_q'.
-        apply H0.
-        - split.
-          + apply isnt_sink_stateb__isnt_sink_state in H3.
-            apply H3.
-          + exists w.
-            apply eq_q.
-        - pose eq_q' as H5.
-          unfold xtransition in H5.
-          rewrite H3 in H5.
-          destruct (is_valid_event e).
-          * reflexivity.
-          * apply isnt_sink_stateb__isnt_sink_state in H4.
-            unfold is_sink_state in H4.
-            omega.
-        - unfold is_proper_transition.
-          rewrite <- eq_q'.
-          apply isnt_sink_stateb__isnt_sink_state.
-          apply H4.
-      }
-      omega.
+      rewrite H4.
+      assert (H5: delta g q e <> sink g).
+        unfold is_generated, DFA.is_generated in H10; rewrite ixtransition_distr in H10;
+        simpl in H10; fold ixtransition in H10; rewrite <- H3 in H10; auto.
+      apply (delta_correct g) in H5.
+      apply H0.
+      2: split; auto; eexists; fold ixtransition; symmetry; apply H3.
+      1-2: intuition.
   Qed.
 
-  Fixpoint verify_upper_bound' (s:list (option Z)) (fuel:nat) (q:state) (m:Z) :=
-  match fuel with O => update s 0 2 | S fuel =>
+Theorem count_word_pow: forall w n,
+  count_buffer (word_pow B w n) = (Z.of_nat n) * (count_buffer w).
+Proof.
+  intros w n.
+  induction n as [|n IH]. auto.
+  replace (word_pow B w (S n)) with (w ++ word_pow B w n).
+  unfold count_buffer in *; rewrite count_buffer_distr, IH, Nat2Z.inj_succ, <- Zmult_succ_l_reverse;
+  omega.
+  auto.
+Qed.
 
-      if (length s <=? S q)%nat then (* if q is a sink state *)
-          update s 0 0
-      else if optZ_eq (nth (S q) s None) None then
-          foreach (transition_list q)
-                  (verify_upper_bound' (update s (S q) m) fuel)
-                  (fun e => m + count_event e)
-                  max_lists
-                  (Some 0 :: initial_solution states_num)
-      else if optZ_ge (nth (S q) s None) (Some m) then (* if s[q+1] >= m *)
-          update s 0 0
-      else (* if s[q+1] < m *)
-          update s 0 1
+Lemma pumping_buffer1 q : forall w,
+  n_upper_bounded -> ixtransition w = q -> q <> (sink g) ->
+  (length w >= length (Q g))%nat ->
+  exists w', ixtransition w' = q /\ (length w' < length w)%nat /\
+  count_buffer w' >= count_buffer w.
+Proof.
+  intros w H H0 H1 H2;
+  assert (H10: exists m, Z.of_nat m >= n qs - n0 qs - count_buffer w + 1). {
+    assert (H3: 0 <= (n qs - n0 qs - count_buffer w + 1)).
+      unfold n_upper_bounded, is_generated, DFA.is_generated in H;
+      fold ixtransition in H; rewrite <- H0 in H1; apply H in H1; omega.
+    apply Z_of_nat_complete in H3; destruct H3 as [n1 H3];
+    exists n1; omega.
+  }
+  destruct H10 as [m H10].
+  apply pumping_pow with (n:=S m) in H2;
+  destruct H2 as [w1 [w2 [w3 [H2 [H3 [H4 H6]]]]]];
+  fold ixtransition in H4;
+  destruct (Z_le_gt_dec (count_buffer w2) 0) as [H5|H5].
+  - exists (w1++w3); repeat split.
+    + rewrite <- H0; unfold ixtransition; auto.
+    + rewrite H2, app_length, app_length, app_length.
+      assert (length w2 > 0)%nat.
+        destruct w2; try contradiction; simpl; omega.
+      omega.
+    + rewrite H2. unfold count_buffer in *.
+      rewrite count_buffer_distr, count_buffer_distr, count_buffer_distr.
+      fold count_buffer in *.
+      omega.
+  - assert (contra: n0 qs + count_buffer (w1 ++ word_pow B w2 (S m) ++ w3) > (n qs)). {
+      unfold count_buffer; rewrite count_buffer_distr, count_buffer_distr; fold count_buffer.
+      rewrite count_word_pow.
+      replace (count_buffer w1 + (Z.of_nat (S m) * count_buffer w2 + count_buffer w3)) with
+      (count_buffer w + Z.of_nat m * count_buffer w2).
+      2: rewrite H2; unfold count_buffer; rewrite count_buffer_distr, count_buffer_distr; fold count_buffer;
+      rewrite Nat2Z.inj_succ, <- Z.add_1_r, Z.mul_add_distr_r; omega.
+      nia.
+    }
+    assert (contra0: is_generated (w1 ++ word_pow B w2 (S m) ++ w3)).
+      unfold is_generated, DFA.is_generated; fold ixtransition; rewrite H4, H0;
+      auto.
+    apply H in contra0. omega.
+Qed.
 
+Lemma pumping_buffer q : forall w,
+  n_upper_bounded -> ixtransition w = q -> q <> (sink g) ->
+  (length w >= length (Q g))%nat ->
+  exists w', ixtransition w' = q /\ (length w' < length (Q g))%nat /\
+  count_buffer w' >= count_buffer w.
+Proof.
+  intro w.
+  revert q.
+  induction w as [|e w' IH] using @rev_ind; intros q H H0 H1 H2.
+  - assert (length (Q g) > 0)%nat. {
+      pose proof (q0_correct g). destruct (Q g).
+      destruct H3.
+      simpl; omega.
+    }
+    simpl in H2; omega.
+  - inversion H2.
+    + eapply pumping_buffer1 in H.
+      2: apply H0.
+      2: auto.
+      2: omega.
+      rewrite <- H4 in H.
+      apply H.
+    + unfold ixtransition in H0; rewrite ixtransition_distr in H0;
+        fold ixtransition xtransition in H0.
+      pose H as H5.
+      eapply IH in H5. clear IH.
+      2: reflexivity.
+      destruct H5 as [w0 [H6 [H7 H8]]].
+      inversion H7.
+      -- apply pumping_buffer1 with (q:=q) (w:=w0 ++ [e]) in H.
+         destruct H as [w1 [H10 [H11 H12]]].
+         exists w1. repeat split.
+         auto.
+         rewrite app_length in H11; simpl in H11; omega.
+         assert (count_buffer (w0 ++ [e]) >= count_buffer (w' ++ [e])).
+           unfold count_buffer; rewrite count_buffer_distr, count_buffer_distr;
+           fold count_buffer; omega.
+         omega.
+         unfold ixtransition; rewrite ixtransition_distr; fold ixtransition xtransition;
+         rewrite H6; auto.
+         auto.
+         rewrite app_length; simpl; omega.
+      -- exists (w0 ++ [e]); repeat split.
+         unfold ixtransition; rewrite ixtransition_distr; fold ixtransition xtransition;
+         rewrite H6; auto.
+         rewrite app_length; simpl; omega.
+         unfold count_buffer; rewrite count_buffer_distr, count_buffer_distr;
+           fold count_buffer; omega.
+      -- intro contra. rewrite contra in H0; unfold xtransition in H0;
+         rewrite xtransition_sink in H0; symmetry in H0; contradiction.
+      -- rewrite app_length in H3; simpl in H3; omega.
+Qed.
+
+Definition max_word q w :=
+  ixtransition w = q /\ forall w', ixtransition w' = q -> count_buffer w' <= count_buffer w.
+
+Lemma max_word_def q w :
+  (forall w', ixtransition w' = q -> count_buffer w' <= count_buffer w)
+  /\ ixtransition w = q <-> max_word q w.
+Proof.
+  split.
+  - intros [H H0]; unfold max_word; intuition.
+  - unfold max_word; intros [H H0]; intuition.
+Qed.
+
+Fixpoint gen_words q (l:list (list B)) :=
+  match l with
+  | w::l' => if Q_decidable g (ixtransition w) q then w::gen_words q l' else gen_words q l'
+  | nil => nil
   end.
 
-  Definition verify_upper_bound :=
-    let s := verify_upper_bound' (Some 1 :: initial_solution states_num) (S states_num) 0%nat n0 in
-    extract 0 s (all_but_first_le s n).
+Lemma gen_words_correct1 q l : forall w,
+  l <> nil -> In w (gen_words q l) -> ixtransition w = q.
+Proof.
+  intros w H H0.
+  induction l as [|w' l' IH].
+  - contradiction.
+  - destruct l' as [|w'' l'].
+    + simpl in H0; destruct (Q_decidable g (ixtransition w') q).
+      inversion H0. rewrite <- H1; auto. inversion H1. inversion H0.
+    + simpl in *. destruct (Q_decidable g (ixtransition w') q).
+      inversion H0. rewrite <- H1; auto.
+      apply IH. intro contra; discriminate. apply H1.
+      apply IH. intro contra; discriminate. auto.
+Qed.
 
-  (* Theorem vub_never_runs_out_of_fuel :
-    nth 0
-        (verify_upper_bound' (Some 1 :: initial_solution states_num) (S states_num) 0%nat n0)
-        None
-    <> Some 2.
-  Proof.
-  Admitted. *)
+Lemma gen_words_correct q l : forall w,
+  In w l -> ixtransition w = q -> In w (gen_words q l).
+Proof.
+  intros w H H0.
+  induction l as [|w' l' IH]; inversion H; simpl.
+  - destruct (Q_decidable g (ixtransition w') q) eqn:H2.
+    + left; auto.
+    + rewrite <- H1 in H0; contradiction.
+  - destruct (Q_decidable g (ixtransition w') q). right; apply IH; auto.
+    apply IH; auto.
+Qed.
 
-  Inductive is_vub_medsolution : list (option Z) -> Prop :=
-    | vub_sol_0 :
-        is_vub_medsolution (Some 1 :: initial_solution states_num)
-    | vub_sol_1 :
-        is_vub_medsolution (update (Some 1 :: initial_solution states_num) 1 n0)
-    | vub_msol s q e m :
-        is_vub_medsolution s -> is_vub_medsolution (update s (S q) m) ->
-        is_vub_medsolution (update (update s (S q) m) (S (xtransition q [e])) (m + count_event e)).
+Definition all_gen_words_le q n := gen_words q (all_words_le A B g n).
 
-  Lemma vub_s0_none : forall q sn o,
-    nth (S q) (Some o::initial_solution sn) None = None.
-  Proof.
-    intros q sn; simpl.
-    induction sn as [|sn IH]. destruct q; try (destruct q); reflexivity.
-    simpl; destruct (q <? length (initial_solution sn))%nat eqn:H.
-    apply Nat.ltb_lt in H. rewrite app_nth1. try (apply IH). apply H.
-    rewrite app_nth2.
-      remember (q - length (initial_solution sn))%nat as n1;
-        destruct n1; try (destruct n1); reflexivity.
-      apply Nat.ltb_ge in H; omega.
-  Qed.
+Lemma all_gen_words_le_correct q n : forall w,
+  q <> (sink g) -> ixtransition w = q -> (length w <= n)%nat ->
+  In w (all_gen_words_le q n).
+Proof.
+  unfold all_gen_words_le.
+  intros w H H0 H1.
+  apply gen_words_correct.
+  apply all_words_le_correct.
+  unfold DFA.is_generated; fold ixtransition; rewrite <- H0 in H.
+  1-3: auto.
+Qed.
 
-  Lemma vub_s0_length : forall o,
-    length (Some o :: initial_solution states_num) = S states_num.
-  Proof.
-    intro o.
-    induction states_num as [|n1 IHn1]; simpl;
-    try (simpl in IHn1; rewrite app_length; simpl; rewrite Nat.add_1_r;
-    rewrite <- IHn1); reflexivity.
-  Qed.
+Definition max w1 w2 :=
+  if Z_ge_dec (count_buffer w1) (count_buffer w2) then w1 else w2.
 
-  Lemma vub_foreach_length' : forall q en s u f,
-    (forall (s : list (option Z)) (q : state) (m : Z),
-        length s = S states_num ->
-        length (verify_upper_bound' s u q m) = length s) ->
-    (length s = S states_num ->
-    length (foreach (transition_list' q en)
-      (verify_upper_bound' s u)
-      f max_lists
-      (Some 0 :: initial_solution states_num)) =
-    length s).
-  Proof.
-    intros q en s u f H0 H.
-    induction en as [|en IH].
-    remember (Some 0 :: initial_solution states_num) as s0;
-      simpl; rewrite Heqs0; rewrite vub_s0_length; auto.
-    simpl; simpl in IH; rewrite max_lists_length;
-    rewrite H0; try (rewrite IH); auto.
-  Qed.
+Fixpoint max_list (l:list (list B)) :=
+  match l with
+  | w::nil => w
+  | w::l' => max w (max_list l')
+  | nil => nil
+  end.
 
-  Lemma vub_length : forall s u q m,
-    length s = S states_num ->
-    length (verify_upper_bound' s u q m) = length s.
-  Proof.
-    intros s u.
-    generalize dependent s.
-    induction u as [|u IH]; intros s q m H. apply update_length.
-    simpl; destruct (length s <=? S q)%nat.
-    2: destruct (optZ_eq (nth (S q) s None)).
-    3: destruct (optZ_ge (nth (S q) s None) (Some m)).
-    1,3-4: apply update_length.
-    rewrite max_lists_length.
-    rewrite IH; rewrite update_length; auto.
-    rewrite IH; rewrite update_length; symmetry.
-    replace (Some 0 :: initial_solution states_num_minus_1 ++ [None])
-      with (Some 0 :: initial_solution states_num).
-    2-3: auto.
+Lemma max_list_correct1 l : forall q,
+  l <> nil ->
+  (forall w, In w l -> ixtransition w = q) ->
+  ixtransition (max_list l) = q.
+Proof.
+  intros q H H0.
+  induction l as [|w' l' IH].
+  - contradiction.
+  - destruct l' as [|w'' l'].
+    + apply H0; intuition.
+    + assert (H1: ixtransition (max_list (w'' :: l')) = q). {
+        apply IH.
+        intro contra; discriminate.
+        intros w0 H1. apply H0. right; auto.
+      }
+      clear IH.
+      simpl. simpl in H1. unfold max.
+      destruct (Z_ge_dec (count_buffer w')
+      (count_buffer match l' with | [] => w'' | _ :: _ =>
+       if Z_ge_dec (count_buffer w'') (count_buffer (max_list l')) then w''
+       else max_list l' end)).
+      * apply H0; left; auto.
+      * apply H1.
+Qed.
 
-    rewrite vub_foreach_length'.
-    apply update_length.
-    apply IH.
-    rewrite <- H; apply update_length.
-  Qed.
+Lemma max_list_correct l : forall w,
+  In w l -> count_buffer w <= count_buffer (max_list l).
+Proof.
+  intros w H.
+  induction l as [|w' l' IH]; inversion H; simpl; unfold max.
+  - destruct (Z_ge_dec (count_buffer w') (count_buffer (max_list l'))) eqn:H1.
+    + destruct l'; rewrite H0; intuition.
+    + clear H1; apply Znot_ge_lt in n; rewrite H0 in *; destruct l'; omega.
+  - apply IH in H0; destruct (Z_ge_dec (count_buffer w') (count_buffer (max_list l')));
+    destruct l'; try omega.
+    inversion H. rewrite H1; omega. destruct H1.
+Qed.
 
-  Lemma vub_foreach_length : forall q en s u f,
-    length s = S states_num ->
-    length (foreach (transition_list' q en)
-      (verify_upper_bound' s u)
-      f max_lists
-      (Some 0 :: initial_solution states_num)) =
-    length s.
-  Proof.
-    intros q en s u f H.
-    apply vub_foreach_length'.
-    intros; apply vub_length.
-    1-2: auto.
-  Qed.
+Definition max_gen_words q := max_list (all_gen_words_le q (length (Q g) - 1)).
 
-  Lemma vub_updated'' : forall i s u a m m' q',
-    length (a :: update s i m) = S states_num ->
-    nth (S i) (verify_upper_bound' (a :: update s i m) u
-      q' m') None = nth (S i) (a :: update s i m) None.
-  Proof.
-    intros i s u.
-    generalize dependent i.
-    generalize dependent s.
-    induction u as [|u IH]; intros s i a m m' q' H. reflexivity.
-    simpl.
-    destruct (length (update s i m) <=? q')%nat eqn:H0. reflexivity.
-    destruct (optZ_eq (nth q' (update s i m) None) None) eqn:H1.
-    destruct (q' =? i)%nat eqn:eq.
-    apply beq_nat_true in eq; rewrite eq, nth_update in H1. discriminate H1.
-      rewrite <- eq; rewrite update_length in H0; apply leb_complete_conv in H0; auto.
-    clear H0; clear H1.
-    2: destruct (optZ_ge (nth q' (update s i m) None) (Some m')); reflexivity.
-    rewrite nth_max_lists. {
-      rewrite update_comm.
-      rewrite IH.
-      2: simpl; rewrite update_length, update_length; simpl in H;
-        rewrite update_length in H; auto.
-      2: apply beq_nat_false; rewrite Nat.eqb_sym; auto.
-      induction events_num_minus_1.
-        simpl; replace (nth i (initial_solution states_num_minus_1 ++ [None]) None) with
-          (nth (S i) (Some 0::initial_solution states_num) None). 2: reflexivity.
-          rewrite vub_s0_none, max_none. apply nth_update_update.
-      simpl.
-      simpl in H; rewrite update_length in H.
-      rewrite nth_max_lists.
-      2:    rewrite vub_foreach_length, vub_length; auto.
-      2,3:  simpl; rewrite update_length, update_length; auto.
-      rewrite IH.
-      2: simpl; rewrite update_length, update_length; auto.
-      rewrite max_distr, max_refl; apply IHn1.
-    }
-    rewrite vub_foreach_length, vub_length; simpl.
-    1-3: simpl in H; rewrite <- update_length with (n:=q')(a0:=m') in H;
-      auto.
-  Qed.
-
-  Lemma vub_updated' : forall q q' a s m en,
-    length s = states_num ->
-    (q < length s)%nat ->
-    nth (S q) (max_lists
-                (verify_upper_bound' (a :: update s q m) (length s)
-                  q' (m + count_event en))
-                (foreach (transition_list' q en)
-                  (verify_upper_bound' (a :: update s q m) (length s))
-                  (fun e : nat => m + count_event e) max_lists
-                  (Some 0 :: initial_solution states_num)))
-    None = Some m.
-  Proof.
-    intros q q' a s m en H H0.
-    generalize dependent q'.
-    induction en as [|en IH]; intro q'. {
-      simpl; rewrite nth_max_lists.
-      2: rewrite vub_s0_length; rewrite vub_length; simpl; rewrite update_length;
-        rewrite H; reflexivity.
-      rewrite vub_updated'';
-      replace (Some 0 :: initial_solution states_num_minus_1 ++ [None])
-        with (Some 0 :: initial_solution states_num); try (rewrite vub_s0_none).
-      simpl; rewrite nth_update.
-      4: simpl; rewrite update_length; apply eq_S.
-      1-5: auto.
-    }
-    simpl;
-    replace (initial_solution states_num_minus_1 ++ [None]) with (initial_solution states_num).
-    2: reflexivity.
-    remember (if is_sink_stateb q then states_num else if is_valid_event en then
-              if is_sink_stateb (transition q en) then states_num else transition q en
-              else states_num) as q''.
-    clear Heqq''.
-    rewrite nth_max_lists.
-    2: rewrite max_lists_length, vub_length, vub_length; auto.
-    4: rewrite vub_length; try (rewrite vub_foreach_length).
-    2-6: simpl; rewrite update_length; rewrite H; reflexivity.
-    rewrite IH, vub_updated''; simpl; apply eq_S in H. rewrite nth_update.
-    simpl; destruct (m >=? m); reflexivity.
-    2: rewrite update_length.
-    1-2: auto.
-  Qed.
-
-  Lemma vub_updated : forall q s s' b m,
-    length s = S states_num ->
-    (S q < length s)%nat ->
-    s' = verify_upper_bound' s (length s) q m ->
-    optZ_eq (nth (S q) s None) None = true ->
-    nth q (fst (extract 0 s' b)) None = Some m.
-  Proof.
-    intros q s s' b m H2 H H0 H1; apply leb_iff_conv in H.
-    pose vub_length as s_s'_length; specialize (s_s'_length s (length s) q m);
-      rewrite <- H0 in s_s'_length.
-    destruct s as [|a s]. apply leb_iff_conv in H; simpl in H; omega.
-    simpl in H; simpl in H1; simpl in H0; rewrite H, H1 in H0;
-    destruct s' as [|a' s']. discriminate s_s'_length.
-    apply H2.
-    rewrite fst_extract;
-    replace (initial_solution states_num_minus_1 ++ [None]) with (initial_solution states_num) in H0.
-    2: reflexivity.
-    apply leb_iff_conv in H; eapply vub_updated' in H.
-    rewrite <- H0 in H; apply H.
-    injection H2; auto.
-  Qed.
-
-  Theorem vub_correct :
-    n_upper_bounded <-> snd verify_upper_bound = true.
-  Proof.
-  Admitted.
-
-  Definition state_upper_bound (q:state) :=
-    match nth q (fst verify_upper_bound) None with
-      Some x => x |
-       None  => n
-    end.
-
-  Lemma tangible_state_upper_bound : n_upper_bounded ->
-    forall q, state_upper_bound q <= n.
-  Proof.
-    intros H q.
-    apply vub_correct in H; unfold verify_upper_bound in H.
-    unfold state_upper_bound, verify_upper_bound.
-    remember (Some 1 :: initial_solution states_num) as s0;
-    remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
-    remember (all_but_first_le s n) as b.
-    destruct s. discriminate H.
-    apply extract_true in H.
-    rewrite fst_extract.
-    simpl in Heqb. rewrite Heqb in H.
-    destruct (nth q s) as [x|] eqn:eq.
-    2: omega.
-    eapply all_le_nth.
-    apply H.
-    apply eq.
-  Qed.
-
-  Lemma q0_upper_bound : state_upper_bound 0%nat = n0.
-  Proof.
-    unfold state_upper_bound, verify_upper_bound.
-    remember (Some 1 :: initial_solution states_num) as s0;
-    remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
-    remember (all_but_first_le s n) as b;
-    clear Heqb.
-    assert (s = verify_upper_bound' s0 (S states_num) 0%nat n0). auto.
-    unfold verify_upper_bound' in Heqs.
-    destruct (length s0 <=? 1)%nat eqn:H0. {
-      rewrite Heqs0, vub_s0_length in H0; unfold states_num in H0; apply leb_complete in H0;
+Lemma max_gen_words_correct q :
+  n_upper_bounded -> is_tangible q ->
+  max_word q (max_gen_words q).
+Proof.
+  intros H H0.
+  apply max_word_def.
+  split; unfold max_gen_words.
+  - intros w H1;
+    destruct H0 as [H0 H2];
+    destruct (le_gt_dec (length w) (length (Q g) - 1)).
+    + apply max_list_correct, all_gen_words_le_correct; auto.
+    + assert (H3: (length w >= length (Q g))%nat). omega.
+      eapply pumping_buffer with (q:=q) in H3.
+      2-4: auto.
+      destruct H3 as [w' [H3 [H4 H5]]].
+      assert (count_buffer w' <= count_buffer (max_list (all_gen_words_le q (length (Q g) - 1)))).
+        apply max_list_correct, all_gen_words_le_correct; auto; omega.
       omega.
-    }
-    destruct (optZ_eq (nth 1 s0 None) None) eqn:?H.
-    rewrite vub_updated with (m:=n0) (s:=s0).
-    reflexivity.
-    rewrite Heqs0; apply vub_s0_length.
-    apply leb_iff_conv; apply H0.
-    rewrite Heqs0; rewrite vub_s0_length; rewrite <- Heqs0; apply H.
-    apply H1.
-    rewrite Heqs0 in H1; rewrite vub_s0_none in H1; simpl in H1;
-      discriminate H1.
-  Qed.
+  - apply max_list_correct1.
+    + apply pumping in H0; destruct H0 as [w [H0 [H1 H2]]]; fold ixtransition in H0.
+      eapply all_gen_words_le_correct with (n:=(length (Q g) - 1)%nat) in H2.
+      2: apply H0.
+      2: omega.
+      intro contra; rewrite contra in H2; destruct H2.
+    + intros w H1; unfold all_gen_words_le in H1;
+      eapply gen_words_correct1. 2: apply H1.
+      clear. induction (length (Q g) - 1)%nat as [|n1 IH].
+      * simpl; intro contra; discriminate.
+      * simpl. remember (match n1 with | 0%nat => all_words1 B (E g)
+                          | S _ => all_words' B (all_words A B g n1) (E g) end) as l.
+        clear Heql. destruct l as [|a l'].
+        apply IH.
+        simpl; intros contra; discriminate.
+Qed.
 
-  Lemma vub_tangible : forall s o q,
-    o::s = verify_upper_bound' (Some 1 :: initial_solution states_num) (S states_num) 0%nat n0 ->
-    (nth q s None <> None <-> is_tangible q).
-  Proof.
-    (* unfold is_tangible.
-    intros s o q H.
-    split; intro H0. {
-      split.
-      - unfold is_sink_state, not; intro H1.
-        assert (length (o::s) = S states_num). {
-          rewrite H. rewrite vub_length; apply vub_s0_length. }
-        simpl in H2; injection H2; intro H3.
-        rewrite nth_overflow in H0. contradiction.
-        omega.
-      - admit.
-    } *)
-  Admitted.
+Definition tangible_max_word q w := is_tangible q -> max_word q w.
 
-  Lemma transition_upper_bound : n_upper_bounded ->
-    forall q e, is_tangible q -> is_valid_event e = true -> is_proper_transition q e ->
-    state_upper_bound (xtransition q [e]) >= state_upper_bound q + count_event e.
-  Proof.
-    intros H q e H0 H1 H2.
-    apply vub_correct in H; unfold verify_upper_bound in H.
-    unfold state_upper_bound, verify_upper_bound.
-    remember (Some 1 :: initial_solution states_num) as s0;
-    remember (verify_upper_bound' s0 (S states_num) 0%nat n0) as s;
-    remember (all_but_first_le s n) as b.
-    destruct s as [|o s]. admit.
-    rewrite fst_extract.
-    simpl in H; destruct (optZ_eq o (Some 0)) eqn:H3. 2: discriminate H.
-  Admitted.
+Lemma exists_max_word_function : n_upper_bounded ->
+    exists f, forall q, is_tangible q -> max_word q (f q).
+Proof.
+  intro H.
+  exists (max_gen_words);
+  intro q;
+  intro H0;
+  apply max_gen_words_correct; auto.
+Qed.
 
-  Theorem iff_exists_function__upper_bounded :
-    ( exists f, f(0%nat) = n0 /\ forall q, is_tangible q -> 
-       f(q) <= n /\ (forall e, is_valid_event e = true ->
-          is_proper_transition q e -> f(xtransition q [e]) >= f(q) + count_event e ))
-    <-> n_upper_bounded.
-  Proof.
+Lemma q0_cycle: forall w n,
+  ixtransition w = (q0 g) -> ixtransition (word_pow B w n) = (q0 g).
+Proof.
+  intros w n H.
+  induction n as [|n IH]. auto.
+  unfold ixtransition in *;
+  simpl;
+  rewrite ixtransition_distr, H;
+  auto.
+Qed.
+
+Lemma max_word_q0 : forall w,
+  n_upper_bounded ->
+  max_word (q0 g) w ->
+  count_buffer w = 0.
+Proof.
+  intros w H H0.
+  destruct H0 as [H0 H3];
+  destruct (count_buffer w) eqn:H1.
+  - auto.
+  - pose proof (Zgt_pos_0 p) as H2; rewrite <- H1 in H2, H3;
+    clear H1; pose H0 as H1; apply q0_cycle with (n:=2%nat) in H1;
+    apply H3 in H1. rewrite count_word_pow in H1.
+    assert (H4: Z.of_nat 2 * count_buffer w <= 1 * count_buffer w). omega.
+    assert (Z.of_nat 2 > 1). replace 1 with (Z.of_nat 1). 2: constructor. apply inj_gt; omega.
+    eapply Zmult_gt_compat_r in H5. 2: apply H2. omega.
+  - pose proof (Zlt_neg_0 p) as H2; rewrite <- H1 in H2;
+    clear H0; assert (H0: ixtransition [] = q0 g). auto.
+    apply H3 in H0; simpl in H0.
+    omega.
+Qed.
+
+Lemma max_word_transition : forall q e qe w we,
+  delta g q e = qe -> qe <> sink g ->
+  max_word q w -> max_word qe we ->
+  count_buffer we >= count_buffer w + count_event qs e.
+Proof.
+  intros q e qe w we H H0 H1 H2.
+  assert (count_buffer (w ++ [e]) = count_buffer w + count_event qs e). apply count_buffer_distr'.
+  assert (count_buffer we >= count_buffer (w ++ [e])).
+  destruct H2 as [H2 H4]; destruct H1 as [H1 H5];
+  unfold ixtransition in *; apply Z.ge_le_iff; apply H4;
+  rewrite ixtransition_distr; rewrite H1; simpl; auto.
+  omega.
+Qed.
+
+Theorem iff_exists_function__upper_bounded :
+  ( exists f, f (q0 g) >= (n0 qs) /\ forall q, In q (Q g) -> is_tangible q -> f q <= n qs /\
+    forall e, In e (E g) -> f (delta g q e) >= f q + count_event qs e )
+  <-> n_upper_bounded.
+Proof.
+  split.
+
+  - unfold n_upper_bounded; intros [ f [H H0] ] w H1.
+    cut (n0 qs + count_buffer w <= f (ixtransition w)).
+    cut (f (ixtransition w) <= n qs).
+    omega.
+    apply H0.
+    apply ixtransition_in_Q; fold ixtransition; apply H1.
+    split; try intuition; eexists; fold ixtransition; reflexivity.
+    apply buffer_count_leq_f; try split; try (apply H0); intuition.
+
+  - intro H.
+    pose H as H0; apply exists_max_word_function in H0; destruct H0 as [f H0];
+      unfold tangible_max_word in H0.
+    exists (fun q => if Q_decidable g q (sink g) then (n qs)+1 else (n0 qs) + count_buffer (f q));
     split.
-
-    - unfold n_upper_bounded.
-      intros [f [H H0]] w H1.
-      assert (H2: n0 + count_buffer w <= f(ixtransition w)). {
-        apply buffer_count_leq_f; try split; try (apply H); try (apply H0); try (apply H1).
+    + destruct (Q_decidable g (q0 g) (sink g)).
+      pose proof (n_correct qs). omega.
+      assert (H1: is_tangible (q0 g)). split. auto. exists []; unfold DFA.ixtransition; auto.
+      apply H0 in H1; apply max_word_q0 in H1; auto; omega.
+    + intros q H1 H2; pose H2 as H3; apply H0 in H3; destruct (Q_decidable g q (sink g)).
+      destruct H2 as [H2 [w H4]]; contradiction.
+      clear n.
+      assert (H4: n0 qs + count_buffer (f q) <= n qs). {
+        destruct H3 as [H3 _]; apply H; unfold is_generated, DFA.is_generated;
+        fold ixtransition; destruct H2 as [H2 _]; rewrite <- H3 in H2; auto.
       }
-      assert (f (ixtransition w) <= n). {
-        destruct (is_sink_stateb (ixtransition w)) eqn:H3.
-        - apply is_sink_stateb__is_sink_state in H3.
-          contradiction.
-        - destruct H0 with (q:=ixtransition w). {
-            split.
-              - apply isnt_sink_stateb__isnt_sink_state.
-                apply H3.
-              - exists w.
-                reflexivity.
-          }
-          apply H4.
-      }
-      omega.
-
-    - intro H.
-      exists state_upper_bound.
       split.
-      2: intros q H0; split.
-      + apply q0_upper_bound.
-      + apply tangible_state_upper_bound; auto.
-      + intros e H1 H2; apply transition_upper_bound; auto.
-  Qed.
+      * auto.
+      * intros e H5; destruct (Q_decidable g (delta g q e) (sink g)).
+        assert (count_event qs e <= 1). {
+          apply (count_event_correct qs) in H5; destruct H5 as [H5|[H5|H5]]; omega.
+        }
+        omega.
+        assert (H6: is_tangible (delta g q e)).
+          split; auto; destruct H2 as [H2 [w H6]]; exists (w ++ [e]); rewrite ixtransition_distr;
+          simpl; rewrite H6; auto.
+        assert (count_buffer (f (delta g q e)) >= count_buffer (f q) + count_event qs e).
+          eapply max_word_transition. 2: apply n. reflexivity. apply H0; auto. apply H0; auto.
+        omega.
+Qed.
 
-End UpperBound.
-
-
-Module Example.
-
-  Module QS0 <: QS.
-    Definition states_num_minus_1 : nat := 5.
-    Definition events_num_minus_1 : nat := 2.
-    Definition transition (q:state) (e:event) : state :=
-      match q, e with
-        0%nat, 0%nat => 1%nat |
-        1%nat, 0%nat => 2%nat |
-        2%nat, 1%nat => 3%nat |
-        3%nat, 1%nat => 1%nat |
-        0%nat, 2%nat => 4%nat |
-        4%nat, 0%nat => 5%nat |
-        5%nat, 0%nat => 1%nat |
-        _, _=> 6%nat
-      end.
-    Definition is_marked (q:state) := false.
-    Definition count_event (e:event) :=
-      match e with
-        0%nat =>   1%Z  |
-        1%nat => (-1)%Z |
-          _   =>   0%Z
-      end.
-    Definition n := 3.
-    Definition n0 := 0.
-  End QS0.
-
-  Include UpperBound QS0.
-
-  Compute verify_upper_bound.
-
-End Example.
+End QSUpperBound.
