@@ -1,0 +1,19 @@
+\providecommand{\abntreprintinfo}[1]{%
+ \citeonline{#1}}
+\setlength{\labelsep}{0pt}\begin{thebibliography}{}
+\providecommand{\abntrefinfo}[3]{}
+\providecommand{\abntbstabout}[1]{}
+\abntbstabout{v-1.9.6 }
+
+\bibitem[Cassandras e Lafortune 2008]{cassandras}
+\abntrefinfo{Cassandras e Lafortune}{CASSANDRAS; LAFORTUNE}{2008}
+{CASSANDRAS, C.~G.; LAFORTUNE, S. \textbf{Introduction to discrete event
+  systems}. 2. ed. New York: Springer Science+Business Media, 2008.}
+
+\bibitem[Hopcroft, Motwani e Ullman 2006]{hopcroft}
+\abntrefinfo{Hopcroft, Motwani e Ullman}{HOPCROFT; MOTWANI; ULLMAN}{2006}
+{HOPCROFT, J.~E.; MOTWANI, R.; ULLMAN, J.~D. \textbf{Introduction to automata
+  theory, languages, and computation}. 3. ed. Boston: Pearson/Addison Wesley,
+  2006.}
+
+\end{thebibliography}

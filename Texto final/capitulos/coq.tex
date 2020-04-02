@@ -1,0 +1,16 @@
+\chapter{Assistente de provas e lógica intuicionista}
+\label{cap:coq}
+
+\section{Prova direta}
+
+\section{Terceiro excluído e decidibilidade}
+
+Uma dificuldade frequente [falar do tanto de perguntas do StackOverflow] dos usuários de assistentes de provas reside no fato de que a lei do terceiro excluído, segundo a qual $P \vee \neg P$ é verdade para qualquer proposição $P$, não integra a lógica intuicionista da mesma maneira que a lógica clássica.
+
+\begin{minted}{coq}
+forall x, {P x} + {~ P x}
+\end{minted}
+
+\subsection{Prova por contradição}
+
+\section{Indução matemática}

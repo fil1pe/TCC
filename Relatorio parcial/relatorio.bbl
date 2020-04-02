@@ -1,0 +1,114 @@
+\providecommand{\abntreprintinfo}[1]{%
+ \citeonline{#1}}
+\setlength{\labelsep}{0pt}\begin{thebibliography}{}
+\providecommand{\abntrefinfo}[3]{}
+\providecommand{\abntbstabout}[1]{}
+\abntbstabout{v-1.9.6 }
+
+\bibitem[Athalye 2017]{athalye}
+\abntrefinfo{Athalye}{ATHALYE}{2017}
+{ATHALYE, A.
+\textbf{{CoqIOA}: a formalization of {IO} automata in the Coq proof assistant}.
+Tese (Doutorado) --- Massachusetts Institute of Technology, 2017.}
+\\~\\
+\bibitem[Barras et al. 1999]{manualcoq}
+\abntrefinfo{Barras et al.}{BARRAS et al.}{1999}
+{BARRAS, B. et al. \textbf{The Coq proof assistant reference manual}.
+  Rocquencourt: INRIA, 1999. v.~6.}
+\\~\\
+\bibitem[Braibant e Pous 2011]{braibant}
+\abntrefinfo{Braibant e Pous}{BRAIBANT; POUS}{2011}
+{BRAIBANT, T.; POUS, D. Deciding kleene algebras in {Coq}.
+\textbf{arXiv preprint arXiv:1105.4537}, 2011.}
+\\~\\
+\bibitem[Cassandras e Lafortune 2008]{cassandras}
+\abntrefinfo{Cassandras e Lafortune}{CASSANDRAS; LAFORTUNE}{2008}
+{CASSANDRAS, C.~G.; LAFORTUNE, S. \textbf{Introduction to discrete event
+  systems}. 2. ed. New York: Springer Science+Business Media, 2008.}
+\\~\\
+\bibitem[Doczkal, Kaiser e Smolka 2013]{doczkal}
+\abntrefinfo{Doczkal, Kaiser e Smolka}{DOCZKAL; KAISER; SMOLKA}{2013}
+{DOCZKAL, C.; KAISER, J. O.; SMOLKA, G. A constructive theory of regular
+  languages in coq. In:  SPRINGER. \textbf{International Conference on
+  Certified Programs and Proofs}. [S.l.], 2013. p. 82--97.}
+\\~\\
+\bibitem[Ferreira 2010]{aurelio}
+\abntrefinfo{Ferreira}{FERREIRA}{2010}
+{FERREIRA, A. B. de H. \textbf{M{\'i}ni Aur{\'e}lio: o dicion{\'a}rio da
+  l{\'i}ngua portuguesa}. Curitiba: Editora Positivo, 2010.}
+\\~\\
+\bibitem[Ferreira 2019]{victor}
+\abntrefinfo{Ferreira}{FERREIRA}{2019}
+{FERREIRA, V.~L. \textbf{Coordena\c{c}\~ao de m\'ultiplas aeronaves n\~ao tripuladas baseada na
+  aloca\c{c}\~ao din\^amica de tarefas associadas \`a log\'istica de entregas}
+  --- Universidade do Estado de Santa Catarina, 2019.
+Dispon{\'\i}vel em:
+  \url{http://sistemabu.udesc.br/pergamumweb/vinculos/000071/0000714c.pdf}.
+  Acesso em: 16 out. 2019.}
+\\~\\
+\bibitem[Gonthier 2004]{4cores}
+\abntrefinfo{Gonthier}{GONTHIER}{2004}
+{GONTHIER, G. The four color theorem in coq. In:  \textbf{TYPES 2004
+  International Workshop}. [S.l.: s.n.], 2004.}
+\\~\\
+\bibitem[Hopcroft, Motwani e Ullman 2007]{hopcroft}
+\abntrefinfo{Hopcroft, Motwani e Ullman}{HOPCROFT; MOTWANI; ULLMAN}{2007}
+{HOPCROFT, J.~E.; MOTWANI, R.; ULLMAN, J.~D. \textbf{Introduction to automata
+  theory, languages, and computation}. Boston: Pearson/Addison Wesley, 2007.}
+\\~\\
+\bibitem[Lafortune 2019]{lafortune}
+\abntrefinfo{Lafortune}{LAFORTUNE}{2019}
+{LAFORTUNE, S. Discrete event systems: Modeling, observation, and control.
+\textbf{Annual Review of Control, Robotics, and Autonomous Systems}, Annual
+  Reviews, v.~2, p. 141--159, 2019.
+Dispon{\'\i}vel em:
+  \url{https://www.annualreviews.org/doi/abs/10.1146/annurev-control-053018-023659}.
+  Acesso em: 18 out. 2019.}
+\\~\\
+\bibitem[Lopes et al. 2012]{rosso1}
+\abntrefinfo{Lopes et al.}{LOPES et al.}{2012}
+{LOPES, Y.~K. et al. Finite automata as an information model for manufacturing
+  execution system and supervisory control integration.
+\textbf{IFAC Proceedings Volumes}, Elsevier, v.~45, n.~6, p. 212--217, 2012.}
+\\~\\
+\bibitem[Luo 1994]{luo}
+\abntrefinfo{Luo}{LUO}{1994}
+{LUO, Z. \textbf{Computation and reasoning: a type theory for computer
+  science}. Oxford New York: Clarendon Press Oxford University Press, 1994.}
+\\~\\
+\bibitem[Mehmood et al. 2011]{mehmood}
+\abntrefinfo{Mehmood et al.}{MEHMOOD et al.}{2011}
+{MEHMOOD, S.~N. et al. Implementation and experimentation of producer-consumer
+  synchronization problem.
+\textbf{International Journal of Computer Applications}, International Journal
+  of Computer Applications, v.~975, n.~8887, p. 32--37, 2011.}
+\\~\\
+\bibitem[Menezes 2005]{menezes}
+\abntrefinfo{Menezes}{MENEZES}{2005}
+{MENEZES, P. F.~B. \textbf{Linguagens formais e aut{\^o}matos}. Porto Alegre:
+  Sagra-Luzzatto, 2005.}
+\\~\\
+\bibitem[Murata 1989]{petrinets}
+\abntrefinfo{Murata}{MURATA}{1989}
+{MURATA, T. Petri nets: Properties, analysis and applications.
+\textbf{Proceedings of the IEEE}, IEEE, v.~77, n.~4, p. 541--580, 1989.}
+\\~\\
+\bibitem[Reisig 1993]{reisig}
+\abntrefinfo{Reisig}{REISIG}{1993}
+{REISIG, W. Specification, modelling and verification of concurrent discrete
+  event systems. In:  IET. \textbf{IEE Colloquium on Discrete Event Systems: A
+  New Challenge for Intelligent Control Systems}. [S.l.], 1993. p.~4--1.}
+\\~\\
+\bibitem[Tanenbaum e Bos 2016]{tanenbaum}
+\abntrefinfo{Tanenbaum e Bos}{TANENBAUM; BOS}{2016}
+{TANENBAUM, A.~S.; BOS, H. \textbf{Sistemas operacionais modernos}. 4. ed.
+  S\~ao Paulo: Pearson, 2016.}
+\\~\\
+\bibitem[Tveretina 2009]{tveretina}
+\abntrefinfo{Tveretina}{TVERETINA}{2009}
+{TVERETINA, O. Towards the safety verification of real-time systems with the
+  {Coq} proof assistant.
+\textbf{Journal of Automation Mobile Robotics and Intelligent Systems}, v.~3,
+  p. 30--32, 2009.}
+
+\end{thebibliography}
