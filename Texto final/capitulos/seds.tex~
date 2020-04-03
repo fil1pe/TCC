@@ -68,7 +68,7 @@ para os eventos. Contudo, a fim de representar conjuntos finitos genéricos, ess
 
 [Colocar opções que achei do StackOverflow]
 
-Outra opção tange a especificar o recipiente dos estados na forma de lista e atribuir restrições a ela, fazendo o mesmo para os eventos. A biblioteca padrão de listas do Coq implementa uma coleção de funções, definições e notações que é útil para tanto. A implementação possibilita, por exemplo, uma notação semelhante à de pertence ($\in$) da teoria de conjuntos: \mintinline{coq}{In:forall X, X->list X->Prop}. A seguinte construção foi adotada:
+Outra opção tange a especificar o recipiente dos estados na forma de lista e atribuir restrições a ela, fazendo o mesmo para os eventos. A seguinte construção foi adotada:
 
 \begin{minted}[escapeinside=!!]{coq}
 Record AFD (A B:Type) : Type := {
@@ -81,11 +81,11 @@ Record AFD (A B:Type) : Type := {
   transi!çã!o_correta : forall q e, transi!çã!o q e <> ralo -> In e E /\ In q Q /\ q <> ralo /\ In (transi!çã!o q e) Q;
   q0_correto : In q0 Q;
   Qm_correto : forall q, In q Qm -> In q Q;
-  ralo_correto : In ralo Q /\ ralo <> q0
+  ralo_correto : In ralo Q
 }.
 \end{minted}
 
-Restringir a decidibilidade das igualdades de \mintinline{coq}{A} e \mintinline{coq}{B} é importante no sentido de garantir as igualdades decidíveis dos AFDs\footnote{Os conjuntos de estados e eventos são finitos; logo, como aborda a Subseção \ref{ssec:eq_decidivel}, a igualdade entre seus elementos é decidível.} e permitir aplicar a proposição \mintinline[escapeinside=!!]{coq}{transi!çã!o_correta}, pois verificar se, para quaisquer elementos \mintinline{coq}{q:A} e \mintinline{coq}{e:B}, \mintinline[escapeinside=!!]{coq}{transi!çã!o q e} é igual ao estado de ralo requer $$\text{\mintinline{coq}{forall (a:A), {a = ralo} + {a <> ralo}}}$$ Mais, essa restrição facilita a prova de alguns dos lemas demonstrados pelo presente trabalho. Ela pode ser assim adicionada ao \mintinline{coq}{Record AFD}:
+Restringir a decidibilidade das igualdades de \mintinline{coq}{A} e \mintinline{coq}{B} é importante no sentido de garantir as igualdades decidíveis dos AFDs\footnote{Os conjuntos de estados e eventos são finitos; logo, como aborda a Subseção \ref{ssec:eq_decidivel}, a igualdade entre seus elementos é decidível.} e permitir aplicar a proposição \mintinline[escapeinside=!!]{coq}{transi!çã!o_correta}, pois verificar se, para quaisquer elementos \mintinline{coq}{q:A} e \mintinline{coq}{e:B}, \mintinline[escapeinside=!!]{coq}{transi!çã!o q e} é igual ao estado de ralo requer $$\text{\mintinline{coq}{forall x, {x = ralo} + {x <> ralo}}}$$ Mais, essa restrição facilita a prova de alguns dos lemas demonstrados pelo presente trabalho. Ela pode ser assim adicionada ao \mintinline{coq}{Record AFD}:
 
 \begin{minted}[escapeinside=!!]{coq}
 A_decid!í!vel : forall (x y:A), {x = y} + {x <> y};
@@ -102,6 +102,6 @@ Qed.
 \end{minted}
 
 \noindent
-cuja complexidade de tempo é $O(k^2)$, uma vez que a proposição é destruída em $k^2$ casos. Semelhantemente a complexidade para o tipo \mintinline{coq}{Inductive E} é $O(l^2)$. Em cada caso a tática \mintinline{coq}{auto} automaticamente prova a igualdade, e \mintinline{coq}{right; intros; discriminate} prova a diferença.
+cuja complexidade de tempo é $O(k^2)$, uma vez que a proposição é destruída em $k^2$ casos. Semelhantemente a complexidade para o tipo \mintinline{coq}{Inductive E} é $O(l^2)$. Em cada caso a tática \mintinline{coq}{auto} automaticamente prova a igualdade e \mintinline{coq}{right; intros; discriminate} prova a diferença.
 
 \section{Sistemas de filas}

@@ -16,24 +16,6 @@
 	edition = {2}
 }
 
-@article{jesper,
-	author = {Jesper \"{O}qvist},
-	title = {Solution to the Pigeonhole Principle exercise in Software Foundations, without excluded middle},
-	journal = {Github},
-	urlaccessdate = {3 abr. 2020},
-	url = {https://github.com/llbit/Pigeonhole-Principle/},
-	year = {2017}
-}
-
-@misc{pierce,
-	author = {Pierce, Benjamin C. and Amorim, A. A. de and Casinghino, C. and
-		Gaboardi, M.},
-	title = {Logical Foundations},
-	url = {https://softwarefoundations.cis.upenn.edu/lf-current/index.html},
-	urlaccessdate = {8 set. 2019},
-	year = {2019}
-}
-
 @article{rosso1,
 	title={Finite Automata as an Information Model for Manufacturing Execution System and Supervisory Control Integration},
 	author={Lopes, Yuri Kaszubowski and Rosso Jr, Roberto SU and Leal, Andr{\'e} B and Harbs, Eduardo and Hounsell, Marcelo da S},

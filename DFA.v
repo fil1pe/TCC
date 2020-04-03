@@ -8,7 +8,7 @@ Record dfa {A B} : Type := {
   sink : A;
   q0 : A;
   q0_correct : In q0 Q;
-  sink_correct : In sink Q;
+  sink_correct : In sink Q /\ sink <> q0;
   delta_correct : forall q e, delta q e <> sink -> (In e E /\ In q Q /\ q <> sink /\ In (delta q e) Q);
   Q_decidable : forall x y : A, {x = y} + {x <> y}
 }.

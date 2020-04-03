@@ -8,9 +8,7 @@ Record qs_dfa {A B} := {
   n0 : Z;
   n : Z;
   n_correct : n >= n0;
-  count_event : B -> Z;
-  count_event_correct : forall e, In e (E g) -> count_event e = 1 \/
-                        count_event e = -1 \/ count_event e = 0
+  count_event : B -> Z
 }.
 
 Section QS.

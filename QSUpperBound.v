@@ -251,12 +251,43 @@ Lemma max_list_correct l : forall w,
 Proof.
   intros w H.
   induction l as [|w' l' IH]; inversion H; simpl; unfold max.
-  - destruct (Z_ge_dec (count_buffer w') (count_buffer (max_list l'))) eqn:H1.
+  - destruct (Z_ge_dec (count_buffer w') (count_buffer (max_list l'))).
     + destruct l'; rewrite H0; intuition.
-    + clear H1; apply Znot_ge_lt in n; rewrite H0 in *; destruct l'; omega.
+    + apply Znot_ge_lt in n; rewrite H0 in *; destruct l'; omega.
   - apply IH in H0; destruct (Z_ge_dec (count_buffer w') (count_buffer (max_list l')));
     destruct l'; try omega.
     inversion H. rewrite H1; omega. destruct H1.
+Qed.
+
+Fixpoint max_in_list l :=
+  match l with
+  | e::nil => [e]
+  | e::l' => max [e] (max_in_list l')
+  | nil => nil
+  end.
+
+Lemma max_in_list_correct l : forall e,
+  In e l -> count_buffer [e] <= count_buffer (max_in_list l).
+Proof.
+  intros e H.
+  induction l as [|e' l' IH]; inversion H; simpl; unfold max.
+  - destruct (Z_ge_dec (count_buffer [e']) (count_buffer (max_in_list l'))).
+    + destruct l'; rewrite H0; intuition.
+    + apply Znot_ge_lt in n; rewrite H0 in *; destruct l'; simpl in *; omega.
+  - apply IH in H0; destruct (Z_ge_dec (count_buffer [e']) (count_buffer (max_in_list l')));
+    destruct l'; simpl in *; try omega.
+    inversion H. rewrite H1; omega. destruct H1.
+Qed.
+
+Definition max_count_event := count_buffer (max_in_list (E g)).
+
+Lemma max_count_event_correct : forall e,
+  In e (E g) -> count_event qs e <= count_buffer (max_in_list (E g)).
+Proof.
+  intros e H.
+  replace (count_event qs e) with (count_buffer [e]).
+  apply max_in_list_correct; auto.
+  simpl; omega.
 Qed.
 
 Definition max_gen_words q := max_list (all_gen_words_le q (length (Q g) - 1)).
@@ -373,10 +404,10 @@ Proof.
   - intro H.
     pose H as H0; apply exists_max_word_function in H0; destruct H0 as [f H0];
       unfold tangible_max_word in H0.
-    exists (fun q => if Q_decidable g q (sink g) then (n qs)+1 else (n0 qs) + count_buffer (f q));
+    exists (fun q => if Q_decidable g q (sink g) then (n qs)+(max_count_event) else (n0 qs) + count_buffer (f q));
     split.
-    + destruct (Q_decidable g (q0 g) (sink g)).
-      pose proof (n_correct qs). omega.
+    + destruct (Q_decidable g (q0 g) (sink g)) as [H2|H2].
+      destruct (sink_correct g) as [_ contra]; symmetry in H2; contradiction.
       assert (H1: is_tangible (q0 g)). split. auto. exists []; unfold DFA.ixtransition; auto.
       apply H0 in H1; apply max_word_q0 in H1; auto; omega.
     + intros q H1 H2; pose H2 as H3; apply H0 in H3; destruct (Q_decidable g q (sink g)).
@@ -389,9 +420,8 @@ Proof.
       split.
       * auto.
       * intros e H5; destruct (Q_decidable g (delta g q e) (sink g)).
-        assert (count_event qs e <= 1). {
-          apply (count_event_correct qs) in H5; destruct H5 as [H5|[H5|H5]]; omega.
-        }
+        assert (count_event qs e <= max_count_event).
+          apply max_count_event_correct; auto.
         omega.
         assert (H6: is_tangible (delta g q e)).
           split; auto; destruct H2 as [H2 [w H6]]; exists (w ++ [e]); rewrite ixtransition_distr;
