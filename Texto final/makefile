@@ -1,13 +1,12 @@
 all: compile_bib compile
 
 compile_bib:
-	@latex --shell-escape TCC.tex
+	@pdflatex --shell-escape TCC.tex
 	@bibtex TCC
-	@latex --shell-escape TCC.tex
+	@pdflatex --shell-escape TCC.tex
 
 compile:
-	@latex --shell-escape TCC.tex
-	@dvipdfm TCC
+	@pdflatex --shell-escape TCC.tex
 	@find . -name "*.dvi" -type f -delete
 	@find . -name "*.lof" -type f -delete
 	@find . -name "*.log" -type f -delete

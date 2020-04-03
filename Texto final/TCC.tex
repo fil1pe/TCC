@@ -45,12 +45,8 @@
     breaklines=true,
     encoding=utf8
 }
-
-\usepackage{etoolbox}
-\makeatletter
-\AtBeginEnvironment{minted}{\dontdofcolorbox}
-\def\dontdofcolorbox{\renewcommand\fcolorbox[4][]{##4}}
-\makeatother
+\usemintedstyle{borland}
+\AtBeginEnvironment{minted}{\setlength{\parskip}{0 pt}}
 
 \usepackage{amsthm}
 \newtheorem{teo}{Teorema}
@@ -75,7 +71,7 @@
     \end{figure}
 }
 \newcommand{\figuradoautor}[3]{
-    \figura{#1}{#2}{#3}{Elaborada pelo autor, 2019}
+    \figura{#1}{#2}{#3}{Elaborada pelo autor, 2020}
 }
 \def\arraystretch{1.3}
 \usepackage{multirow}
@@ -142,9 +138,13 @@
 \aliaspagestyle{chapter}{eudesc}
 
 % Texto principal do TCC:
-\include{capitulos/introducao}
+\include{capitulos/intro}
 \include{capitulos/coq}
 \include{capitulos/seds}
+\include{capitulos/relacionados}
+\include{capitulos/tangivel}
+\include{capitulos/produtor-consumidor}
+\include{capitulos/conclusao}
 
 % Finaliza o bookmark do PDF:
 \bookmarksetup{startatroot}% 
