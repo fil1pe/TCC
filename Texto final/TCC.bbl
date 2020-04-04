@@ -18,15 +18,15 @@
 
 \bibitem[\"{O}qvist 2017]{jesper}
 \abntrefinfo{\"{O}qvist}{\"{O}QVIST}{2017}
-{\"{O}QVIST, J. Solution to the pigeonhole principle exercise in software
-  foundations, without excluded middle.
+{\"{O}QVIST, J. Solution to the {P}igeonhole {P}rinciple exercise in {S}oftware
+  {F}oundations, without excluded middle.
 \textbf{Github}, 2017.
 Dispon{\'\i}vel em: \url{https://github.com/llbit/Pigeonhole-Principle/}.
   Acesso em: 3 abr. 2020.}
 
 \bibitem[Pierce et al. 2019]{pierce}
 \abntrefinfo{Pierce et al.}{PIERCE et al.}{2019}
-{PIERCE, B.~C. et al. \textbf{Logical Foundations}. 2019.
+{PIERCE, B.~C. et al. \textbf{Logical {F}oundations}. 2019.
 Dispon{\'\i}vel em:
   \url{https://softwarefoundations.cis.upenn.edu/lf-current/index.html}. Acesso
   em: 8 set. 2019.}

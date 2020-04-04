@@ -3,7 +3,7 @@ Import ListNotations.
 Require Import DFA QS.
 Local Open Scope Z_scope.
 
-Section QSUpperBound.
+Section QSLowerBound.
 
 Variables (A : Type) (B : Type) (qs : @qs_dfa A B).
 Definition g := g qs.
@@ -14,12 +14,12 @@ Definition is_tangible := is_tangible A B g.
 Definition is_generated := is_generated A B g.
 Definition count_buffer := count_buffer A B qs.
 
-Definition n_upper_bounded := forall w, is_generated w -> n0 qs + count_buffer w <= n qs.
+Definition n1_lower_bounded := forall w, is_generated w -> n0 qs + count_buffer w >= n1 qs.
 
 Lemma buffer_count_leq_f : forall f,
-    ( f (q0 g) >= (n0 qs) /\ forall q, In q (Q g) -> is_tangible q -> forall e, In e (E g) ->
-        f (delta g q e) >= f q + count_event qs e )
-    -> forall w, is_generated w -> n0 qs + count_buffer w <= f (ixtransition w).
+    ( f (q0 g) <= (n0 qs) /\ forall q, In q (Q g) -> is_tangible q -> forall e, In e (E g) ->
+        f (delta g q e) <= f q + count_event qs e )
+    -> forall w, is_generated w -> n0 qs + count_buffer w >= f (ixtransition w).
 Proof.
   intros f [H H0] w H10;
   induction w as [|e w' IH] using @rev_ind.
@@ -32,7 +32,7 @@ Proof.
       remember (ixtransition w') as q eqn:H3.
     rewrite H3; simpl; rewrite <- H3.
     remember (delta g q e) as q' eqn:H4.
-    cut (f q' >= f q + count_event qs e).
+    cut (f q' <= f q + count_event qs e).
     omega.
     rewrite H4.
     assert (H5: delta g q e <> sink g).
@@ -45,13 +45,13 @@ Proof.
 Qed.
 
 Lemma pumping_buffer1 q : forall w,
-  n_upper_bounded -> ixtransition w = q -> q <> (sink g) ->
+  n1_lower_bounded -> ixtransition w = q -> q <> (sink g) ->
   (length w >= length (Q g))%nat ->
   exists w', ixtransition w' = q /\ (length w' < length w)%nat /\
-  count_buffer w' >= count_buffer w.
+  count_buffer w' <= count_buffer w.
 Proof.
   intros w H H0 H1 H2;
-  assert (H10: exists m, Z.of_nat m >= n qs - n0 qs - count_buffer w + 1). {
+  assert (H10: exists m, Z.of_nat m <= n qs - n0 qs - count_buffer w + 1). {
     assert (H3: 0 <= (n qs - n0 qs - count_buffer w + 1)).
       unfold n_upper_bounded, is_generated, DFA.is_generated in H;
       fold ixtransition in H; rewrite <- H0 in H1; apply H in H1; omega.
@@ -420,4 +420,4 @@ Proof.
         omega.
 Qed.
 
-End QSUpperBound.
+End QSLowerBound.
