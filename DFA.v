@@ -1,32 +1,36 @@
 Require Import Coq.Lists.List Coq.Bool.Bool Omega.
 Import ListNotations.
 
-Record dfa {A B} : Type := {
-  Q : list A;
-  E : list B;
-  delta : A -> B -> A;
-  sink : A;
-  q0 : A;
-  q0_correct : In q0 Q;
-  sink_correct : In sink Q /\ sink <> q0;
-  delta_correct : forall q e, delta q e <> sink -> (In e E /\ In q Q /\ q <> sink /\ In (delta q e) Q);
-  Q_decidable : forall x y : A, {x = y} + {x <> y}
-}.
+Module Type DFA.
+  Variables (A B : Type).
+  Variable Q : list A.
+  Variable E : list B.
+  Variable delta : A -> B -> A.
+  Variable q0 : A.
+  Variable sink : A.
+  Variable Qm : list A.
+  Axiom delta_correct : forall q e, delta q e <> sink -> (In e E /\ In q Q /\ q <> sink /\ In (delta q e) Q).
+  Axiom q0_correct : In q0 Q.
+  Axiom Qm_correct : forall q, In q Qm -> In q Q.
+  Axiom sink_correct : In sink Q /\ sink <> q0.
+  Axiom A_decidable : forall x y : A, {x = y} + {x <> y}.
+  Axiom B_decidable : forall x y : A, {x = y} + {x <> y}.
+End DFA.
 
-Section DFA.
+Module DFAUtils (G:DFA).
 
-Variables (A : Type) (B : Type) (g : @dfa A B).
+Include G.
 
-Lemma Q_not_nil : (Q g) <> nil.
+Lemma Q_not_nil : Q <> nil.
 Proof.
-  pose proof (q0_correct g) as H;
+  pose proof q0_correct as H;
   intro contra; rewrite contra in H;
   pose proof in_nil; contradiction.
 Qed.
 
 Fixpoint xtransition q w :=
   match w with
-  | e::w' => xtransition (delta g q e) w'
+  | e::w' => xtransition (delta q e) w'
   | nil => q
   end.
 
@@ -37,38 +41,40 @@ Proof.
 Qed.
 
 Lemma xtransition_sink w :
-  xtransition (sink g) w = sink g.
+  xtransition sink w = sink.
 Proof.
   induction w as [|e w IH].
   - intuition.
   - simpl.
-    destruct (Q_decidable g (delta g (sink g) e) (sink g)) as [H|H].
+    destruct (A_decidable (delta sink e) sink) as [H|H].
     + rewrite H; intuition.
     + apply delta_correct in H; destruct H as [H [H0 [H1 H2]]]; contradiction.
 Qed.
 
-Definition ixtransition w := xtransition (q0 g) w.
+Definition ixtransition w := xtransition q0 w.
 
 Theorem ixtransition_distr w1 w2 :
   ixtransition (w1 ++ w2) = xtransition (ixtransition w1) w2.
 Proof. apply xtransition_distr. Qed.
 
 Lemma ixtransition_in_Q w :
-  ixtransition w <> sink g -> In (ixtransition w) (Q g).
+  ixtransition w <> sink -> In (ixtransition w) Q.
 Proof.
   intro H.
-  pose proof (q0_correct g).
+  pose proof q0_correct.
   unfold ixtransition in *.
-  generalize dependent (q0 g).
+  generalize dependent q0.
   induction w as [|e w' IH]; intros q H0.
   - auto.
   - intro H1. simpl in *.
-    destruct (Q_decidable g (delta g q e) (sink g)).
-    + rewrite e0, xtransition_sink; apply (sink_correct g).
-    + apply IH. auto. apply (delta_correct g) in n; intuition.
+    destruct (A_decidable (delta q e) (sink)).
+    + rewrite e0, xtransition_sink; apply (sink_correct).
+    + apply IH. auto. apply (delta_correct) in n; intuition.
 Qed.
 
-Definition is_generated w := ixtransition w <> sink g.
+Definition is_generated w := ixtransition w <> sink.
+
+Definition is_accepted w := In (ixtransition w) Qm.
 
 Theorem prefix_closed : forall w1 w2,
   is_generated (w1 ++ w2) -> is_generated w1.
@@ -79,14 +85,14 @@ Proof.
   contradiction.
 Qed.
 
-Definition is_tangible q := q <> (sink g) /\ exists w, ixtransition w = q.
+Definition is_tangible q := q <> (sink) /\ exists w, ixtransition w = q.
 
 Fixpoint config' q w :=
   match w with
-  | e::w' => (delta g q e)::config' (delta g q e) w'
+  | e::w' => (delta q e)::config' (delta q e) w'
   | nil => []
   end.
-Definition config w := (q0 g)::config' (q0 g) w.
+Definition config w := (q0)::config' (q0) w.
 
 Lemma config'_length w : forall q,
   length (config' q w) = length w.
@@ -129,15 +135,15 @@ Proof.
 Qed.
 
 Lemma pigeonhole1 w : forall q,
-  In q (config w) -> In q (Q g).
+  In q (config w) -> In q (Q).
 Proof.
   unfold config; intros q H; destruct H.
   - rewrite <- H; apply q0_correct.
-  - generalize dependent (q0 g);
+  - generalize dependent (q0);
     induction w as [|e w IH]; intros a H; destruct H.
-    + destruct (Q_decidable g q (sink g)) as [H0|H0].
-      * rewrite H0; apply (sink_correct g).
-      * rewrite <- H in H0; apply (delta_correct g) in H0;
+    + destruct (A_decidable q (sink)) as [H0|H0].
+      * rewrite H0; apply (sink_correct).
+      * rewrite <- H in H0; apply (delta_correct) in H0;
         rewrite <- H; intuition.
     + eapply IH; apply H.
 Qed.
@@ -153,12 +159,12 @@ Proof.
 Qed.
 
 Lemma pigeonhole w : 
-  length (config w) > length (Q g) ->
+  length (config w) > length (Q) ->
   qrepeats (config w).
 Proof.
   intro H; pose proof pigeonhole1 as H0; specialize (H0 w).
   generalize dependent (config w).
-  generalize dependent (Q g).
+  generalize dependent (Q).
   clear w.
   intros l2 l1; revert l2; induction l1 as [|x1 l1 IH]; intros l2 H H0.
   - simpl in H; omega.
@@ -166,7 +172,7 @@ Proof.
     specialize (H0 x1); assert (H1: In x1 (x1 :: l1)). left; trivial.
     apply H0 in H1; destruct H1.
 
-    destruct (in_dec (Q_decidable g) x1 l1) as [H1|H1].
+    destruct (in_dec (A_decidable) x1 l1) as [H1|H1].
     constructor; intuition.
     assert (H2: In x1 (x2::l2)).
       apply H0; left; trivial.
@@ -196,7 +202,7 @@ Proof.
 Qed.
 
 Lemma config_pumping3 w :
-  length (config w) > length (Q g) ->
+  length (config w) > length (Q) ->
   exists q c1 c2 c3, config w = c1 ++ [q] ++ c2 ++ [q] ++ c3.
 Proof.
   intro H; apply config_pumping2, pigeonhole; auto.
@@ -234,12 +240,12 @@ Proof.
       rewrite <- H0; auto.
     + rewrite H1; simpl; auto.
   - destruct a as [|a0 a]. contradiction.
-    assert (H2: delta g q0 e :: config' (delta g q0 e) w =
+    assert (H2: delta q0 e :: config' (delta q0 e) w =
       a ++ b).
       simpl in H0; inversion H0; auto.
     destruct a as [|a1 a].
     + simpl in *. destruct b as [|b0 b]. discriminate.
-      assert (H3: config' (delta g q0 e) w = b).
+      assert (H3: config' (delta q0 e) w = b).
         inversion H2; auto.
       destruct b as [|b1 b].
       * simpl in H3. destruct w as [|e' w].
@@ -263,7 +269,7 @@ Proof.
     + apply IH in H2;
       destruct H2 as [w1 [w2 [H2 [H5 H4]]]].
       2: intro contra; discriminate.
-      assert (aux: last (a1 :: a) (delta g q0 e) = last (a0 :: a1 :: a) q0).
+      assert (aux: last (a1 :: a) (delta q0 e) = last (a0 :: a1 :: a) q0).
         simpl; clear; induction a as [|a0 a IH]; try (destruct a); auto.
       exists (e::w1), w2; repeat split.
       * simpl; rewrite H2; auto.
@@ -287,7 +293,7 @@ Proof.
                    rewrite H1; auto.
     simpl in contra; rewrite app_length in contra; simpl in contra; omega.
   - destruct a as [|a0 a]. contradiction.
-    assert (H2: delta g q0 e :: config' (delta g q0 e) w =
+    assert (H2: delta q0 e :: config' (delta q0 e) w =
       a ++ b ++ c).
       simpl in H1; inversion H1; auto.
     destruct a as [|a1 a].
@@ -299,7 +305,7 @@ Proof.
       * inversion H1; auto.
       * simpl; inversion H1; rewrite <- H5, H3;
         apply last_pumping; auto.
-      * replace (last b q0) with (last b (delta g q0 e)).
+      * replace (last b q0) with (last b (delta q0 e)).
         auto. apply last_pumping; auto.
       * intro contra; discriminate.
       * auto.
@@ -315,9 +321,9 @@ Proof.
         replace (last (a0 :: a1 :: a) q0) with (last (a1::a) q0). 2: auto.
         apply aux1.
       * replace (last (a0 :: a1 :: a) q0) with (last (a1::a) q0). 2: auto.
-        replace (last (a1 :: a) q0) with (last (a1 :: a) (delta g q0 e)). 2: apply aux1.
+        replace (last (a1 :: a) q0) with (last (a1 :: a) (delta q0 e)). 2: apply aux1.
         rewrite H5; apply aux2.
-      * replace (last b q0) with (last b (delta g q0 e)). 2: apply aux2.
+      * replace (last b q0) with (last b (delta q0 e)). 2: apply aux2.
         apply H6.
       * intro contra; discriminate.
       * auto.
@@ -332,7 +338,7 @@ Proof.
   assert (H10: forall (l:list A) o, l ++ [o] <> []).
     intros l o contra; destruct l; discriminate.
   unfold config, ixtransition;
-  generalize dependent (q0 g);
+  generalize dependent (q0);
   intros q0 q c1 c2 c3 H.
   rewrite (app_assoc c1), (app_assoc c2) in H.
   pose H as H0.
@@ -358,13 +364,13 @@ Proof.
 Qed.
 
 Lemma pumping1 w :
-  length w >= length (Q g) ->
+  length w >= length (Q) ->
   exists w1 w2 w3, w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
   ixtransition (w1 ++ w3) = ixtransition w /\
   ixtransition (w1 ++ w2) = ixtransition w1.
 Proof.
   intro H;
-  assert (H0: length (config w) > length (Q g)). rewrite config_length; omega.
+  assert (H0: length (config w) > length (Q)). rewrite config_length; omega.
   apply config_pumping3 in H0; destruct H0 as [q [c1 [c2 [c3 H0]]]];
   eapply config_pumping4; apply H0.
 Qed.
@@ -376,7 +382,7 @@ Fixpoint word_pow (w:list B) (n:nat) :=
   end.
 
 Lemma pumping_pow w n :
-  length w >= length (Q g) ->
+  length w >= length (Q) ->
   exists w1 w2 w3, w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
   ixtransition (w1 ++ (word_pow w2 n) ++ w3) = ixtransition w /\
   ixtransition (w1 ++ w3) = ixtransition w.
@@ -391,35 +397,35 @@ Proof.
 Qed.
 
 Lemma pumping2 w :
-  length w >= length (Q g) ->
+  length w >= length (Q) ->
   exists w1 w2 w3 : list B, ixtransition (w1 ++ w3) = ixtransition w /\
-  length (w1 ++ w3) < length (Q g) /\ ixtransition (w1 ++ w2) = ixtransition w1.
+  length (w1 ++ w3) < length (Q) /\ ixtransition (w1 ++ w2) = ixtransition w1.
 Proof.
   remember (length w) as n eqn:H.
   generalize dependent w.
   induction n as [|n IH]; intros w H H0.
-  - assert (H1: length (Q g) = 0). omega.
+  - assert (H1: length (Q) = 0). omega.
     apply length_zero_iff_nil in H1;
     pose proof Q_not_nil; contradiction.
   - destruct w as [|e w' L] using @rev_ind; simpl in H. omega.
     clear L;
     rewrite app_length in H; simpl in H; rewrite Nat.add_1_r in H;
     injection H; intro H1.
-    pose proof (Nat.leb_spec0 (length (Q g)) n) as H2.
-    destruct (length (Q g) <=? n); inversion H2; clear H2.
+    pose proof (Nat.leb_spec0 (length (Q)) n) as H2.
+    destruct (length (Q) <=? n); inversion H2; clear H2.
     + apply IH in H1. 2: omega.
       destruct H1 as [w1 [w2 [w3 H1]]].
-      pose proof (Nat.ltb_spec0 (length (w1 ++ w3 ++ [e])) (length (Q g))) as H4.
-      destruct (length (w1 ++ w3 ++ [e]) <? length (Q g)); inversion H4; clear H4.
+      pose proof (Nat.ltb_spec0 (length (w1 ++ w3 ++ [e])) (length (Q))) as H4.
+      destruct (length (w1 ++ w3 ++ [e]) <? length (Q)); inversion H4; clear H4.
       * exists w1, w2, (w3 ++ [e]); repeat split.
         destruct H1 as [H1 _]; rewrite app_assoc;
           rewrite ixtransition_distr, H1, <- ixtransition_distr; trivial.
         auto.
         intuition.
-      * assert (H4: length (w1 ++ w3 ++ [e]) = length (Q g)).
+      * assert (H4: length (w1 ++ w3 ++ [e]) = length (Q)).
         apply not_lt in H2; rewrite app_assoc, app_length in H2; simpl in H2;
         rewrite app_assoc, app_length; simpl; omega. clear H2.
-        assert (H5: length (w1 ++ w3 ++ [e]) >= length (Q g)). omega.
+        assert (H5: length (w1 ++ w3 ++ [e]) >= length (Q)). omega.
         apply pumping1 in H5; destruct H5 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
         exists w1', w2', w3'. repeat split.
         destruct H7 as [H7 _].
@@ -431,12 +437,12 @@ Proof.
         omega.
         intuition.
     + apply not_le in H3; rewrite H1 in *; clear H1 IH.
-      pose proof (Nat.ltb_spec0 (length (w' ++ [e])) (length (Q g))) as H4.
-      destruct (length (w'++[e]) <? length (Q g)); inversion H4; clear H4.
+      pose proof (Nat.ltb_spec0 (length (w' ++ [e])) (length (Q))) as H4.
+      destruct (length (w'++[e]) <? length (Q)); inversion H4; clear H4.
       * exists w', [], [e]; repeat split; try (rewrite app_nil_r); trivial.
       * apply not_lt in H1; rewrite app_length in H1; simpl in H1.
-        assert (length w' + 1 = length (Q g)). omega.
-        assert (length (w' ++ [e]) >= length (Q g)). rewrite app_length; simpl; omega.
+        assert (length w' + 1 = length (Q)). omega.
+        assert (length (w' ++ [e]) >= length (Q)). rewrite app_length; simpl; omega.
         apply pumping1 in H4; destruct H4 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
         exists w1', w2', w3'; repeat split.
         intuition.
@@ -448,14 +454,14 @@ Proof.
 Qed.
 
 Lemma pumping q :
-  is_tangible q <-> exists w, ixtransition w = q /\ length w < length (Q g)
-  /\ q <> (sink g).
+  is_tangible q <-> exists w, ixtransition w = q /\ length w < length (Q)
+  /\ q <> (sink).
 Proof.
   split; intro H; destruct H as [H [w H0]].
   2: split; try (exists w); intuition.
-  pose proof (Nat.leb_spec0 (length (Q g)) (length w)) as H1;
-  destruct (length (Q g) <=? length w); inversion H1; clear H1.
-  - assert (H3: length w >= length (Q g)). omega.
+  pose proof (Nat.leb_spec0 (length (Q)) (length w)) as H1;
+  destruct (length (Q) <=? length w); inversion H1; clear H1.
+  - assert (H3: length w >= length (Q)). omega.
     apply pumping2 in H3; destruct H3 as [w1 [w2 [w3 H3]]];
     rewrite <- H0; exists (w1 ++ w3); rewrite <- H0 in H; intuition.
   - apply not_le in H2.
@@ -483,26 +489,26 @@ Fixpoint all_words1 (E:list B) :=
 
 Fixpoint all_words (n:nat) :=
   match n with
-  | 1 => all_words1 (E g)
+  | 1 => all_words1 (E)
   | O => [[]]
-  | S n' => all_words' (all_words n') (E g)
+  | S n' => all_words' (all_words n') (E)
   end.
 
 Lemma all_words_correct1 n : forall w e,
-  In w (all_words n) -> In e (E g) -> In (w++[e]) (all_words (S n)).
+  In w (all_words n) -> In e (E) -> In (w++[e]) (all_words (S n)).
 Proof.
   intros; simpl;
   destruct n.
   - destruct H.
     2: destruct H.
     rewrite <- H; simpl;
-    induction (E g) as [|e0 E IH].
+    induction (E) as [|e0 E IH].
     + inversion H0.
     + simpl; inversion H0.
       * left; rewrite H1; auto.
       * right; apply IH; auto.
   - Arguments all_words : simpl never.
-    induction (E g) as [|e0 E IH].
+    induction (E) as [|e0 E IH].
     inversion H0.
     simpl; apply in_or_app; inversion H0.
     + left; rewrite H1; simpl; clear IH;
@@ -527,7 +533,7 @@ Proof.
       * eapply prefix_closed; apply H.
       * rewrite app_length in H0; simpl in H0; omega.
       * unfold is_generated, ixtransition in H; clear IH H0;
-        generalize dependent (q0 g);
+        generalize dependent (q0);
         induction w' as [|e0 w' IH]; intros q H; simpl in H.
         -- apply delta_correct in H; intuition.
         -- eapply IH; apply H.
@@ -557,17 +563,17 @@ Fixpoint verify_tangible' q l :=
   | a::l' => ixtransition a = q \/ verify_tangible' q l'
   | nil => False
   end.
-Definition verify_tangible q := q <> (sink g) /\ verify_tangible' q (all_words_le (length (Q g) - 1)).
+Definition verify_tangible q := q <> (sink) /\ verify_tangible' q (all_words_le (length (Q) - 1)).
 
 Lemma verify_tangible_correct1 : forall q,
   is_tangible q -> verify_tangible q.
 Proof.
   intros q H; apply pumping in H; destruct H as [w [H [H1 H2]]].
-  assert (H0: length w <= length (Q g) - 1). omega.
+  assert (H0: length w <= length (Q) - 1). omega.
   apply all_words_le_correct in H0.
   2: unfold is_generated; rewrite H; intuition.
   unfold verify_tangible;
-  induction (all_words_le (length (Q g) - 1)) as [|a l' IH].
+  induction (all_words_le (length (Q) - 1)) as [|a l' IH].
   - pose proof in_nil; contradiction.
   - inversion H0; split.
     1,3: intuition.
@@ -582,7 +588,7 @@ Proof.
   apply verify_tangible_correct1.
   intros [H H0];
   unfold verify_tangible in H;
-  induction (all_words_le (length (Q g) - 1)) as [|a l' IH];
+  induction (all_words_le (length (Q) - 1)) as [|a l' IH];
   destruct H0; split.
   1,3: intuition.
   - exists a; intuition.
@@ -591,17 +597,17 @@ Proof.
 Qed.
 
 Lemma verify_tangible_decidable : forall q,
-  q <> (sink g) -> {verify_tangible q} + {~ verify_tangible q}.
+  q <> (sink) -> {verify_tangible q} + {~ verify_tangible q}.
 Proof.
   intros q H0; unfold verify_tangible;
-  induction (all_words_le (length (Q g) - 1)) as [|a l' IH].
+  induction (all_words_le (length (Q) - 1)) as [|a l' IH].
   - simpl; right; unfold not; intros [_ contra]; apply contra.
-  - simpl. destruct (Q_decidable g (ixtransition a) q).
+  - simpl. destruct (A_decidable (ixtransition a) q).
     + intuition.
     + destruct IH.
       * intuition.
       * right; intros [H1 contra]; destruct contra.
-        2: assert (q <> sink g /\ verify_tangible' q l').
+        2: assert (q <> sink /\ verify_tangible' q l').
         2: intuition.
         1,2: contradiction.
 Qed.
@@ -610,7 +616,7 @@ Theorem tangible_decidable : forall q,
   {is_tangible q} + {~ is_tangible q}.
 Proof.
   intro q;
-  destruct (Q_decidable g q (sink g)) as [H|H].
+  destruct (A_decidable q (sink)) as [H|H].
   - right; unfold is_tangible; intros [contra _];
     contradiction.
   - destruct (verify_tangible_decidable q) as [H0|H0].
@@ -620,7 +626,7 @@ Proof.
     contradiction.
 Qed.
 
-End DFA.
+End DFAUtils.
 
 
 

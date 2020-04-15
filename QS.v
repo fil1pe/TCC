@@ -3,23 +3,42 @@ Import ListNotations.
 Require Import DFA.
 Local Open Scope Z_scope.
 
-Record qs_dfa {A B} := {
-  g : @dfa A B;
-  n0 : Z;
-  n : Z;
-  n1 : Z;
-  n_correct : n >= n0;
-  n1_correct : n1 <= n0;
-  count_event : B -> Z
-}.
+Module Type QS <: DFA.
+  Variables (A : Type) (B : Type).
+  Variable Q : list A.
+  Variable E : list B.
+  Variable delta : A -> B -> A.
+  Variable q0 : A.
+  Variable sink : A.
+  Variable Qm : list A.
+  Axiom delta_correct : forall q e, delta q e <> sink -> (In e E /\ In q Q /\ q <> sink /\ In (delta q e) Q).
+  Axiom q0_correct : In q0 Q.
+  Axiom Qm_correct : forall q, In q Qm -> In q Q.
+  Axiom sink_correct : In sink Q /\ sink <> q0.
+  Axiom A_decidable : forall x y : A, {x = y} + {x <> y}.
+  Axiom B_decidable : forall x y : A, {x = y} + {x <> y}.
 
-Section QS.
+  Variable count_event : B -> Z.
+  Variable n0 : Z.
+  Variable n1 : Z.
+  Variable n : Z.
+  Axiom n_correct : n >= n0.
+  Axiom n1_correct : n1 <= n0.
+End QS.
 
-Variables (A : Type) (B : Type) (qs : @qs_dfa A B).
+Module QSUtils (G:QS).
+
+Include DFAUtils G.
+Definition count_event := G.count_event.
+Definition n0 := G.n0.
+Definition n1 := G.n1.
+Definition n := G.n.
+Definition n_correct := G.n_correct.
+Definition n1_correct := G.n1_correct.
 
 Fixpoint count_buffer w :=
   match w with
-  | e::w' => (count_event qs e) + count_buffer w'
+  | e::w' => count_event e + count_buffer w'
   | nil => 0
   end.
 
@@ -32,20 +51,77 @@ Proof.
 Qed.
 
 Lemma count_buffer_distr' w e :
-  count_buffer (w ++ [e]) = count_buffer w + (count_event qs e).
+  count_buffer (w ++ [e]) = count_buffer w + (count_event e).
 Proof.
   rewrite count_buffer_distr; simpl; omega.
 Qed.
 
 Theorem count_word_pow: forall w n,
-  count_buffer (word_pow B w n) = (Z.of_nat n) * (count_buffer w).
+  count_buffer (word_pow w n) = (Z.of_nat n) * (count_buffer w).
 Proof.
-  intros w n.
-  induction n as [|n IH]. auto.
-  replace (word_pow B w (S n)) with (w ++ word_pow B w n).
+  intros w n;
+  induction n as [|n IH]; auto;
+  replace (word_pow w (S n)) with (w ++ word_pow w n); auto;
   rewrite count_buffer_distr, IH, Nat2Z.inj_succ, <- Zmult_succ_l_reverse;
   omega.
+Qed.
+
+Lemma q0_cycle: forall w n,
+  ixtransition w = (q0) -> ixtransition (word_pow w n) = (q0).
+Proof.
+  intros w n H.
+  induction n as [|n IH]. auto.
+  unfold ixtransition in *;
+  simpl;
+  rewrite xtransition_distr, H;
   auto.
 Qed.
 
-End QS.
+Fixpoint gen_words q (l:list (list B)) :=
+  match l with
+  | w::l' => if A_decidable (ixtransition w) q then w::gen_words q l' else gen_words q l'
+  | nil => nil
+  end.
+
+Lemma gen_words_correct1 q l : forall w,
+  l <> nil -> In w (gen_words q l) -> ixtransition w = q.
+Proof.
+  intros w H H0.
+  induction l as [|w' l' IH].
+  - contradiction.
+  - destruct l' as [|w'' l'].
+    + simpl in H0; destruct (A_decidable (ixtransition w') q).
+      inversion H0. rewrite <- H1; auto. inversion H1. inversion H0.
+    + simpl in *. destruct (A_decidable (ixtransition w') q).
+      inversion H0. rewrite <- H1; auto.
+      apply IH. intro contra; discriminate. apply H1.
+      apply IH. intro contra; discriminate. auto.
+Qed.
+
+Lemma gen_words_correct q l : forall w,
+  In w l -> ixtransition w = q -> In w (gen_words q l).
+Proof.
+  intros w H H0.
+  induction l as [|w' l' IH]; inversion H; simpl.
+  - destruct (A_decidable (ixtransition w') q) eqn:H2.
+    + left; auto.
+    + rewrite <- H1 in H0; contradiction.
+  - destruct (A_decidable (ixtransition w') q). right; apply IH; auto.
+    apply IH; auto.
+Qed.
+
+Definition all_gen_words_le q n := gen_words q (all_words_le n).
+
+Lemma all_gen_words_le_correct q n : forall w,
+  q <> (sink) -> ixtransition w = q -> (length w <= n)%nat ->
+  In w (all_gen_words_le q n).
+Proof.
+  unfold all_gen_words_le;
+  intros w H H0 H1;
+  apply gen_words_correct.
+  apply all_words_le_correct;
+  rewrite <- H0 in H.
+  1-3: auto.
+Qed.
+
+End QSUtils.
