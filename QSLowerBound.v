@@ -3,9 +3,9 @@ Import ListNotations.
 Require Import DFA QS.
 Local Open Scope Z_scope.
 
-Module QSLowerBound (G:QS).
+Module QSLowerBound (dfa : DFA).
 
-Include QSUtils G.
+Include QSUtils dfa.
 
 Definition n1_lower_bounded := forall w, is_generated w -> n0 + count_buffer w >= n1.
 

@@ -3,22 +3,10 @@ Import ListNotations.
 Require Import DFA.
 Local Open Scope Z_scope.
 
-Module Type QS <: DFA.
-  Variables (A : Type) (B : Type).
-  Variable Q : list A.
-  Variable E : list B.
-  Variable delta : A -> B -> A.
-  Variable q0 : A.
-  Variable sink : A.
-  Variable Qm : list A.
-  Axiom delta_correct : forall q e, delta q e <> sink -> (In e E /\ In q Q /\ q <> sink /\ In (delta q e) Q).
-  Axiom q0_correct : In q0 Q.
-  Axiom Qm_correct : forall q, In q Qm -> In q Q.
-  Axiom sink_correct : In sink Q /\ sink <> q0.
-  Axiom A_decidable : forall x y : A, {x = y} + {x <> y}.
-  Axiom B_decidable : forall x y : A, {x = y} + {x <> y}.
-
-  Variable count_event : B -> Z.
+Module Type QS (dfa : DFA).
+  Include DFAUtils dfa.
+  
+  Variable count_event : dfa.B -> Z.
   Variable n0 : Z.
   Variable n1 : Z.
   Variable n : Z.
@@ -26,15 +14,8 @@ Module Type QS <: DFA.
   Axiom n1_correct : n1 <= n0.
 End QS.
 
-Module QSUtils (G:QS).
-
-Include DFAUtils G.
-Definition count_event := G.count_event.
-Definition n0 := G.n0.
-Definition n1 := G.n1.
-Definition n := G.n.
-Definition n_correct := G.n_correct.
-Definition n1_correct := G.n1_correct.
+Module QSUtils (dfa : DFA).
+Include QS dfa.
 
 Fixpoint count_buffer w :=
   match w with
