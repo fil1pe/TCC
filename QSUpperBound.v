@@ -3,9 +3,9 @@ Import ListNotations.
 Require Import DFA QS.
 Local Open Scope Z_scope.
 
-Module QSUpperBound (G:QS).
+Module QSUpperBound (dfa : DFA).
 
-Include QSUtils G.
+Include QSUtils dfa.
 
 Definition n_upper_bounded := forall w, is_generated w -> n0 + count_buffer w <= n.
 
