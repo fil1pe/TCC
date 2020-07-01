@@ -1,6 +1,7 @@
 all: compile
 
 compile:
+	@coqc Utils
 	@coqc DFA
 	@coqc QS
 	@find . -maxdepth 1 -name "*.vo.aux" -type f -delete

@@ -1,98 +1,136 @@
-Require Import Coq.Lists.List Coq.Bool.Bool Omega.
+Require Import Coq.Lists.List Coq.Bool.Bool Omega Utils.
 Import ListNotations.
 
 Module Type DFA.
-  Variables (A B : Type).
-  Variable Q : list A.
-  Variable E : list B.
-  Variable delta : A -> B -> A.
-  Variable q0 : A.
-  Variable sink : A.
-  Variable Qm : list A.
-  Axiom delta_correct : forall q e, delta q e <> sink -> (In e E /\ In q Q /\ q <> sink /\ In (delta q e) Q).
-  Axiom q0_correct : In q0 Q.
-  Axiom Qm_correct : forall q, In q Qm -> In q Q.
-  Axiom sink_correct : In sink Q /\ sink <> q0.
-  Axiom A_decidable : forall x y : A, {x = y} + {x <> y}.
-  Axiom B_decidable : forall x y : A, {x = y} + {x <> y}.
+  Parameters
+    (A B : Type)
+        (* Types of the states and events *)
+    (states : list A)
+    (events : list B)
+    (transition : A -> B -> A)    (* transition function *)
+    (state0 : A)    (* initial state *)
+    (sink : A)    (* sink state *)
+    (marked_states : list A)
+    (transition_correct : forall q e, transition q e <> sink -> In e events /\ In q states /\ q <> sink /\ In (transition q e) states)
+        (* Given elements q and e, a proper transition(q,e)=q' can exist if q is a proper state, e is a proper event,
+          and q' is a proper state or the sink one. *)
+    (state0_correct : In state0 states)
+        (* The initial state must be in the list of states. *)
+    (marked_states_correct : forall q, In q marked_states -> In q states)
+        (* Every marked state too. *)
+    (sink_correct : In sink states /\ sink <> state0 /\ ~ In sink marked_states)
+        (* The sink state must be in the list of states, differ from the initial one and not be in the list of marked states. *)
+    (A_eq_dec : forall x y : A, {x = y} + {x <> y})
+    (B_eq_dec : forall x y : B, {x = y} + {x <> y})
+        (* Decidable equality of A and B is important for computation. *)
+    .
 End DFA.
 
 Module DFAUtils (G:DFA).
 
 Include G.
 
-Lemma Q_not_nil : Q <> nil.
+(* The list of states is never empty, as there is at least the initial one. *)
+Lemma states_not_nil : states <> nil.
 Proof.
-  pose proof q0_correct as H;
+  pose proof state0_correct as H;
   intro contra; rewrite contra in H;
   pose proof in_nil; contradiction.
 Qed.
 
+(*
+  The extended transition function, applying the transition function through a given sequence of (possible) events
+ starting from a given state.
+*)
 Fixpoint xtransition q w :=
   match w with
-  | e::w' => xtransition (delta q e) w'
+  | e::w' => xtransition (transition q e) w'
   | nil => q
   end.
 
+(* The extended transition function is pseudo-distributive, meaning that transitioning through w1++w2 is equal to
+  first transitioning through w1 and then w2. *)
 Theorem xtransition_distr w1 w2 : forall q,
   xtransition q (w1 ++ w2) = xtransition (xtransition q w1) w2.
 Proof.
   induction w1 as [|e w1' IH]; try (intro q; simpl; rewrite IH); trivial.
 Qed.
 
+(* Any extended transition starting from the sink state ends in it. *)
 Lemma xtransition_sink w :
   xtransition sink w = sink.
 Proof.
   induction w as [|e w IH].
   - intuition.
   - simpl.
-    destruct (A_decidable (delta sink e) sink) as [H|H].
+    destruct (A_eq_dec (transition sink e) sink) as [H|H].
     + rewrite H; intuition.
-    + apply delta_correct in H; destruct H as [H [H0 [H1 H2]]]; contradiction.
+    + apply transition_correct in H; destruct H as [H [H0 [H1 H2]]]; contradiction.
 Qed.
 
-Definition ixtransition w := xtransition q0 w.
+(* transition function from the initial state *)
+Definition ixtransition w := xtransition state0 w.
 
+(* ixtransition is obviously pseudo-distributive, as xtransition is. *)
 Theorem ixtransition_distr w1 w2 :
   ixtransition (w1 ++ w2) = xtransition (ixtransition w1) w2.
 Proof. apply xtransition_distr. Qed.
 
-Lemma ixtransition_in_Q w :
-  ixtransition w <> sink -> In (ixtransition w) Q.
+(* Any sequence of events transitions into a proper state or the sink one. *)
+Lemma ixtransition_in_states w :
+  In (ixtransition w) states.
 Proof.
-  intro H.
-  pose proof q0_correct.
-  unfold ixtransition in *.
-  generalize dependent q0.
+  pose proof state0_correct;
+  unfold ixtransition;
+  generalize dependent state0;
   induction w as [|e w' IH]; intros q H0.
-  - auto.
-  - intro H1. simpl in *.
-    destruct (A_decidable (delta q e) (sink)).
-    + rewrite e0, xtransition_sink; apply (sink_correct).
-    + apply IH. auto. apply (delta_correct) in n; intuition.
+  - intuition.
+  - apply IH; destruct (A_eq_dec (transition q e) sink) as [H1|H1].
+    + rewrite H1; pose proof sink_correct; intuition.
+    + apply transition_correct in H1; intuition.
 Qed.
 
-Definition is_generated w := ixtransition w <> sink.
+(* A DFA generates a sequence of events w if transitioning from the initial state through w results in
+  a proper state. *)
+Definition generates w := ixtransition w <> sink.
 
-Definition is_accepted w := In (ixtransition w) Qm.
+(* A DFA marks a sequence of events w if transitioning from the initial state through w results in
+  a marked state. *)
+Definition marks w := In (ixtransition w) marked_states.
 
-Theorem prefix_closed : forall w1 w2,
-  is_generated (w1 ++ w2) -> is_generated w1.
+(* The language generated by any DFA G, { w | G generates w }, is prefix-closed.
+   Any prefix of any generated sequence of events is also generated by the same DFA,
+  as it must transition through the prefix before finishing the transition through the
+  entire sequence. *)
+Theorem gen_prefix_closed : forall w1 w2,
+  generates (w1 ++ w2) -> generates w1.
 Proof.
-  unfold is_generated;
+  unfold generates;
   intros w1 w2 H contra;
   rewrite ixtransition_distr, contra, xtransition_sink in H;
   contradiction.
 Qed.
 
-Definition is_tangible q := q <> (sink) /\ exists w, ixtransition w = q.
+(* A state q is tangible if it is not the sink one and there is at least one sequence of events
+  through which ixtransition leads to q. *)
+Definition is_tangible q := q <> sink /\ exists w, ixtransition w = q.
 
+(*
+  config is a function that lists the states a transition through a sequence of events starting from the
+ initial state results in.
+*)
 Fixpoint config' q w :=
   match w with
-  | e::w' => (delta q e)::config' (delta q e) w'
+  | e::w' => (transition q e)::config' (transition q e) w'
   | nil => []
   end.
-Definition config w := (q0)::config' (q0) w.
+Definition config w := state0::config' state0 w.
+
+
+(*
+  If w is a sequence of n events, then transitioning through w goes through n states.
+  Thus, config w is a list of n+1 states.
+*)
 
 Lemma config'_length w : forall q,
   length (config' q w) = length w.
@@ -107,72 +145,74 @@ Proof.
   simpl; rewrite config'_length; trivial.
 Qed.
 
-Inductive qrepeats : list A -> Prop :=
-  | qrpt_constr l a : In a l \/ qrepeats l -> qrepeats (a::l).
 
-Lemma config_pumping1 : forall {C} a (w:list C),
+(*
+  If a list l repeats (possible) state, we can define a inductive proposition such that,
+ if q is in l or l repeats (possible) state, q::l repeats (possible) state.
+*)
+Inductive repeats_state : list A -> Prop :=
+  | rs_constr l a : In a l \/ repeats_state l -> repeats_state (a::l).
+
+(* If a is in w, then w = w1 ++ [a] ++ w2 for some w1 and w2. *)
+Lemma In_existence : forall {C} a (w:list C),
   In a w -> exists w1 w2, w = w1 ++ [a] ++ w2.
 Proof.
-  intros C a w H.
+  intros C a w H;
   induction w as [|a0 w' IH]; destruct H.
   - clear IH; exists nil, w'; rewrite H; auto.
   - apply IH in H; clear IH; destruct H as [w1 [w2 H]];
     exists (a0::w1), w2; rewrite H; auto.
 Qed.
 
-Lemma config_pumping2 w :
-  qrepeats w ->
-  exists q c1 c2 c3, w = c1 ++ [q] ++ c2 ++ [q] ++ c3.
+(* If w repeats (possible) state, w = w1 ++ [q] ++ w2 ++ [q] ++ w3 for some w1, w2, w3 and q. *)
+Lemma repeats_existence w :
+  repeats_state w ->
+  exists q w1 w2 w3, w = w1 ++ [q] ++ w2 ++ [q] ++ w3.
 Proof.
   intro H.
   induction w as [|e w IH].
   - inversion H.
   - inversion H; destruct H1.
-    + apply config_pumping1 in H1; destruct H1 as [w1 [w2 H1]];
+    + apply In_existence in H1; destruct H1 as [w1 [w2 H1]];
       exists e, nil, w1, w2; rewrite H1; auto.
     + apply IH in H1; destruct H1 as [q [c1 [c2 [c3 H1]]]];
       exists q, (e::c1), c2, c3; rewrite H1; auto.
 Qed.
 
-Lemma pigeonhole1 w : forall q,
-  In q (config w) -> In q (Q).
+(* Every element in config w is in the list of states. *)
+Lemma config_states_correct w : forall q,
+  In q (config w) -> In q states.
 Proof.
   unfold config; intros q H; destruct H.
-  - rewrite <- H; apply q0_correct.
-  - generalize dependent (q0);
+  - rewrite <- H; apply state0_correct.
+  - generalize dependent (state0);
     induction w as [|e w IH]; intros a H; destruct H.
-    + destruct (A_decidable q (sink)) as [H0|H0].
+    + destruct (A_eq_dec q sink) as [H0|H0].
       * rewrite H0; apply (sink_correct).
-      * rewrite <- H in H0; apply (delta_correct) in H0;
+      * rewrite <- H in H0; apply (transition_correct) in H0;
         rewrite <- H; intuition.
     + eapply IH; apply H.
 Qed.
 
-Lemma in_split : forall (X:Type) (x:X) (l:list X),
-  In x l -> exists l1 l2, l = l1 ++ x :: l2.
-Proof.
-  intros X x l H;
-  induction l as [|a l IH]; destruct H.
-  - exists nil, l; rewrite H; intuition.
-  - apply IH in H; destruct H as [l1 [l2 H]];
-    exists (a::l1), l2; rewrite H; intuition.
-Qed.
-
+(* Let n be the number of possible states.
+   As the pigeonhole principle states, if config w has at least n+1 states, then
+  config w repeats state. *)
 Lemma pigeonhole w : 
-  length (config w) > length (Q) ->
-  qrepeats (config w).
+  length (config w) > length states ->
+  repeats_state (config w).
 Proof.
-  intro H; pose proof pigeonhole1 as H0; specialize (H0 w).
-  generalize dependent (config w).
-  generalize dependent (Q).
-  clear w.
+  intro H;
+  pose proof (config_states_correct w) as H0;
+  generalize dependent (config w);
+  generalize dependent states;
+  clear w;
   intros l2 l1; revert l2; induction l1 as [|x1 l1 IH]; intros l2 H H0.
   - simpl in H; omega.
   - destruct l2 as [|x2 l2].
     specialize (H0 x1); assert (H1: In x1 (x1 :: l1)). left; trivial.
     apply H0 in H1; destruct H1.
 
-    destruct (in_dec (A_decidable) x1 l1) as [H1|H1].
+    destruct (in_dec (A_eq_dec) x1 l1) as [H1|H1].
     constructor; intuition.
     assert (H2: In x1 (x2::l2)).
       apply H0; left; trivial.
@@ -201,26 +241,33 @@ Proof.
     simpl in H; omega.
 Qed.
 
-Lemma config_pumping3 w :
-  length (config w) > length (Q) ->
-  exists q c1 c2 c3, config w = c1 ++ [q] ++ c2 ++ [q] ++ c3.
+(* word_pow w n, or w^n, is equal to w1 ++ w2 ++ ... ++ wn
+  where w1 = w2 = ... = wn = w. *)
+Fixpoint word_pow (w:list B) (n:nat) :=
+  match n with
+  | O => []
+  | S n' => w ++ (word_pow w n')
+  end.
+
+(* If transitioning through w leads to the initial state, then, for all n, w^n leads to it too. *)
+Lemma state0_cycle: forall w n,
+  ixtransition w = state0 -> ixtransition (word_pow w n) = state0.
 Proof.
-  intro H; apply config_pumping2, pigeonhole; auto.
+  intros w n H;
+  induction n as [|n IH]. auto.
+  unfold ixtransition in *;
+  simpl;
+  rewrite xtransition_distr, H;
+  auto.
 Qed.
 
-Lemma last_pumping l : forall t1 t2 : A,
-  l <> nil ->
-  last l t1 = last l t2.
-Proof.
-  intros t1 t2 H.
-  induction l as [|a l IH].
-  - contradiction.
-  - destruct l.
-    + auto.
-    + simpl in *; apply IH; intro contra; discriminate.
-Qed.
+Section PumpingLemma.
 
-Lemma config_pumping2_0 w : forall q0 a b,
+(*
+  The following lemmas help prove the Pumping Lemma.
+*)
+
+Lemma config_2concat w : forall q0 a b,
   a <> nil -> q0::config' q0 w = a ++ b ->
   exists w1 w2,
     w = w1 ++ w2 /\
@@ -240,12 +287,12 @@ Proof.
       rewrite <- H0; auto.
     + rewrite H1; simpl; auto.
   - destruct a as [|a0 a]. contradiction.
-    assert (H2: delta q0 e :: config' (delta q0 e) w =
+    assert (H2: transition q0 e :: config' (transition q0 e) w =
       a ++ b).
       simpl in H0; inversion H0; auto.
     destruct a as [|a1 a].
     + simpl in *. destruct b as [|b0 b]. discriminate.
-      assert (H3: config' (delta q0 e) w = b).
+      assert (H3: config' (transition q0 e) w = b).
         inversion H2; auto.
       destruct b as [|b1 b].
       * simpl in H3. destruct w as [|e' w].
@@ -269,7 +316,7 @@ Proof.
     + apply IH in H2;
       destruct H2 as [w1 [w2 [H2 [H5 H4]]]].
       2: intro contra; discriminate.
-      assert (aux: last (a1 :: a) (delta q0 e) = last (a0 :: a1 :: a) q0).
+      assert (aux: last (a1 :: a) (transition q0 e) = last (a0 :: a1 :: a) q0).
         simpl; clear; induction a as [|a0 a IH]; try (destruct a); auto.
       exists (e::w1), w2; repeat split.
       * simpl; rewrite H2; auto.
@@ -277,7 +324,7 @@ Proof.
       * rewrite <- aux; auto.
 Qed.
 
-Lemma config_pumping2_1 w : forall q0 a b c,
+Lemma config_3concat w : forall q0 a b c,
   a <> nil -> b <> nil -> q0::config' q0 w = a ++ b ++ c ->
   exists w1 w2 w3,
     w = w1 ++ w2 ++ w3 /\
@@ -293,59 +340,71 @@ Proof.
                    rewrite H1; auto.
     simpl in contra; rewrite app_length in contra; simpl in contra; omega.
   - destruct a as [|a0 a]. contradiction.
-    assert (H2: delta q0 e :: config' (delta q0 e) w =
+    assert (H2: transition q0 e :: config' (transition q0 e) w =
       a ++ b ++ c).
       simpl in H1; inversion H1; auto.
     destruct a as [|a1 a].
     + simpl in H2; clear IH H; exists nil;
-      apply config_pumping2_0 in H2; simpl.
+      apply config_2concat in H2; simpl.
       destruct H2 as [w1 [w2 [H2 [H3 H4]]]].
       exists (e::w1), w2; repeat split.
       * simpl; rewrite H2; auto.
       * inversion H1; auto.
       * simpl; inversion H1; rewrite <- H5, H3;
-        apply last_pumping; auto.
-      * replace (last b q0) with (last b (delta q0 e)).
-        auto. apply last_pumping; auto.
+        apply last_any_default; auto.
+      * replace (last b q0) with (last b (transition q0 e)).
+        auto. apply last_any_default; auto.
       * intro contra; discriminate.
       * auto.
     + clear H1. apply IH in H2.
       destruct H2 as [w1 [w2 [w3 [H3 [H4 [H5 [H6 H7]]]]]]].
       assert (aux1: forall t1 t2, last (a1 :: a) t1 = last (a1 :: a) t2).
-        intros t1 t2; apply last_pumping; intro contra; discriminate.
+        intros t1 t2; apply last_any_default; intro contra; discriminate.
       assert (aux2: forall t1 t2, last b t1 = last b t2).
-        intros t1 t2; apply last_pumping; auto.
+        intros t1 t2; apply last_any_default; auto.
       exists (e::w1), w2, w3. repeat split; auto.
       * simpl; rewrite H3; auto.
       * simpl (xtransition q0 (e :: w1)); rewrite H4.
         replace (last (a0 :: a1 :: a) q0) with (last (a1::a) q0). 2: auto.
         apply aux1.
       * replace (last (a0 :: a1 :: a) q0) with (last (a1::a) q0). 2: auto.
-        replace (last (a1 :: a) q0) with (last (a1 :: a) (delta q0 e)). 2: apply aux1.
+        replace (last (a1 :: a) q0) with (last (a1 :: a) (transition q0 e)). 2: apply aux1.
         rewrite H5; apply aux2.
-      * replace (last b q0) with (last b (delta q0 e)). 2: apply aux2.
+      * replace (last b q0) with (last b (transition q0 e)). 2: apply aux2.
         apply H6.
       * intro contra; discriminate.
       * auto.
 Qed.
 
-Lemma config_pumping4 w : forall q c1 c2 c3,
-  config w = c1 ++ [q] ++ c2 ++ [q] ++ c3 ->
+Lemma repeats_skip_in_transition w :
+  length w >= length states ->
   exists w1 w2 w3, w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
   ixtransition (w1 ++ w3) = ixtransition w /\
   ixtransition (w1 ++ w2) = ixtransition w1.
 Proof.
+  intro H0;
+  assert (H: length (config w) > length states). rewrite config_length; omega.
+  clear H0; apply pigeonhole, repeats_existence in H;
   assert (H10: forall (l:list A) o, l ++ [o] <> []).
     intros l o contra; destruct l; discriminate.
+  unfold config in H;
   unfold config, ixtransition;
-  generalize dependent (q0);
-  intros q0 q c1 c2 c3 H.
-  rewrite (app_assoc c1), (app_assoc c2) in H.
+  generalize dependent state0; intros q0 H;
+  destruct H as [q [c1 [c2 [c3 H]]]];
+  rewrite (app_assoc c1), (app_assoc c2) in H;
   pose H as H0.
-  apply config_pumping2_1 in H0.
-  destruct H0 as [w1 [w2 [w3 [H0 [H1 [H2 [H3 H4]]]]]]].
+  assert (H6: forall c q', last (c ++ [q]) q' = q). {
+    clear H10 H0 H w q0 c1 c2 c3;
+    induction c as [|x c IH]; simpl.
+    auto.
+    destruct (c ++ [q]) eqn:H.
+    + destruct c; discriminate.
+    + auto.
+  }
+  apply config_3concat in H0;
+  destruct H0 as [w1 [w2 [w3 [H0 [H1 [H2 [H3 H4]]]]]]];
   assert (H5: last (c1 ++ [q]) q0 = last (c2 ++ [q]) q0). {
-    clear H H0 H1 H2 H3 H4.
+    clear H H0 H1 H2 H3 H4 H6;
     induction c2 as [|c c2 IH]; simpl.
     - induction c1 as [|c c1 IH]; auto.
       simpl; destruct (c1 ++ [q]) eqn:H.
@@ -356,39 +415,28 @@ Proof.
       auto.
   }
   exists w1, w2, w3; repeat split; auto.
-  rewrite H0, xtransition_distr, xtransition_distr, xtransition_distr.
-  rewrite H1, H2.
-  rewrite H5; auto.
+  rewrite H0, xtransition_distr, xtransition_distr, xtransition_distr,
+    H1, H2, H5; auto.
   rewrite xtransition_distr, H1, H2, H5; auto.
-  1-2: apply H10.
+  2,4: apply H10.
+  1,2: rewrite H6, H6; auto.
 Qed.
 
-Lemma pumping1 w :
-  length w >= length (Q) ->
-  exists w1 w2 w3, w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
-  ixtransition (w1 ++ w3) = ixtransition w /\
-  ixtransition (w1 ++ w2) = ixtransition w1.
-Proof.
-  intro H;
-  assert (H0: length (config w) > length (Q)). rewrite config_length; omega.
-  apply config_pumping3 in H0; destruct H0 as [q [c1 [c2 [c3 H0]]]];
-  eapply config_pumping4; apply H0.
-Qed.
-
-Fixpoint word_pow (w:list B) (n:nat) :=
-  match n with
-  | O => []
-  | S n' => w ++ (word_pow w n')
-  end.
-
-Lemma pumping_pow w n :
-  length w >= length (Q) ->
-  exists w1 w2 w3, w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
-  ixtransition (w1 ++ (word_pow w2 n) ++ w3) = ixtransition w /\
-  ixtransition (w1 ++ w3) = ixtransition w.
+(*
+  The Pumping Lemma for the generated language:
+  --
+  If w is a generated sequence of events and has a length greater than the number of states,
+ then exist w1, w2 and w3 such that w is equal to w1 ++ w2 ++ w3, w2 is not empty and,
+ forall n, w1 ++ (w2^n) ++ w3 is generated.
+*)
+Theorem pumping w :
+  length w >= length states ->
+  exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
+                    w2 <> [] /\
+                    forall n, ixtransition (w1 ++ (word_pow w2 n) ++ w3) = ixtransition w.
 Proof.
   intros H;
-  apply pumping1 in H; destruct H as [w1 [w2 [w3 [H1 [H2 [H3 H4]]]]]];
+  apply repeats_skip_in_transition in H; destruct H as [w1 [w2 [w3 [H1 [H2 [H3 H4]]]]]];
   exists w1, w2, w3; repeat split;
   try (induction n);
   try (simpl; rewrite app_assoc, app_assoc, ixtransition_distr, ixtransition_distr, H4;
@@ -396,91 +444,96 @@ Proof.
   auto.
 Qed.
 
-Lemma pumping2 w :
-  length w >= length (Q) ->
-  exists w1 w2 w3 : list B, ixtransition (w1 ++ w3) = ixtransition w /\
-  length (w1 ++ w3) < length (Q) /\ ixtransition (w1 ++ w2) = ixtransition w1.
+End PumpingLemma.
+
+(* Let w be any sequence of (possible) events with length greater than the number of states,
+  exists w' such that ixtransition w' = ixtransition w and length w' is less than the number
+  of states. *)
+Lemma pumping0 w :
+  length w >= length states ->
+  exists w', ixtransition w' = ixtransition w /\ length w'< length states.
 Proof.
   remember (length w) as n eqn:H.
   generalize dependent w.
   induction n as [|n IH]; intros w H H0.
-  - assert (H1: length (Q) = 0). omega.
+  - assert (H1: length states = 0). omega.
     apply length_zero_iff_nil in H1;
-    pose proof Q_not_nil; contradiction.
+    pose proof states_not_nil; contradiction.
   - destruct w as [|e w' L] using @rev_ind; simpl in H. omega.
     clear L;
     rewrite app_length in H; simpl in H; rewrite Nat.add_1_r in H;
     injection H; intro H1.
-    pose proof (Nat.leb_spec0 (length (Q)) n) as H2.
-    destruct (length (Q) <=? n); inversion H2; clear H2.
+    pose proof (Nat.leb_spec0 (length states) n) as H2.
+    destruct (length states <=? n); inversion H2; clear H2.
     + apply IH in H1. 2: omega.
-      destruct H1 as [w1 [w2 [w3 H1]]].
-      pose proof (Nat.ltb_spec0 (length (w1 ++ w3 ++ [e])) (length (Q))) as H4.
-      destruct (length (w1 ++ w3 ++ [e]) <? length (Q)); inversion H4; clear H4.
-      * exists w1, w2, (w3 ++ [e]); repeat split.
-        destruct H1 as [H1 _]; rewrite app_assoc;
-          rewrite ixtransition_distr, H1, <- ixtransition_distr; trivial.
+      destruct H1 as [w1 H1].
+      pose proof (Nat.ltb_spec0 (length (w1 ++ [e])) (length states)) as H4.
+      destruct (length (w1 ++ [e]) <? length states); inversion H4; clear H4.
+      * exists (w1 ++ [e]); repeat split.
+        destruct H1 as [H1 _]; rewrite ixtransition_distr, H1, <- ixtransition_distr; trivial.
         auto.
-        intuition.
-      * assert (H4: length (w1 ++ w3 ++ [e]) = length (Q)).
-        apply not_lt in H2; rewrite app_assoc, app_length in H2; simpl in H2;
-        rewrite app_assoc, app_length; simpl; omega. clear H2.
-        assert (H5: length (w1 ++ w3 ++ [e]) >= length (Q)). omega.
-        apply pumping1 in H5; destruct H5 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
-        exists w1', w2', w3'. repeat split.
-        destruct H7 as [H7 _].
-        destruct H1 as [H1 _]; rewrite H7, app_assoc, ixtransition_distr, H1,
+      * assert (H4: length (w1 ++ [e]) = length states).
+        apply not_lt in H2; rewrite app_length in H2; simpl in H2;
+        rewrite app_length; simpl; omega. clear H2.
+        assert (H5: length (w1 ++ [e]) >= length states). omega.
+        apply repeats_skip_in_transition in H5; destruct H5 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
+        exists (w1' ++ w3'). repeat split.
+        destruct H7 as [H7 _];
+        destruct H1 as [H1 _]; rewrite H7, ixtransition_distr, H1,
           <- ixtransition_distr; trivial.
-        assert (H8: length (w1 ++ w3 ++ [e]) = length (w1' ++ w2' ++ w3')). rewrite H5; trivial.
+        assert (H8: length (w1 ++ [e]) = length (w1' ++ w2' ++ w3')). rewrite H5; trivial.
         rewrite H4, app_length, app_length in H8; rewrite app_length.
         assert (length w2' > 0). destruct w2'. contradiction. simpl; omega.
         omega.
-        intuition.
     + apply not_le in H3; rewrite H1 in *; clear H1 IH.
-      pose proof (Nat.ltb_spec0 (length (w' ++ [e])) (length (Q))) as H4.
-      destruct (length (w'++[e]) <? length (Q)); inversion H4; clear H4.
-      * exists w', [], [e]; repeat split; try (rewrite app_nil_r); trivial.
+      pose proof (Nat.ltb_spec0 (length (w' ++ [e])) (length states)) as H4.
+      destruct (length (w'++[e]) <? length states); inversion H4; clear H4.
+      * exists (w' ++ [e]); repeat split; try (rewrite app_nil_r); trivial.
       * apply not_lt in H1; rewrite app_length in H1; simpl in H1.
-        assert (length w' + 1 = length (Q)). omega.
-        assert (length (w' ++ [e]) >= length (Q)). rewrite app_length; simpl; omega.
-        apply pumping1 in H4; destruct H4 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
-        exists w1', w2', w3'; repeat split.
+        assert (length w' + 1 = length states). omega.
+        assert (length (w' ++ [e]) >= length states). rewrite app_length; simpl; omega.
+        apply repeats_skip_in_transition in H4; destruct H4 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
+        exists (w1' ++ w3'); repeat split.
         intuition.
         assert (H8: length (w' ++ [e]) = length (w1' ++ w2' ++ w3')). rewrite H5; trivial.
         rewrite app_length, app_length, app_length in H8; simpl in H8; rewrite app_length.
         assert (length w2' > 0). destruct w2'. contradiction. simpl; omega.
         omega.
-        intuition.
 Qed.
 
-Lemma pumping q :
-  is_tangible q <-> exists w, ixtransition w = q /\ length w < length (Q)
-  /\ q <> (sink).
+(* If a given state q is tangible, then exists w such that length w is less than the
+  number of states and q is tangible through w. *)
+Lemma tangible_length q :
+  is_tangible q <-> exists w, ixtransition w = q /\ length w < length states
+  /\ q <> sink.
 Proof.
   split; intro H; destruct H as [H [w H0]].
   2: split; try (exists w); intuition.
-  pose proof (Nat.leb_spec0 (length (Q)) (length w)) as H1;
-  destruct (length (Q) <=? length w); inversion H1; clear H1.
-  - assert (H3: length w >= length (Q)). omega.
-    apply pumping2 in H3; destruct H3 as [w1 [w2 [w3 H3]]];
-    rewrite <- H0; exists (w1 ++ w3); rewrite <- H0 in H; intuition.
+  pose proof (Nat.leb_spec0 (length states) (length w)) as H1;
+  destruct (length states <=? length w); inversion H1; clear H1.
+  - assert (H3: length w >= length states). omega.
+    apply pumping0 in H3; destruct H3 as [w1 H3];
+    rewrite <- H0; exists (w1); rewrite <- H0 in H; intuition.
   - apply not_le in H2.
     exists w; split; try split; intuition; omega.
   - exists H; intuition.
 Qed.
+
+
+(*
+  all_words n returns all the sequences of events with length n.
+*)
 
 Fixpoint all_words'' (l:list (list B)) e :=
   match l with
   | w::l' => [w ++ [e]] ++ all_words'' l' e
   | nil => nil
   end.
-
 Fixpoint all_words' l E :=
   match E with
   | e::E' => all_words'' l e ++ all_words' l E'
   | nil => nil
   end.
-
 Fixpoint all_words1 (E:list B) :=
   match E with
   | e::E' => [[e]] ++ all_words1 E'
@@ -489,26 +542,28 @@ Fixpoint all_words1 (E:list B) :=
 
 Fixpoint all_words (n:nat) :=
   match n with
-  | 1 => all_words1 (E)
+  | 1 => all_words1 events
   | O => [[]]
-  | S n' => all_words' (all_words n') (E)
+  | S n' => all_words' (all_words n') events
   end.
 
-Lemma all_words_correct1 n : forall w e,
-  In w (all_words n) -> In e (E) -> In (w++[e]) (all_words (S n)).
+
+(* This lemma helps prove all_words_generated. *)
+Lemma all_words_generated1 n : forall w e,
+  In w (all_words n) -> In e events -> In (w++[e]) (all_words (S n)).
 Proof.
   intros; simpl;
   destruct n.
   - destruct H.
     2: destruct H.
     rewrite <- H; simpl;
-    induction (E) as [|e0 E IH].
+    induction events as [|e0 E IH].
     + inversion H0.
     + simpl; inversion H0.
       * left; rewrite H1; auto.
       * right; apply IH; auto.
   - Arguments all_words : simpl never.
-    induction (E) as [|e0 E IH].
+    induction events as [|e0 E IH].
     inversion H0.
     simpl; apply in_or_app; inversion H0.
     + left; rewrite H1; simpl; clear IH;
@@ -520,8 +575,9 @@ Proof.
     + right; apply IH; intuition.
 Qed.
 
-Lemma all_words_correct n : forall w,
-  is_generated w -> length w = n -> In w (all_words n).
+(* all_words n has every generated sequence of events with length n. *)
+Lemma all_words_generated n : forall w,
+  generates w -> length w = n -> In w (all_words n).
 Proof.
   intros w H.
   generalize dependent n.
@@ -529,24 +585,25 @@ Proof.
   - simpl in H0; rewrite <- H0; simpl; left; trivial.
   - destruct n.
     + rewrite app_length in H0; simpl in H0; omega.
-    + apply all_words_correct1; try (apply IH).
-      * eapply prefix_closed; apply H.
+    + apply all_words_generated1; try (apply IH).
+      * eapply gen_prefix_closed; apply H.
       * rewrite app_length in H0; simpl in H0; omega.
-      * unfold is_generated, ixtransition in H; clear IH H0;
-        generalize dependent (q0);
+      * unfold generates, ixtransition in H; clear IH H0;
+        generalize dependent state0;
         induction w' as [|e0 w' IH]; intros q H; simpl in H.
-        -- apply delta_correct in H; intuition.
+        -- apply transition_correct in H; intuition.
         -- eapply IH; apply H.
 Qed.
 
+(* all_words_le returns all the sequences of events with length less or equal to n. *)
 Fixpoint all_words_le (n:nat) :=
   match n with
   | S n' => all_words (S n') ++ all_words_le n'
   | O => [nil]
   end.
 
-Lemma all_words_le_correct n : forall w,
-  is_generated w -> length w <= n -> In w (all_words_le n).
+Lemma all_words_le_generated n : forall w,
+  generates w -> length w <= n -> In w (all_words_le n).
 Proof.
   intros w H H0.
   induction n as [|n' IH].
@@ -554,55 +611,59 @@ Proof.
   - Arguments all_words : simpl never.
     simpl; apply in_or_app;
     inversion H0.
-    + left; apply all_words_correct; intuition.
+    + left; apply all_words_generated; intuition.
     + right; apply IH; intuition.
 Qed.
 
+Section TangibleDecidable.
+
+(* Here we will prove that we can decide whether a given state is tangible. *)
+
+(* verify_tangible q verifies if q is tangible based on the list gathering all the generated sequences of events
+  with length less than the number of states. *)
 Fixpoint verify_tangible' q l :=
   match l with
   | a::l' => ixtransition a = q \/ verify_tangible' q l'
   | nil => False
   end.
-Definition verify_tangible q := q <> (sink) /\ verify_tangible' q (all_words_le (length (Q) - 1)).
+Definition verify_tangible q := q <> sink /\ verify_tangible' q (all_words_le (length states - 1)).
 
-Lemma verify_tangible_correct1 : forall q,
-  is_tangible q -> verify_tangible q.
-Proof.
-  intros q H; apply pumping in H; destruct H as [w [H [H1 H2]]].
-  assert (H0: length w <= length (Q) - 1). omega.
-  apply all_words_le_correct in H0.
-  2: unfold is_generated; rewrite H; intuition.
-  unfold verify_tangible;
-  induction (all_words_le (length (Q) - 1)) as [|a l' IH].
-  - pose proof in_nil; contradiction.
-  - inversion H0; split.
-    1,3: intuition.
-    + left; rewrite H3; intuition.
-    + right; intuition.
-Qed.
-
+(* For every tangible state q, verify_tangible q must be True, and vice-versa. *)
 Lemma verify_tangible_correct : forall q,
   is_tangible q <-> verify_tangible q.
 Proof.
   split.
-  apply verify_tangible_correct1.
-  intros [H H0];
-  unfold verify_tangible in H;
-  induction (all_words_le (length (Q) - 1)) as [|a l' IH];
-  destruct H0; split.
-  1,3: intuition.
-  - exists a; intuition.
-  - apply IH in H0; destruct H0 as [H0 [w H1]]; exists w;
-    intuition.
+  + intro H; apply tangible_length in H; destruct H as [w [H [H1 H2]]].
+    assert (H0: length w <= length states - 1). omega.
+    apply all_words_le_generated in H0.
+    2: unfold generates; rewrite H; intuition.
+    unfold verify_tangible;
+    induction (all_words_le (length states - 1)) as [|a l' IH].
+    - pose proof in_nil; contradiction.
+    - inversion H0; split.
+      1,3: intuition.
+      * left; rewrite H3; intuition.
+      * right; intuition.
+  + intros [H H0];
+    unfold verify_tangible in H;
+    induction (all_words_le (length states - 1)) as [|a l' IH];
+    destruct H0; split.
+    1,3: intuition.
+    - exists a; intuition.
+    - apply IH in H0; destruct H0 as [H0 [w H1]]; exists w;
+      intuition.
 Qed.
 
-Lemma verify_tangible_decidable : forall q,
-  q <> (sink) -> {verify_tangible q} + {~ verify_tangible q}.
+(* From the decidable equality of A, we can prove that, for all q, verify_tangible q is decidable. *)
+Lemma verify_tangible_dec : forall q,
+  {verify_tangible q} + {~ verify_tangible q}.
 Proof.
-  intros q H0; unfold verify_tangible;
-  induction (all_words_le (length (Q) - 1)) as [|a l' IH].
+  intros q; unfold verify_tangible;
+  induction (all_words_le (length states - 1)) as [|a l' IH].
   - simpl; right; unfold not; intros [_ contra]; apply contra.
-  - simpl. destruct (A_decidable (ixtransition a) q).
+  - simpl; destruct (A_eq_dec q sink).
+    right; intros [contra H]; contradiction.
+    simpl; destruct (A_eq_dec (ixtransition a) q).
     + intuition.
     + destruct IH.
       * intuition.
@@ -612,19 +673,17 @@ Proof.
         1,2: contradiction.
 Qed.
 
-Theorem tangible_decidable : forall q,
+(* Finally! *)
+Theorem tangible_dec : forall q,
   {is_tangible q} + {~ is_tangible q}.
 Proof.
   intro q;
-  destruct (A_decidable q (sink)) as [H|H].
-  - right; unfold is_tangible; intros [contra _];
-    contradiction.
-  - destruct (verify_tangible_decidable q) as [H0|H0].
-    + intuition.
-    + apply verify_tangible_correct in H0; intuition.
-    + right; intro contra; apply verify_tangible_correct in contra;
-    contradiction.
+  destruct (verify_tangible_dec q) as [H0|H0].
+  - left; apply verify_tangible_correct; auto.
+  - right; intro H; apply verify_tangible_correct in H; intuition.
 Qed.
+
+End TangibleDecidable.
 
 End DFAUtils.
 

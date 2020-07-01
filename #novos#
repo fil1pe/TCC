@@ -1,0 +1,96 @@
+config_pumping2   => In_existence
+config_pumping3   => config_pigeonhole
+config_pumping2_0 => config_2concat
+config_pumping2_1 => config_3concat
+pumping1          => repeats_skip_in_transition
+repeats_skip_pow_in_transition => pumping
+pumping2            => pumping0
+pumping             => tangible_length
+gen_words_correct1  => gen_words_correct
+gen_words_correct   => gen_words_complete
+all_gen_words_le_correct => all_gen_words_le_generated
+min_list_correct1 => min_list_state
+
+
+
+Lemma pumping0 w :
+  length w >= length states ->
+  exists w1 w2 w3, ixtransition (w1 ++ w3) = ixtransition w /\
+  length (w1 ++ w3) < length states /\ ixtransition (w1 ++ w2) = ixtransition w1.
+Proof.
+  remember (length w) as n eqn:H.
+  generalize dependent w.
+  induction n as [|n IH]; intros w H H0.
+  - assert (H1: length states = 0). omega.
+    apply length_zero_iff_nil in H1;
+    pose proof states_not_nil; contradiction.
+  - destruct w as [|e w' L] using @rev_ind; simpl in H. omega.
+    clear L;
+    rewrite app_length in H; simpl in H; rewrite Nat.add_1_r in H;
+    injection H; intro H1.
+    pose proof (Nat.leb_spec0 (length states) n) as H2.
+    destruct (length states <=? n); inversion H2; clear H2.
+    + apply IH in H1. 2: omega.
+      destruct H1 as [w1 [w2 [w3 H1]]].
+      pose proof (Nat.ltb_spec0 (length (w1 ++ w3 ++ [e])) (length states)) as H4.
+      destruct (length (w1 ++ w3 ++ [e]) <? length states); inversion H4; clear H4.
+      * exists w1, w2, (w3 ++ [e]); repeat split.
+        destruct H1 as [H1 _]; rewrite app_assoc;
+          rewrite ixtransition_distr, H1, <- ixtransition_distr; trivial.
+        auto.
+        intuition.
+      * assert (H4: length (w1 ++ w3 ++ [e]) = length states).
+        apply not_lt in H2; rewrite app_assoc, app_length in H2; simpl in H2;
+        rewrite app_assoc, app_length; simpl; omega. clear H2.
+        assert (H5: length (w1 ++ w3 ++ [e]) >= length states). omega.
+        apply repeats_skip_in_transition in H5; destruct H5 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
+        exists w1', w2', w3'. repeat split.
+        destruct H7 as [H7 _].
+        destruct H1 as [H1 _]; rewrite H7, app_assoc, ixtransition_distr, H1,
+          <- ixtransition_distr; trivial.
+        assert (H8: length (w1 ++ w3 ++ [e]) = length (w1' ++ w2' ++ w3')). rewrite H5; trivial.
+        rewrite H4, app_length, app_length in H8; rewrite app_length.
+        assert (length w2' > 0). destruct w2'. contradiction. simpl; omega.
+        omega.
+        intuition.
+    + apply not_le in H3; rewrite H1 in *; clear H1 IH.
+      pose proof (Nat.ltb_spec0 (length (w' ++ [e])) (length states)) as H4.
+      destruct (length (w'++[e]) <? length states); inversion H4; clear H4.
+      * exists w', [], [e]; repeat split; try (rewrite app_nil_r); trivial.
+      * apply not_lt in H1; rewrite app_length in H1; simpl in H1.
+        assert (length w' + 1 = length states). omega.
+        assert (length (w' ++ [e]) >= length states). rewrite app_length; simpl; omega.
+        apply repeats_skip_in_transition in H4; destruct H4 as [w1' [w2' [w3' [H5 [H6 H7]]]]].
+        exists w1', w2', w3'; repeat split.
+        intuition.
+        assert (H8: length (w' ++ [e]) = length (w1' ++ w2' ++ w3')). rewrite H5; trivial.
+        rewrite app_length, app_length, app_length in H8; simpl in H8; rewrite app_length.
+        assert (length w2' > 0). destruct w2'. contradiction. simpl; omega.
+        omega.
+        intuition.
+Qed.
+
+Lemma tangible_length q :
+  is_tangible q <-> exists w, ixtransition w = q /\ length w < length states
+  /\ q <> sink.
+Proof.
+  split; intro H; destruct H as [H [w H0]].
+  2: split; try (exists w); intuition.
+  pose proof (Nat.leb_spec0 (length states) (length w)) as H1;
+  destruct (length states <=? length w); inversion H1; clear H1.
+  - assert (H3: length w >= length states). omega.
+    apply pumping0 in H3; destruct H3 as [w1 [w2 [w3 H3]]];
+    rewrite <- H0; exists (w1 ++ w3); rewrite <- H0 in H; intuition.
+  - apply not_le in H2.
+    exists w; split; try split; intuition; omega.
+  - exists H; intuition.
+Qed.
+
+Lemma min_word_def q w :
+  (forall w', ixtransition w' = q -> count_buffer w' >= count_buffer w)
+  /\ ixtransition w = q <-> min_word q w.
+Proof.
+  split.
+  - intros [H H0]; unfold min_word; intuition.
+  - unfold min_word; intros [H H0]; intuition.
+Qed.

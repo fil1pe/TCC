@@ -16,8 +16,18 @@ $$\text{\mintinline{coq}{forall x, {P x} + {~ P x}}}$$
 
 \subsection{Prova por contradição}
 
+[introduzir prova por contradição] consiste em provar que, da negação de uma proposição, se deriva o absurdo, uma proposição falsa. Especificamente, para proposições negativas -- que negam outra --, a demonstração por contradição faz-se derivando o absudo a partir da eliminação da negação, pois na lógica clássica pode-se eliminar qualquer dupla negação. Em outras palavras, para qualquer proposição $P$, a prova por contradição de $Q \to \neg P$ é feita pela demonstração de \begin{equation}Q \to P \to \bot \label{eq:clas_neg}\end{equation}
+
+[mostrar que ela não é possível na lógica do Coq]
+
+Sob outra perspectiva, a prova por contradição na lógica intuicionista é possível para proposições negativas, uma vez que a negação de uma proposição $P$ é $$\neg P \equiv P \to \bot$$ o que vai ao encontro da Equação \ref{eq:clas_neg}. [falar como se prova] Para diferenciar esse método da clássica prova por contradição, seja ele designado prova por negação. [exemplificar com prova do sqrt(2) irracional]
+
+É mediante a prova por negação que se demonstra a indecidibilidade dos problemas. [exemplificar com Hopcroft]
+
 \section{Indução matemática}
 
 \section{Táticas do assistente Coq}
 
 \section{Módulos em Coq}
+
+Omega e Micromega \cite{manual}

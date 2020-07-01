@@ -16,6 +16,12 @@
   theory, languages, and computation}. 3. ed. Boston: Pearson/Addison Wesley,
   2006.}
 
+\bibitem[Inria 2020]{manual}
+\abntrefinfo{Inria}{INRIA}{2020}
+{INRIA. \textbf{Coq 8.11.1 documentation}. 2020.
+Dispon{\'\i}vel em: \url{https://coq.inria.fr/refman/}. Acesso em: 15 abr.
+  2020.}
+
 \bibitem[\"{O}qvist 2017]{jesper}
 \abntrefinfo{\"{O}qvist}{\"{O}QVIST}{2017}
 {\"{O}QVIST, J. Solution to the {P}igeonhole {P}rinciple exercise in {S}oftware
