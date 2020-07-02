@@ -16,7 +16,7 @@ Module Type DFA.
           and q' is a proper state or the sink one. *)
     (state0_correct : In state0 states)
         (* The initial state must be in the list of states. *)
-    (marked_states_correct : forall q, In q marked_states -> In q states)
+    (marked_states_correct : forall q, In q marked_states -> In q states /\ q <> sink)
         (* Every marked state too. *)
     (sink_correct : In sink states /\ sink <> state0 /\ ~ In sink marked_states)
         (* The sink state must be in the list of states, differ from the initial one and not be in the list of marked states. *)
@@ -422,14 +422,8 @@ Proof.
   1,2: rewrite H6, H6; auto.
 Qed.
 
-(*
-  The Pumping Lemma for the generated language:
-  --
-  If w is a generated sequence of events and has a length greater than the number of states,
- then exist w1, w2 and w3 such that w is equal to w1 ++ w2 ++ w3, w2 is not empty and,
- forall n, w1 ++ (w2^n) ++ w3 is generated.
-*)
-Theorem pumping w :
+(* a generalized pumping lemma *)
+Lemma pumping w :
   length w >= length states ->
   exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
                     w2 <> [] /\
@@ -441,6 +435,56 @@ Proof.
   try (induction n);
   try (simpl; rewrite app_assoc, app_assoc, ixtransition_distr, ixtransition_distr, H4;
     rewrite <- ixtransition_distr, <- ixtransition_distr, <- app_assoc);
+  auto.
+Qed.
+
+(*
+  The Pumping Lemma for the generated language:
+  --
+  If w is a generated sequence of events and has a length greater than the number of states,
+ then exist w1, w2 and w3 such that w is equal to w1 ++ w2 ++ w3, w2 is not empty and,
+ forall n, w1 ++ (w2^n) ++ w3 is generated.
+*)
+Theorem gen_pumping w :
+  generates w -> length w >= length states ->
+  exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
+                    w2 <> [] /\
+                    forall n, generates (w1 ++ (word_pow w2 n) ++ w3).
+Proof.
+  unfold generates;
+  intros H H0;
+  apply pumping in H0;
+  destruct H0 as [w1 [w2 [w3 H0]]];
+  exists w1, w2, w3; repeat split.
+  1,2: apply H0.
+  intro n; destruct H0 as [_ [_ H0]];
+  rewrite (H0 n);
+  auto.
+Qed.
+
+(*
+  The Pumping Lemma for the marked language:
+  --
+  If w is a marked sequence of events and has a length greater than the number of states,
+ then exist w1, w2 and w3 such that w is equal to w1 ++ w2 ++ w3, w2 is not empty and,
+ forall n, w1 ++ (w2^n) ++ w3 is marked.
+  --
+  The proof is almost the same for the latter.
+*)
+Theorem mark_pumping w :
+  marks w -> length w >= length states ->
+  exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
+                    w2 <> [] /\
+                    forall n, marks (w1 ++ (word_pow w2 n) ++ w3).
+Proof.
+  unfold marks;
+  intros H H0;
+  apply pumping in H0;
+  destruct H0 as [w1 [w2 [w3 H0]]];
+  exists w1, w2, w3; repeat split.
+  1,2: apply H0.
+  intro n; destruct H0 as [_ [_ H0]];
+  rewrite (H0 n);
   auto.
 Qed.
 
