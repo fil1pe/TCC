@@ -1,4 +1,4 @@
-Require Import Coq.Lists.List.
+Require Import Coq.Lists.List Omega.
 Import ListNotations.
 
 (* If a list is not empty, the default value passed to function last
@@ -12,4 +12,15 @@ Proof.
   - destruct l.
     + auto.
     + simpl in *; apply IH; intro contra; discriminate.
+Qed.
+
+(* Every list of length at least 1 is not empty (and vice versa). *)
+Lemma length_not_nil : forall {X} (l : list X),
+  l <> nil <-> length l >= 1.
+Proof.
+  intros X l; destruct l as [|x l]; split; intro H.
+  - contradiction.
+  - simpl in H; omega.
+  - simpl; omega.
+  - intro contra; inversion contra.
 Qed.

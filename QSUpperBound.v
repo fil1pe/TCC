@@ -71,7 +71,7 @@ Proof.
   }
   destruct H10 as [m H10].
   apply pumping in H2;
-  destruct H2 as [w1 [w2 [w3 [H2 [H3 H4]]]]];
+  destruct H2 as [w1 [w2 [w3 [H2 [H3 [H20 H4]]]]]];
   fold ixtransition in H4;
   destruct (Z_le_gt_dec (count_buffer w2) 0) as [H5|H5].
   - exists (w1++w3); repeat split.
@@ -98,7 +98,7 @@ Proof.
     apply H in contra0. omega.
 Qed.
 
-(* If the queueing system is upper bounded, for every generated sequence of events w with length greater or equal
+(* If the queueing system is upper bounded, for every generated sequence of events w of length greater or equal
   to the number of states, exists a sequence of events that transition into ixtransition w and counts a number of
   items greater or equal to count_buffer w. *)
 Lemma pumping_buffer q : forall w,
@@ -242,7 +242,7 @@ Proof.
   simpl; omega.
 Qed.
 
-(* a function that returns the generated sequence of events w with length less than the number of states
+(* a function that returns the generated sequence of events w of length less than the number of states
   such that w transitions into q and adds most items *)
 Definition max_gen_words q := max_list (all_gen_words_le q (length states - 1)).
 

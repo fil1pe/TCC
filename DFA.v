@@ -126,80 +126,98 @@ Fixpoint config' q w :=
   end.
 Definition config w := state0::config' state0 w.
 
+(* Every element in config w must be in the list of states. *)
+Lemma config_states_correct w : forall q,
+  In q (config w) -> In q states.
+Proof.
+  unfold config; intros q H; destruct H.
+  - rewrite <- H; apply state0_correct.
+  - generalize dependent state0;
+    induction w as [|e w IH]; intros a H; destruct H.
+    + destruct (A_eq_dec q sink) as [H0|H0].
+      * rewrite H0; apply sink_correct.
+      * rewrite <- H in H0; apply transition_correct in H0;
+        rewrite <- H; intuition.
+    + eapply IH; apply H.
+Qed.
+
+(* word_pow w n, or w^n, is equal to w1 ++ w2 ++ ... ++ wn
+  where w1 = w2 = ... = wn = w. *)
+Fixpoint word_pow (w:list B) (n:nat) :=
+  match n with
+  | O => []
+  | S n' => w ++ (word_pow w n')
+  end.
+
+(* If transitioning through w leads to the initial state, then, for all n, w^n leads to it too. *)
+Lemma state0_cycle: forall w n,
+  ixtransition w = state0 -> ixtransition (word_pow w n) = state0.
+Proof.
+  intros w n H;
+  induction n as [|n IH]. auto.
+  unfold ixtransition in *;
+  simpl;
+  rewrite xtransition_distr, H;
+  auto.
+Qed.
 
 (*
   If w is a sequence of n events, then transitioning through w goes through n states.
   Thus, config w is a list of n+1 states.
 *)
-
 Lemma config'_length w : forall q,
   length (config' q w) = length w.
 Proof.
   induction w as [|e w' IH];
   try (intro q; simpl; rewrite IH); trivial.
 Qed.
-
 Lemma config_length w :
   length (config w) = S (length w).
 Proof.
   simpl; rewrite config'_length; trivial.
 Qed.
 
+Section Pigeonhole.
 
 (*
-  If a list l repeats (possible) state, we can define a inductive proposition such that,
- if q is in l or l repeats (possible) state, q::l repeats (possible) state.
+  If a list l repeats element, we can define a inductive proposition such that,
+ if a is in l or l repeats element, a::l repeats element.
 *)
-Inductive repeats_state : list A -> Prop :=
-  | rs_constr l a : In a l \/ repeats_state l -> repeats_state (a::l).
+Inductive repeats {X} : list X -> Prop :=
+  | r_constr l a : In a l \/ repeats l -> repeats (a::l).
 
 (* If a is in w, then w = w1 ++ [a] ++ w2 for some w1 and w2. *)
-Lemma In_existence : forall {C} a (w:list C),
-  In a w -> exists w1 w2, w = w1 ++ [a] ++ w2.
+Lemma In_existence : forall {X} a (l:list X),
+  In a l -> exists l1 l2, l = l1 ++ [a] ++ l2.
 Proof.
-  intros C a w H;
-  induction w as [|a0 w' IH]; destruct H.
-  - clear IH; exists nil, w'; rewrite H; auto.
-  - apply IH in H; clear IH; destruct H as [w1 [w2 H]];
-    exists (a0::w1), w2; rewrite H; auto.
+  intros X a l H;
+  induction l as [|b l IH]; destruct H.
+  - clear IH; exists nil, l; rewrite H; auto.
+  - apply IH in H; clear IH; destruct H as [l1 [l2 H]];
+    exists (b::l1), l2; rewrite H; auto.
 Qed.
 
-(* If w repeats (possible) state, w = w1 ++ [q] ++ w2 ++ [q] ++ w3 for some w1, w2, w3 and q. *)
-Lemma repeats_existence w :
-  repeats_state w ->
-  exists q w1 w2 w3, w = w1 ++ [q] ++ w2 ++ [q] ++ w3.
+(* If w repeats element, l = l1 ++ [a] ++ l2 ++ [q] ++ l3 for some l1, l2, l3 and a.
+  a is repeated. *)
+Lemma repeats_existence {X} (l:list X) :
+  repeats l ->
+  exists a l1 l2 l3, l = l1 ++ [a] ++ l2 ++ [a] ++ l3.
 Proof.
-  intro H.
-  induction w as [|e w IH].
-  - inversion H.
-  - inversion H; destruct H1.
-    + apply In_existence in H1; destruct H1 as [w1 [w2 H1]];
-      exists e, nil, w1, w2; rewrite H1; auto.
-    + apply IH in H1; destruct H1 as [q [c1 [c2 [c3 H1]]]];
-      exists q, (e::c1), c2, c3; rewrite H1; auto.
-Qed.
-
-(* Every element in config w is in the list of states. *)
-Lemma config_states_correct w : forall q,
-  In q (config w) -> In q states.
-Proof.
-  unfold config; intros q H; destruct H.
-  - rewrite <- H; apply state0_correct.
-  - generalize dependent (state0);
-    induction w as [|e w IH]; intros a H; destruct H.
-    + destruct (A_eq_dec q sink) as [H0|H0].
-      * rewrite H0; apply (sink_correct).
-      * rewrite <- H in H0; apply (transition_correct) in H0;
-        rewrite <- H; intuition.
-    + eapply IH; apply H.
+  intro H;
+  induction l as [|b l IH]; inversion H.
+  destruct H1.
+  - apply In_existence in H1; destruct H1 as [l1 [l2 H1]];
+    exists b, nil, l1, l2; rewrite H1; auto.
+  - apply IH in H1; destruct H1 as [c [l1 [l2 [l3 H1]]]];
+    exists c, (b::l1), l2, l3; rewrite H1; auto.
 Qed.
 
 (* Let n be the number of possible states.
    As the pigeonhole principle states, if config w has at least n+1 states, then
   config w repeats state. *)
-Lemma pigeonhole w : 
+Lemma config_pigeonhole w : 
   length (config w) > length states ->
-  repeats_state (config w).
+  repeats (config w).
 Proof.
   intro H;
   pose proof (config_states_correct w) as H0;
@@ -241,25 +259,7 @@ Proof.
     simpl in H; omega.
 Qed.
 
-(* word_pow w n, or w^n, is equal to w1 ++ w2 ++ ... ++ wn
-  where w1 = w2 = ... = wn = w. *)
-Fixpoint word_pow (w:list B) (n:nat) :=
-  match n with
-  | O => []
-  | S n' => w ++ (word_pow w n')
-  end.
-
-(* If transitioning through w leads to the initial state, then, for all n, w^n leads to it too. *)
-Lemma state0_cycle: forall w n,
-  ixtransition w = state0 -> ixtransition (word_pow w n) = state0.
-Proof.
-  intros w n H;
-  induction n as [|n IH]. auto.
-  unfold ixtransition in *;
-  simpl;
-  rewrite xtransition_distr, H;
-  auto.
-Qed.
+End Pigeonhole.
 
 Section PumpingLemma.
 
@@ -384,7 +384,7 @@ Lemma repeats_skip_in_transition w :
 Proof.
   intro H0;
   assert (H: length (config w) > length states). rewrite config_length; omega.
-  clear H0; apply pigeonhole, repeats_existence in H;
+  clear H0; apply config_pigeonhole, repeats_existence in H;
   assert (H10: forall (l:list A) o, l ++ [o] <> []).
     intros l o contra; destruct l; discriminate.
   unfold config in H;
@@ -427,70 +427,105 @@ Lemma pumping w :
   length w >= length states ->
   exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
                     w2 <> [] /\
+                    length (w1 ++ w2) <= length states /\
                     forall n, ixtransition (w1 ++ (word_pow w2 n) ++ w3) = ixtransition w.
 Proof.
-  intros H;
-  apply repeats_skip_in_transition in H; destruct H as [w1 [w2 [w3 [H1 [H2 [H3 H4]]]]]];
-  exists w1, w2, w3; repeat split;
-  try (induction n);
-  try (simpl; rewrite app_assoc, app_assoc, ixtransition_distr, ixtransition_distr, H4;
-    rewrite <- ixtransition_distr, <- ixtransition_distr, <- app_assoc);
-  auto.
+  intro H;
+  induction w as [|e w IH] using @rev_ind.
+  - simpl in H;
+    assert (length states > 0).
+      assert (H0: length states = 0). omega.
+      clear H;
+      rewrite length_zero_iff_nil in H0;
+      pose proof state0_correct as H; rewrite H0 in H;
+      inversion H.
+    omega.
+  - pose H as H10; rewrite app_length in H10; simpl in H10; inversion H10.
+    + clear IH; pose H as H20; apply repeats_skip_in_transition in H20;
+      destruct H20 as [w1 [w2 [w3 [H20 [H0 [H2 H3]]]]]].
+
+      exists w1, w2, w3; repeat split.
+      1,2:  auto.
+      2:    intro n; induction n as [|n IH];
+      simpl; try (rewrite app_assoc, app_assoc, <- app_assoc, ixtransition_distr, H3,
+          <- ixtransition_distr); auto.
+      assert (length states = length w1 + length w2 + length w3).
+        rewrite <- app_length, <- app_length, <- app_assoc, <- H20, app_length; auto.
+      rewrite app_length; omega.
+    + assert (H2: length w >= length states). omega.
+      clear H10 H1 H0 H m;
+      apply IH in H2; clear IH;
+      destruct H2 as [w1 [w2 [w3 [H2 [H3 [H4 H5]]]]]];
+      exists w1, w2, (w3 ++ [e]); repeat split.
+      1:    rewrite H2, <- app_assoc, <- app_assoc; auto.
+      1,2:  auto.
+      intro n;
+      replace (w1 ++ word_pow w2 n ++ w3 ++ [e]) with ((w1 ++ word_pow w2 n ++ w3) ++ [e]).
+      rewrite ixtransition_distr, H5, <- ixtransition_distr; auto.
+      repeat (rewrite app_assoc); auto.
 Qed.
 
 (*
   The Pumping Lemma for the generated language:
   --
-  If w is a generated sequence of events and has a length greater than the number of states,
- then exist w1, w2 and w3 such that w is equal to w1 ++ w2 ++ w3, w2 is not empty and,
- forall n, w1 ++ (w2^n) ++ w3 is generated.
+  Exists p (pumping length) such that every generated string w of length at least p can be
+ written as some w1 ++ w2 ++ w3 satisfying:
+  -> length w1 >= 1
+  -> length (w1 ++ w2) <= p
+  -> forall n, w1 ++ w2^n ++ w3 is generated
 *)
-Theorem gen_pumping w :
-  generates w -> length w >= length states ->
-  exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
-                    w2 <> [] /\
-                    forall n, generates (w1 ++ (word_pow w2 n) ++ w3).
+Theorem gen_pumping :
+  exists p,
+    forall w, generates w -> length w >= p ->
+      exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
+                        length w2 >= 1 /\
+                        length (w1 ++ w2) <= p /\
+                        forall n, generates (w1 ++ (word_pow w2 n) ++ w3).
 Proof.
+  exists (length states);
+  intro w;
   unfold generates;
   intros H H0;
   apply pumping in H0;
-  destruct H0 as [w1 [w2 [w3 H0]]];
+  destruct H0 as [w1 [w2 [w3 [H0 [H1 [H2 H3]]]]]];
   exists w1, w2, w3; repeat split.
-  1,2: apply H0.
-  intro n; destruct H0 as [_ [_ H0]];
-  rewrite (H0 n);
-  auto.
+  1,3: auto.
+  apply length_not_nil in H1; auto.
+  intro n; rewrite (H3 n); auto.
 Qed.
 
 (*
   The Pumping Lemma for the marked language:
   --
-  If w is a marked sequence of events and has a length greater than the number of states,
- then exist w1, w2 and w3 such that w is equal to w1 ++ w2 ++ w3, w2 is not empty and,
- forall n, w1 ++ (w2^n) ++ w3 is marked.
-  --
-  The proof is almost the same for the latter.
+  Exists p (pumping length) such that every marked string w of length at least p can be
+ written as some w1 ++ w2 ++ w3 satisfying:
+  -> length w1 >= 1
+  -> length (w1 ++ w2) <= p
+  -> forall n, w1 ++ w2^n ++ w3 is marked
 *)
-Theorem mark_pumping w :
-  marks w -> length w >= length states ->
-  exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
-                    w2 <> [] /\
-                    forall n, marks (w1 ++ (word_pow w2 n) ++ w3).
+Theorem mark_pumping :
+  exists p,
+    forall w, marks w -> length w >= p ->
+      exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
+                        length w2 >= 1 /\
+                        length (w1 ++ w2) <= p /\
+                        forall n, marks (w1 ++ (word_pow w2 n) ++ w3).
 Proof.
+  exists (length states);
+  intro w;
   unfold marks;
   intros H H0;
   apply pumping in H0;
-  destruct H0 as [w1 [w2 [w3 H0]]];
+  destruct H0 as [w1 [w2 [w3 [H0 [H1 [H2 H3]]]]]];
   exists w1, w2, w3; repeat split.
-  1,2: apply H0.
-  intro n; destruct H0 as [_ [_ H0]];
-  rewrite (H0 n);
-  auto.
+  1,3: auto.
+  apply length_not_nil in H1; auto.
+  intro n; rewrite (H3 n); auto.
 Qed.
 
 End PumpingLemma.
 
-(* Let w be any sequence of (possible) events with length greater than the number of states,
+(* Let w be any sequence of (possible) events of length greater than the number of states,
   exists w' such that ixtransition w' = ixtransition w and length w' is less than the number
   of states. *)
 Lemma pumping0 w :
@@ -565,7 +600,7 @@ Qed.
 
 
 (*
-  all_words n returns all the sequences of events with length n.
+  all_words n returns all the sequences of events of length n.
 *)
 
 Fixpoint all_words'' (l:list (list B)) e :=
@@ -619,7 +654,7 @@ Proof.
     + right; apply IH; intuition.
 Qed.
 
-(* all_words n has every generated sequence of events with length n. *)
+(* all_words n has every generated sequence of events of length n. *)
 Lemma all_words_generated n : forall w,
   generates w -> length w = n -> In w (all_words n).
 Proof.
@@ -639,7 +674,7 @@ Proof.
         -- eapply IH; apply H.
 Qed.
 
-(* all_words_le returns all the sequences of events with length less or equal to n. *)
+(* all_words_le returns all the sequences of events of length less or equal to n. *)
 Fixpoint all_words_le (n:nat) :=
   match n with
   | S n' => all_words (S n') ++ all_words_le n'
@@ -664,7 +699,7 @@ Section TangibleDecidable.
 (* Here we will prove that we can decide whether a given state is tangible. *)
 
 (* verify_tangible q verifies if q is tangible based on the list gathering all the generated sequences of events
-  with length less than the number of states. *)
+  of length less than the number of states. *)
 Fixpoint verify_tangible' q l :=
   match l with
   | a::l' => ixtransition a = q \/ verify_tangible' q l'
@@ -730,7 +765,3 @@ Qed.
 End TangibleDecidable.
 
 End DFAUtils.
-
-
-
-
