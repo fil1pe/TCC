@@ -16,7 +16,7 @@ Module Type DFA.
           and q' is a proper state or the sink one. *)
     (state0_correct : In state0 states)
         (* The initial state must be in the list of states. *)
-    (marked_states_correct : forall q, In q marked_states -> In q states /\ q <> sink)
+    (marked_states_correct : forall q, In q marked_states -> In q states)
         (* Every marked state too. *)
     (sink_correct : In sink states /\ sink <> state0 /\ ~ In sink marked_states)
         (* The sink state must be in the list of states, differ from the initial one and not be in the list of marked states. *)
@@ -30,7 +30,7 @@ Module DFAUtils (G:DFA).
 
 Include G.
 
-(* The list of states is never empty, as there is at least the initial one. *)
+(* The list of states is never empty, as there is at least the initial and the sink one. *)
 Lemma states_not_nil : states <> nil.
 Proof.
   pose proof state0_correct as H;
@@ -40,7 +40,7 @@ Qed.
 
 (*
   The extended transition function, applying the transition function through a given sequence of (possible) events
- starting from a given state.
+ starting from a given (possible) state.
 *)
 Fixpoint xtransition q w :=
   match w with
@@ -90,7 +90,7 @@ Proof.
     + apply transition_correct in H1; intuition.
 Qed.
 
-(* A DFA generates a sequence of events w if transitioning from the initial state through w results in
+(* A DFA generates a sequence of events (string) w if transitioning from the initial state through w results in
   a proper state. *)
 Definition generates w := ixtransition w <> sink.
 
@@ -141,17 +141,18 @@ Proof.
     + eapply IH; apply H.
 Qed.
 
-(* word_pow w n, or w^n, is equal to w1 ++ w2 ++ ... ++ wn
+(* str_pow w n, or w^n, is equal to w1 ++ w2 ++ ... ++ wn
   where w1 = w2 = ... = wn = w. *)
-Fixpoint word_pow (w:list B) (n:nat) :=
+Fixpoint str_pow (w:list B) (n:nat) :=
   match n with
   | O => []
-  | S n' => w ++ (word_pow w n')
+  | S n' => w ++ (str_pow w n')
   end.
+Notation "w ^ n" := (str_pow w n).
 
 (* If transitioning through w leads to the initial state, then, for all n, w^n leads to it too. *)
 Lemma state0_cycle: forall w n,
-  ixtransition w = state0 -> ixtransition (word_pow w n) = state0.
+  ixtransition w = state0 -> ixtransition (w^n) = state0.
 Proof.
   intros w n H;
   induction n as [|n IH]. auto.
@@ -179,14 +180,11 @@ Qed.
 
 Section Pigeonhole.
 
-(*
-  If a list l repeats element, we can define a inductive proposition such that,
- if a is in l or l repeats element, a::l repeats element.
-*)
+(* a inductive proposition for element repetition in list *)
 Inductive repeats {X} : list X -> Prop :=
   | r_constr l a : In a l \/ repeats l -> repeats (a::l).
 
-(* If a is in w, then w = w1 ++ [a] ++ w2 for some w1 and w2. *)
+(* If a is in l, then l = l1 ++ [a] ++ l2 for some l1 and l2. *)
 Lemma In_existence : forall {X} a (l:list X),
   In a l -> exists l1 l2, l = l1 ++ [a] ++ l2.
 Proof.
@@ -197,8 +195,7 @@ Proof.
     exists (b::l1), l2; rewrite H; auto.
 Qed.
 
-(* If w repeats element, l = l1 ++ [a] ++ l2 ++ [q] ++ l3 for some l1, l2, l3 and a.
-  a is repeated. *)
+(* If l repeats element, l can be written as some l1 ++ [a] ++ l2 ++ [q] ++ l3. *)
 Lemma repeats_existence {X} (l:list X) :
   repeats l ->
   exists a l1 l2 l3, l = l1 ++ [a] ++ l2 ++ [a] ++ l3.
@@ -378,9 +375,10 @@ Qed.
 
 Lemma repeats_skip_in_transition w :
   length w >= length states ->
-  exists w1 w2 w3, w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
-  ixtransition (w1 ++ w3) = ixtransition w /\
-  ixtransition (w1 ++ w2) = ixtransition w1.
+  exists w1 w2 w3,
+    w = w1 ++ w2 ++ w3 /\ w2 <> [] /\
+    ixtransition (w1 ++ w3) = ixtransition w /\
+    ixtransition (w1 ++ w2) = ixtransition w1.
 Proof.
   intro H0;
   assert (H: length (config w) > length states). rewrite config_length; omega.
@@ -425,10 +423,11 @@ Qed.
 (* a generalized pumping lemma *)
 Lemma pumping w :
   length w >= length states ->
-  exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
-                    w2 <> [] /\
-                    length (w1 ++ w2) <= length states /\
-                    forall n, ixtransition (w1 ++ (word_pow w2 n) ++ w3) = ixtransition w.
+  exists w1 w2 w3,
+    w = w1 ++ w2 ++ w3 /\
+    w2 <> [] /\
+    length (w1 ++ w2) <= length states /\
+    forall n, ixtransition (w1 ++ w2^n ++ w3) = ixtransition w.
 Proof.
   intro H;
   induction w as [|e w IH] using @rev_ind.
@@ -460,56 +459,28 @@ Proof.
       1:    rewrite H2, <- app_assoc, <- app_assoc; auto.
       1,2:  auto.
       intro n;
-      replace (w1 ++ word_pow w2 n ++ w3 ++ [e]) with ((w1 ++ word_pow w2 n ++ w3) ++ [e]).
+      replace (w1 ++ str_pow w2 n ++ w3 ++ [e]) with ((w1 ++ w2^n ++ w3) ++ [e]).
       rewrite ixtransition_distr, H5, <- ixtransition_distr; auto.
       repeat (rewrite app_assoc); auto.
 Qed.
 
 (*
-  The Pumping Lemma for the generated language:
+  Pumping Lemma for regular languages:
   --
-  Exists p (pumping length) such that every generated string w of length at least p can be
- written as some w1 ++ w2 ++ w3 satisfying:
-  -> length w1 >= 1
-  -> length (w1 ++ w2) <= p
-  -> forall n, w1 ++ w2^n ++ w3 is generated
-*)
-Theorem gen_pumping :
-  exists p,
-    forall w, generates w -> length w >= p ->
-      exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
-                        length w2 >= 1 /\
-                        length (w1 ++ w2) <= p /\
-                        forall n, generates (w1 ++ (word_pow w2 n) ++ w3).
-Proof.
-  exists (length states);
-  intro w;
-  unfold generates;
-  intros H H0;
-  apply pumping in H0;
-  destruct H0 as [w1 [w2 [w3 [H0 [H1 [H2 H3]]]]]];
-  exists w1, w2, w3; repeat split.
-  1,3: auto.
-  apply length_not_nil in H1; auto.
-  intro n; rewrite (H3 n); auto.
-Qed.
-
-(*
-  The Pumping Lemma for the marked language:
-  --
-  Exists p (pumping length) such that every marked string w of length at least p can be
- written as some w1 ++ w2 ++ w3 satisfying:
+  If L is a regular language, then there is a DFA G whose marked language is L.
+  There exists p (pumping length) such that every string w of L with length at least p
+ can be written as some w1 ++ w2 ++ w3 satisfying:
   -> length w1 >= 1
   -> length (w1 ++ w2) <= p
   -> forall n, w1 ++ w2^n ++ w3 is marked
 *)
-Theorem mark_pumping :
+Theorem reg_pumping :
   exists p,
     forall w, marks w -> length w >= p ->
       exists w1 w2 w3,  w = w1 ++ w2 ++ w3 /\
                         length w2 >= 1 /\
                         length (w1 ++ w2) <= p /\
-                        forall n, marks (w1 ++ (word_pow w2 n) ++ w3).
+                        forall n, marks (w1 ++ w2^n ++ w3).
 Proof.
   exists (length states);
   intro w;
@@ -530,7 +501,7 @@ End PumpingLemma.
   of states. *)
 Lemma pumping0 w :
   length w >= length states ->
-  exists w', ixtransition w' = ixtransition w /\ length w'< length states.
+  exists w', ixtransition w' = ixtransition w /\ length w' < length states.
 Proof.
   remember (length w) as n eqn:H.
   generalize dependent w.
@@ -598,11 +569,9 @@ Proof.
   - exists H; intuition.
 Qed.
 
-
 (*
   all_words n returns all the sequences of events of length n.
 *)
-
 Fixpoint all_words'' (l:list (list B)) e :=
   match l with
   | w::l' => [w ++ [e]] ++ all_words'' l' e
@@ -618,14 +587,12 @@ Fixpoint all_words1 (E:list B) :=
   | e::E' => [[e]] ++ all_words1 E'
   | nil => nil
   end.
-
 Fixpoint all_words (n:nat) :=
   match n with
   | 1 => all_words1 events
   | O => [[]]
   | S n' => all_words' (all_words n') events
   end.
-
 
 (* This lemma helps prove all_words_generated. *)
 Lemma all_words_generated1 n : forall w e,
@@ -654,7 +621,7 @@ Proof.
     + right; apply IH; intuition.
 Qed.
 
-(* all_words n has every generated sequence of events of length n. *)
+(* all_words n has every generated string of length n. *)
 Lemma all_words_generated n : forall w,
   generates w -> length w = n -> In w (all_words n).
 Proof.
@@ -674,7 +641,7 @@ Proof.
         -- eapply IH; apply H.
 Qed.
 
-(* all_words_le returns all the sequences of events of length less or equal to n. *)
+(* all_words_le returns all the strings of length less or equal to n. *)
 Fixpoint all_words_le (n:nat) :=
   match n with
   | S n' => all_words (S n') ++ all_words_le n'
