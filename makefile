@@ -1,13 +1,14 @@
-all: compile
+all:
+	@coqc NatListSet.v
+	@coqc Pigeonhole.v
+	@coqc Digraph.v
+	@coqc DFA.v
+	@coqc DFA_Digraph.v
+	@coqc ReachableState.v
+	@coqc DistinguishableState.v
+	@coqc Equivalent_DFAs.v
+	@rm *.glob *.vok *.vos .*.aux .nia.cache
 
-compile:
-	@coqc Utils
-	@coqc DFA
-	@coqc QS
-	@find . -maxdepth 1 -name "*.vo.aux" -type f -delete
-	@find . -maxdepth 1 -name "*.glob" -type f -delete
-	@find . -maxdepth 1 -name "*.vok" -type f -delete
-	@find . -maxdepth 1 -name "*.vos" -type f -delete
+clean:
+	@rm *.vo
 
-clear:
-	@rm *.glob *.vo -f

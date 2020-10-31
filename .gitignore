@@ -1,0 +1,7 @@
+# Ignores Coq compiled files
+*.vo
+*.vok
+*.vos
+*.glob
+*.cache
+*.aux
