@@ -1,4 +1,4 @@
-Require Import Nat PeanoNat List DFA Lia NatListSet Equivalent_DFAs.
+Require Import Nat PeanoNat List DFA Lia NatListSet Equivalent_DFA.
 Import ListNotations.
 
 Fixpoint projection unobservable w :=

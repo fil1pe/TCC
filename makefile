@@ -6,7 +6,7 @@ all:
 	@coqc DFA_Digraph.v
 	@coqc ReachableState.v
 	@coqc DistinguishableState.v
-	@coqc Equivalent_DFAs.v
+	@coqc Equivalent_DFA.v
 	@rm *.glob *.vok *.vos .*.aux .nia.cache
 
 clean:
