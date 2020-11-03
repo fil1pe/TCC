@@ -1,102 +1,85 @@
 Require Import Nat PeanoNat List Lia.
 Import ListNotations.
 
+(*
+  This modules includes useful stuff regarding to lists of naturals.
+*)
+
+(* Checks if a given natural n is in a given list l. *)
 Fixpoint in_list n (l:list nat) :=
   match l with
   | n'::l => orb (n' =? n) (in_list n l)
   | nil => false
   end.
 
-Lemma in_list_correct n l :
+(* It returns true iff n is in l (In n l). *)
+Lemma in_list__In n l :
   in_list n l = true <-> In n l.
 Proof.
-  split; intro H.
-  - induction l as [|n' l IH].
-    + inversion H.
-    + simpl in H; destruct (n' =? n) eqn:H0.
-      * left; apply Nat.eqb_eq; auto.
-      * right; apply IH; auto.
-  - induction l as [|n' l IH].
-    + inversion H.
-    + inversion H; subst.
-      * simpl; rewrite Nat.eqb_refl; auto.
-      * apply IH in H0;
-        simpl; rewrite Bool.orb_comm, H0; auto.
+  induction l as [|n' l IH]; split; intro H.
+  - discriminate.
+  - inversion H.
+  - simpl in H; destruct (n' =? n) eqn:H0.
+    + left; apply Nat.eqb_eq; auto.
+    + right; apply IH; auto.
+  - inversion H.
+    + subst; simpl; rewrite Nat.eqb_refl; auto.
+    + apply IH in H0; simpl; rewrite Bool.orb_comm, H0; auto.
 Qed.
 
+(* Adds n if it is not yet in l. *)
 Definition add n (l:list nat) :=
   match in_list n l with
   | true => l
   | false => n::l
   end.
 
-Lemma add_correct n1 n2 l :
+(* n1 is in (add n2 l) iff it is in (n2::l). *)
+Lemma in_add__in_cons n1 n2 l :
   In n1 (add n2 l) <-> In n1 (n2::l).
 Proof.
   unfold add; split; intro H.
   - destruct (in_list n2 l); intuition.
   - destruct H as [H|H].
-    + subst; destruct (in_list n1 l) eqn:H;
-      try (apply in_list_correct in H); intuition.
+    + subst; destruct (in_list n1 l) eqn:H; try (apply in_list__In in H); intuition.
     + destruct (in_list n2 l); intuition.
 Qed.
 
+(* Adds all naturals in l1 into l2. *)
 Fixpoint union l1 l2 :=
   match l1 with
   | n::l1 => add n (union l1 l2)
   | nil => l2
   end.
 
-Lemma union_correct l1 l2 :
-  forall n, In n (l1 ++ l2) <-> In n (union l1 l2).
+(* n is in (union l1 l2) iff it is in (l1 ++ l2). *)
+Lemma in_union__in_app n l1 l2 :
+  In n (union l1 l2) <-> In n (l1 ++ l2).
 Proof.
-  revert l2; induction l1 as [|n1 l1 IH]; intro l2; split; simpl; intro H; auto.
-  - apply add_correct; destruct H as [H|H].
+  induction l1 as [|n1 l1 IH]; split; intro H.
+  1,2: auto.
+  - apply in_add__in_cons in H; destruct H as [H|H].
+    + subst; left; auto.
+    + right; apply IH; auto.
+  - apply in_add__in_cons; destruct H as [H|H].
     + left; auto.
     + right; apply IH; auto.
-  - apply add_correct in H; destruct H as [H|H].
-    + auto.
-    + right; apply IH; auto.
 Qed.
 
-Lemma add_trans n l :
-  forall m, In n l -> In n (add m l).
-Proof.
-  unfold add; intro m; destruct (in_list m l); try right; auto.
-Qed.
-
-Lemma union_trans_l l1 l2 :
-  forall n, In n l1 -> In n (union l1 l2).
-Proof.
-  revert l2.
-  induction l1 as [|m l1 IH]; intros l2 n H.
-  - inversion H.
-  - inversion H; subst.
-    + apply union_correct; left; auto.
-    + apply add_correct; right; auto.
-Qed.
-
-Lemma union_trans_r l1 l2 :
-  forall n, In n l2 -> In n (union l1 l2).
-Proof.
-  revert l2.
-  induction l1 as [|m l1 IH]; intros l2 n H.
-  - auto.
-  - apply add_correct; right; apply IH; unfold add; destruct (in_list m l2); try right; auto.
-Qed.
-
+(* The maximum natural in l (or zero if l is empty/nil). *)
 Fixpoint max_in_list l :=
   match l with
-  | x::l => Nat.max x (max_in_list l)
+  | x::l => max x (max_in_list l)
   | nil => O
   end.
 
-Lemma max_in_list_correct l:
-  forall x, In x l -> x <= max_in_list l.
+(* Every n in l is less or equal to (max_in_list l). *)
+Lemma leq_max_in_list n l:
+  In n l -> n <= max_in_list l.
 Proof.
-  induction l as [|y l IH].
+  revert n; induction l as [|m l IH].
   - contradiction.
-  - simpl; intros x [H|H]; subst.
-    + apply Nat.le_max_l.
-    + apply IH in H; nia.
+  - intros n [H|H].
+    + subst; apply Nat.le_max_l.
+    + simpl; apply IH in H; nia.
 Qed.
