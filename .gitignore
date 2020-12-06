@@ -1,7 +1,19 @@
 # Ignores Coq compiled files
-*.vo
-*.vok
-*.vos
-*.glob
-*.cache
-*.aux
+/*.vo
+/*.vok
+/*.vos
+/*.glob
+/*.cache
+/*.aux
+
+# Ignores Latex compiled files
+Texto/_minted-TCC
+Texto/*.aux
+Texto/capitulos/*.aux
+Texto/*.blg
+Texto/*.fdb_latexmk
+Texto/*.fls
+Texto/*.lof
+Texto/*.log
+Texto/*.loq
+Texto/*.toc
