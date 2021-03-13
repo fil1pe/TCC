@@ -1,0 +1,36 @@
+\documentclass[12pt,a4paper,brazil]{abntex2}
+
+\usepackage{times} % Fonte Times New Roman
+\usepackage[alf]{abntex2cite} % Citar nas normas da ABNT
+\usepackage[hyphenbreaks]{breakurl} % Quebrar links
+\usepackage[T1]{fontenc} % Para poder copiar as palavras com acentos
+\usepackage{amssymb} % O símbolo de conjunto vazio (\emptyset)
+\usepackage{amsfonts} % Os símbolos dos conjuntos numéricos
+\usepackage{amsmath} % Equações de múltiplas linhas
+\usepackage{indentfirst} % Indentar o primeiro parágrafo também
+\usepackage{float} % Para forçar a posição das figuras
+
+\hypersetup{hidelinks} % Não colorir links
+\setlength{\parindent}{1.25cm} % Tamanho da identação do parágrafo
+\linespread{1.5} % Espaçamento entre linhas
+
+\begin{document}
+
+  % Tabela
+  \newcommand{\ttable}[4][H]{
+    \begin{table}[#1]
+      \begin{center}
+        #3
+      \end{center}
+      \caption{#2}
+      \if #4\else
+        \label{#4}
+      \fi
+    \end{table}
+  }
+
+  \include{capitulos/intro}
+
+  \bibliography{referencias}
+
+\end{document}
