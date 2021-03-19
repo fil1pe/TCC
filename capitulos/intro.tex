@@ -70,3 +70,51 @@ f(p_0, p_n) :=\textsf{ }& \textsf{rec}(0) := p_0 \\
 em que $p_0 : P'(0)$ corresponde à hipótese de alguma proposição $P$ sobre o zero e $p_n$ é do tipo $\forall' n:\mathbb{N}, P'(n) \to P'(S(n))$. Dentro da função $f$, definimos outra função, $\textsf{rec}$, separando em casos distintos para cada construtor dos naturais. Observando os tipos acima, notamos que $p_0$ equivale à base da prova por indução e $p_n(n, h)$ para qualquer $n:\mathbb{N}$, ao passo indutivo, sendo $h$ o equivalente à hipótese de indução.
 
 Uma prova completa da correspondência de Curry-Howard vai além \cite{rafael_tcc}. Não obstante, com o exposto, podemos captar as noções principais para o entendimento do funcionamento do assistente de provas Coq neste trabalho de conclusão de curso. Tal sistema computacional funciona como um verificador de provas ao passo que valida os programas que construímos (ou seja, provas).
+
+\section{Autômatos finitos}
+
+Um autômato finito não-determinístico (AFND) é uma máquina abstrata que decide uma linguagem regular. Para isso, ele conta com um conjunto de estados, um alfabeto e regras de transição de estados. Uma regra de transição indica os próximos estados da computação de uma palavra -- sequência de símbolos do alfabeto -- feita símbolo a símbol, da esquerda para a direita. O processo inicia-se nos estados iniciais e, quando termina em pelo menos um estado de aceitação, aceita a entrada. O nome não-determinístico serve para indicar a possibilidade de a computação ser não-determinística no sentido de que pode acontecer em mais de um estado simultaneamente. Por outro lado, um autômato finito determinístico (AFD) não compartilha dessa característica, havendo, portanto, apenas um estado inicial e regras de transição determinísticas: a partir de um estado e símbolo, só é possível transicionar para um único estado.
+
+Uma definição formal é dada por ?, em que um AFND $G$ é uma quíntupla \begin{equation}
+  \label{eq:afnd_def_1}
+  \langle Q, \Sigma, \delta, Q_0, F \rangle
+\end{equation} respectivamente o conjunto de estados, o alfabeto, o conjunto de regras de transição -- ou função parcial de transição --, o conjunto de estados iniciais e o de estados de aceitação. Essa definição vem com algumas restrições, conforme a \autoref{tab:afnd_restricoes}. É interessante torná-las restrições intrínsecas ao tipo que definiremos em vez de utilizar condicionais, pois isso facilita as provas no Coq por dois motivos: as restrições ficam implícitas e o compilador consegue verificá-las automaticamente.
+
+\ttable{Restrições da definição de um AFND $G$}{
+  \begin{tabular}{|c|c|c|}
+    \hline
+    & \textbf{Componente} & \textbf{Restrição} \\
+    \hline
+    1 & $Q$ & \multirow{3}{*}{Conjunto finito não vazio} \\
+    \cline{1-2}
+    2 & $\Sigma$ & \\
+    \cline{1-2}
+    3 & $Q_0$ & \\
+    \hline
+    4 & $Q_0$ & $Q_0 \subseteq Q$ \\
+    \hline
+    5 & $F$ & $F \subseteq Q$ \\
+    \hline
+  \end{tabular}
+}{tab:afnd_restricoes}
+
+Façamos uma singela modificação na definição da \autoref{eq:afnd_def_1}. Fixemos $Q = Q' \cup Q_0 \cup F$; assim, uma nova quíntupla pode ser \begin{equation}
+  \label{eq:afnd_def_2}
+  G := \langle Q', \Sigma, \delta, Q_0, F \rangle
+\end{equation} com as novas restrições da \autoref{tab:afnd_novas_restricoes}. Podemos observar que as restrições 4 e 5 da \autoref{tab:afnd_restricoes} foram resolvidas .
+
+\ttable{Restrições da definição de um AFND $G$}{
+  \begin{tabular}{|c|c|c|}
+    \hline
+    & \textbf{Componente} & \textbf{Restrição} \\
+    \hline
+    1 & $Q'$ & \multirow{2}{*}{Conjunto finito} \\
+    \cline{1-2}
+    2 & $F$ & \\
+    \hline
+    3 & $Q_0$ & \multirow{2}{*}{Conjunto finito não vazio} \\
+    \cline{1-2}
+    4 & $\Sigma$ & \\
+    \hline
+  \end{tabular}
+}{tab:afnd_novas_restricoes}
