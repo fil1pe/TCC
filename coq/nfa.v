@@ -69,6 +69,17 @@ Fixpoint transition {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B)
   | _::g => transition eq eq' g q a
   end.
 
+
+(* Se existe uma transição definida para algum símbolo a, então esse símbolo está no alfabeto *)
+Lemma trans_in_alphabet {A B} (g:nfa_comp_list A B) q a q' :
+  In (trans q a q') g -> In a (alphabet g).
+Proof.
+  intros.
+  induction g; destruct H.
+  1: subst; left; auto.
+  destruct a0; simpl; try right; intuition.
+Qed.
+
 (* Prova de consistência da função de transição *)
 Lemma transition_in {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B) q a q' :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
@@ -113,6 +124,35 @@ Fixpoint ext_transition {A B} eq eq' (g:nfa_comp_list A B) Q w :=
                 end) Q
             ) w
   end.
+
+(* Uma versão mais genérica daquela prova de consistência *)
+Lemma transition_in_ext {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B) Q q a q' :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  (forall a b, a=b <-> eq' a b=true) ->
+  In q Q -> In (trans q a q') g ->
+  In q' (ext_transition eq eq' g Q [a]).
+Proof.
+  intros; induction Q; destruct H1.
+  1: subst; apply in_or_app; left; apply transition_in; auto.
+  apply in_or_app; right; intuition.
+Qed.
+
+(* A 'volta' *)
+Lemma in_transition_ext {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B) Q q' a :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  (forall a b, a=b <-> eq' a b=true) ->
+  In q' (ext_transition eq eq' g Q [a]) ->
+  exists q, In q Q /\ In (trans q a q') g.
+Proof.
+  intros.
+  induction Q as [|q Q IH].
+  1: destruct H1.
+  apply in_app_or in H1; destruct H1.
+  - apply transition_in in H1.
+    2,3: auto.
+    exists q; intuition.
+  - apply IH in H1; destruct H1 as [q0 H1]; exists q0; intuition.
+Qed.
 
 (* Um lema útil *)
 Lemma ext_transition_app {A B} eq eq' (g:nfa_comp_list A B) Q w1 w2 :
@@ -284,21 +324,45 @@ Inductive path {A B} (g:nfa_comp_list A B) : A->A->list B->Prop :=
   | path_next q1 q2 q3 w a : path g q1 q2 w -> In (trans q2 a q3) g -> path g q1 q3 (w ++ [a]).
 
 (* Definição reversa *)
-Lemma path_left {A B} (g:nfa_comp_list A B) q1 q2 q3 a w :
-  In (trans q1 a q2) g -> path g q2 q3 w -> path g q1 q3 (a::w).
+Lemma path_left {A B} (g:nfa_comp_list A B) q1 q3 a w :
+  (forall q2, In (trans q1 a q2) g -> path g q2 q3 w -> path g q1 q3 (a::w)) /\
+  (path g q1 q3 (a::w) -> exists q2, In (trans q1 a q2) g /\ path g q2 q3 w).
 Proof.
-  intros.
-  induction H0.
-  - replace [a] with ([] ++ [a]).
-    2: auto.
-    apply path_next with q1.
-    1: constructor.
-    auto.
-  - replace (a::w ++ [a0]) with ((a::w) ++ [a0]).
-    2: auto.
-    apply path_next with q2.
-    2: auto.
-    intuition.
+  split; intros.
+  - induction H0.
+    + replace [a] with ([] ++ [a]).
+      2: auto.
+      apply path_next with q1.
+      1: constructor.
+      auto.
+    + replace (a::w ++ [a0]) with ((a::w) ++ [a0]).
+      2: auto.
+      apply path_next with q2.
+      2: auto.
+      intuition.
+  - generalize dependent q3.
+    induction w using rev_ind; intros.
+    + exists q3; split.
+      2: constructor.
+      inversion H.
+      assert (w = nil /\ a0 = a).
+        replace [a] with (nil ++ [a]) in H0;
+        try apply app_inj_tail in H0; auto.
+      destruct H5; subst.
+      inversion H1; subst.
+      1: auto.
+      destruct w; discriminate.
+    + inversion H; subst.
+      assert (w0 = a::w).
+        replace (a::w ++ [x]) with ((a::w) ++ [x]) in H0;
+        try apply app_inj_tail in H0; intuition.
+      subst; apply IHw in H1; destruct H1 as [q5 H1];
+      exists q5; split.
+      1: intuition.
+      apply path_next with q2.
+      1: intuition.
+      injection H0; intros; apply app_inj_tail in H2; destruct H2;
+      subst; intuition.
 Qed.
 
 (* Existe caminho sse existe transição estendida *)
@@ -332,6 +396,18 @@ Proof.
     + rewrite ext_transition_app; apply ext_transition_single with q2; split.
       1: auto.
       simpl; rewrite app_nil_r; apply (transition_in eq eq' g q2 a q3 H H0); auto.
+Qed.
+
+(* Se há um caminho de q a q' por w em um dado autômato g1 ou g2, então existe esse caminho
+na junção de g1 e g2. *)
+Lemma path_app {A B} (g1 g2:nfa_comp_list A B) q q' w :
+  path g1 q q' w \/ path g2 q q' w -> path (g1 ++ g2) q q' w.
+Proof.
+  intros.
+  destruct H; induction H.
+  1,3: constructor.
+  1,2: apply path_next with q2;
+    try apply in_or_app; intuition.
 Qed.
 
 

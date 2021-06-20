@@ -117,7 +117,6 @@ Definition in_opt {A} (x:option A) l :=
               end
   end.
 
-(**
 (* Pega uma lista-conjunto equivalente dentro de uma lista *)
 Fixpoint get_set {A} (eq:A->A->bool) s l :=
   match l with
@@ -126,6 +125,7 @@ Fixpoint get_set {A} (eq:A->A->bool) s l :=
              else get_set eq s l
   end.
 
+(**
 (**)
 Lemma eq_set_get_trans {A} (eq:A->A->bool) s1 s2 l :
   (forall x x' : A, x = x' <-> eq x x' = true) ->

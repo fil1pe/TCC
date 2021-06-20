@@ -5,3 +5,9 @@
 *.fls
 *.blg
 *.bbl
+
+coq/*.cache
+coq/*.glob
+coq/*.vok
+coq/*.vos
+coq/*.vo
