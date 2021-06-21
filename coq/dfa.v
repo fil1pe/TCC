@@ -41,11 +41,11 @@ Lemma dfa_is_nfa {A B} (g:nfa_comp_list A B) (H:is_dfa' g) :
 Proof.
   induction H.
   1: auto.
-  1-7: inversion IHis_dfa'; apply is_nfa_cons with eq; auto.
+  1-7: inversion IHis_dfa'; apply is_nfa_cons with eq eq'; auto.
 Qed.
 
 (* Só existe um estado inicial em um autômato determinístico *)
-Lemma dfa_start {A B} {g:nfa_comp_list A B} {q0} q :
+Lemma dfa_start {A B} (g:nfa_comp_list A B) q0 q :
   is_dfa' g -> In q0 (start_states g) -> In q (start_states g) -> q = q0.
 Proof.
   intros.
@@ -60,7 +60,7 @@ Proof.
 Qed.
 
 (* A transição sempre resulta no mesmo estado, quando definida *)
-Lemma dfa_trans {A B eq eq'} {g:nfa_comp_list A B} {q0 q q' a} :
+Lemma dfa_trans {A B} eq eq' (g:nfa_comp_list A B) q0 q q' a :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
   is_dfa' g ->
   In q (transition eq eq' g q0 a) ->
@@ -89,7 +89,7 @@ Proof.
     + apply (IHis_dfa' eq eq' q0 q q' a); auto.
 Qed.
 
-Lemma dfa_trans_ext {A B eq eq'} {g:nfa_comp_list A B} {q0 q q' w l} :
+Lemma dfa_trans_ext {A B} eq eq' (g:nfa_comp_list A B) q0 q q' w l :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
   is_dfa' g ->
   ext_transition eq eq' g [q0] w = l ->
@@ -108,7 +108,7 @@ Proof.
   simpl in H3, H4; rewrite app_nil_r in H3, H4.
   assert (forall q q', In q (transition eq eq' g q0 a) ->
   In q' (transition eq eq' g q0 a) -> q' = q).
-    intros; apply (dfa_trans H H0 H1 H2 H5).
+    intros; apply dfa_trans with eq eq' g q0 a; auto.
   induction (transition eq eq' g q0 a).
   1: rewrite ext_transition_nil in H3; destruct H3.
   replace (a0::l0) with ([a0] ++ l0) in H3, H4.

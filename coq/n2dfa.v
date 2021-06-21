@@ -2,12 +2,13 @@ Require Import List Bool Lia sets nfa dfa reversing.
 Include ListNotations.
 
 
-Fixpoint n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f Q l :=
+Fixpoint n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f h Q l :=
   match l with
   | nil => nil
   | a::l => match (ext_transition eq eq' g Q [a]) with
-            | nil => n2dfa'_loop eq eq' g f Q l
-            | Q' => trans Q a Q'::f Q' ++ n2dfa'_loop eq eq' g f Q l
+            | nil => n2dfa'_loop eq eq' g f h Q l
+            | Q'' => let Q' := h Q'' in
+                     trans Q a Q'::f Q' ++ n2dfa'_loop eq eq' g f h Q l
             end
   end.
 
@@ -15,13 +16,13 @@ Fixpoint n2dfa' {A B} eq eq' (g:nfa_comp_list A B) n Q :=
   match n with
   | O => nil
   | S n =>
-    n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) Q (alphabet g)
+    n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' => Q') Q (alphabet g)
   end.
 
 
-Lemma n2dfa'_loop_in {A B} eq eq' (g:nfa_comp_list A B) f Q l a :
+Lemma n2dfa'_loop_in {A B} eq eq' (g:nfa_comp_list A B) f h Q l a :
   In a l -> ext_transition eq eq' g Q [a] <> nil ->
-  In (trans Q a (ext_transition eq eq' g Q [a])) (n2dfa'_loop eq eq' g f Q l).
+  In (trans Q a (h (ext_transition eq eq' g Q [a]))) (n2dfa'_loop eq eq' g f h Q l).
 Proof.
   intros; induction l.
   1: destruct H.
@@ -39,10 +40,10 @@ Proof.
   Transparent ext_transition.
 Qed.
 
-Lemma in_n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f Q l c :
-  In c (n2dfa'_loop eq eq' g f Q l) ->
+Lemma in_n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f h Q l c :
+  In c (n2dfa'_loop eq eq' g f h Q l) ->
   exists Q' a, In a l /\ Q' <> nil /\ Q' = ext_transition eq eq' g Q [a] /\
-  In c (trans Q a Q'::f Q').
+  In c (trans Q a (h Q')::f (h Q')).
 Proof.
   Opaque ext_transition.
   intros.
@@ -50,8 +51,8 @@ Proof.
   1: destruct H.
   simpl in H; destruct (ext_transition eq eq' g Q [b]) eqn:H0.
   1: apply IHl in H; destruct H as [Q' [a H]]; exists Q', a; intuition.
-  replace (trans Q b (a :: l0) :: f (a :: l0) ++ n2dfa'_loop eq eq' g f Q l) with
-  ((trans Q b (a :: l0) :: f (a :: l0)) ++ n2dfa'_loop eq eq' g f Q l) in H.
+  replace (trans Q b (h (a :: l0)) :: f (h (a :: l0)) ++ n2dfa'_loop eq eq' g f h Q l) with
+  ((trans Q b (h (a :: l0)) :: f (h (a :: l0))) ++ n2dfa'_loop eq eq' g f h Q l) in H.
   2: auto.
   apply in_app_or in H; destruct H.
   - exists (a::l0), b; repeat split.
@@ -65,7 +66,6 @@ Lemma in_trans_n2dfa' {A B} eq eq' (g:nfa_comp_list A B) Q0 Q Q' n a :
   In (trans Q a Q') (n2dfa' eq eq' g n Q0) ->
   In a (alphabet g) /\ Q' <> nil /\ Q' = ext_transition eq eq' g Q [a].
 Proof.
-  Opaque ext_transition.
   intros;
   generalize dependent Q0;
   generalize dependent Q';
@@ -76,7 +76,6 @@ Proof.
   destruct H as [Q'' [b [H [H0 [H1 [H2|H2]]]]]].
   1: injection H2; intros; subst; intuition.
   apply IHn in H2; auto.
-  Transparent ext_transition.
 Qed.
 
 Lemma n2dfa'_new_path {A B} eq eq' (g:nfa_comp_list A B) n w Q q q' :
@@ -129,8 +128,13 @@ Proof.
         1: destruct H7.
         intros contra; discriminate.
       }
-      apply path_left with (ext_transition eq eq' g Q [a]).
-      1: apply n2dfa'_loop_in; auto.
+      apply path_left with (ext_transition eq eq' g Q [a]). {
+        remember (fun Q' : list A => Q') as h eqn:H8.
+        replace (trans Q a (ext_transition eq eq' g Q [a])) with
+        (trans Q a (h (ext_transition eq eq' g Q [a]))).
+        2: rewrite H8; auto.
+        apply n2dfa'_loop_in; auto.
+      }
       induction (alphabet g).
       1: destruct H6.
       simpl n2dfa'_loop.
@@ -138,14 +142,14 @@ Proof.
       * subst; clear IHl; destruct (ext_transition eq eq' g Q [a]) eqn:H8.
         1: destruct H7; auto.
         symmetry in H8; subst.
-        replace (trans Q a (a0 :: l0) :: n2dfa' eq eq' g n (a0 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) Q l) with
-        ([trans Q a (a0 :: l0)] ++ n2dfa' eq eq' g n (a0 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) Q l).
+        replace (trans Q a (a0 :: l0) :: n2dfa' eq eq' g n (a0 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' : list A => Q') Q l) with
+        ([trans Q a (a0 :: l0)] ++ n2dfa' eq eq' g n (a0 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' : list A => Q') Q l).
         2: auto.
         apply path_app; right; apply path_app; left; intuition.
       * destruct (ext_transition eq eq' g Q [a0]).
         1: intuition.
-        replace (trans Q a0 (a1 :: l0) :: n2dfa' eq eq' g n (a1 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) Q l) with
-        ([trans Q a0 (a1 :: l0)] ++ n2dfa' eq eq' g n (a1 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) Q l).
+        replace (trans Q a0 (a1 :: l0) :: n2dfa' eq eq' g n (a1 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' : list A => Q') Q l) with
+        ([trans Q a0 (a1 :: l0)] ++ n2dfa' eq eq' g n (a1 :: l0) ++ n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' : list A => Q') Q l).
         2: auto.
         apply path_app; right; apply path_app; right; intuition.
       Transparent ext_transition.
@@ -173,149 +177,190 @@ Proof.
 Qed.
 
 
-Fixpoint n2dfa'_loop_op {A B} eq eq' (g:nfa_comp_list A B) f h Q l :=
-  match l with
-  | nil => nil
-  | a::l => match (ext_transition eq eq' g Q [a]) with
-            | nil => n2dfa'_loop_op eq eq' g f h Q l
-            | _Q' => let Q' := h _Q' in
-                     trans Q a Q'::f Q' ++ n2dfa'_loop_op eq eq' g f h Q l
-            end
-  end.
-
-Fixpoint n2dfa'_op {A B} eq eq' (g:nfa_comp_list A B) l Q n :=
+(* A versão otimizada do algoritmo *)
+Fixpoint n2dfa'_op {A B} eq eq' (g:nfa_comp_list A B) l n Q :=
   match n with
   | O => nil
   | S n =>
     if inb (lists_eq eq) Q l then
       nil
     else
-      n2dfa'_loop_op eq eq' g (fun Q' => n2dfa'_op eq eq' g (Q::l) Q' n) (fun Q' => get_set eq Q' (Q::l)) Q (alphabet g)
+      n2dfa'_loop eq eq' g (n2dfa'_op eq eq' g (Q::l) n) (fun Q' => get_set eq Q' (Q::l)) Q (alphabet g)
   end.
 
-(*Definition visited {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B)
-(L:nfa_comp_list (list A) B) (l:list (list A)) : Prop :=
-  (forall Q, In Q l -> forall a, ext_transition eq eq' g Q [a] = nil \/
-    exists Q', eq_sets Q' (ext_transition eq eq' g Q [a]) /\ In (trans Q a Q') L) /\
-  (forall Q a Q', In (trans Q a Q') L -> eq_sets Q' (ext_transition eq eq' g Q [a]) /\ In Q l).
 
-Lemma n2dfa'_trans {A B} eq eq' (g:nfa_comp_list A B) Q Q1 a Q2 n :
-  In (trans Q1 a Q2) (n2dfa' eq eq' g n Q) ->
-  Q2 = ext_transition eq eq' g Q1 [a] /\ Q2 <> nil.
+Lemma get_set_eq {A} (eq:A->A->bool) s l :
+  (forall a b, a=b <-> eq a b = true) ->
+  eq_sets s (get_set eq s l).
 Proof.
-Admitted.
+  intros; induction l.
+  1: split; auto.
+  simpl; destruct (eq_setsb eq s a) eqn:H0.
+  2: auto.
+  apply eq_setsb_correct in H0; auto.
+Qed.
 
-Lemma n2dfa'_op_correct {A B} eq eq' (g:nfa_comp_list A B) n :
-  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
-  forall  Q0 Q1 Q2 a l L,
-  In (trans Q1 a Q2) (n2dfa' eq eq' g n Q0) ->
-  visited eq eq' g L l ->
-  exists Q3 Q4, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\ In (trans Q3 a Q4) (L++n2dfa'_op eq eq' g l Q0 n).
+Lemma get_set_correct {A} (eq:A->A->bool) s l :
+  (forall a b, a=b <-> eq a b = true) ->
+  (get_set eq s l = s) \/
+  exists s', get_set eq s l = s' /\ eq_sets s' s /\ inb (lists_eq eq) s' l = true.
 Proof.
-  intro H10; induction n; intros.
-  1: destruct H.
-  assert (Q1 = Q0 \/ exists b Q5, Q5 = ext_transition eq eq' g Q0 [b] /\ In (trans Q1 a Q2) (n2dfa' eq eq' g n Q5)).
-    admit.
-  destruct H1 as [H1|[b [Q5 [H1 H2]]]].
-  - subst; exists Q0; simpl.
-    destruct (inb (lists_eq eq) Q0 l) eqn:H1.
-    + destruct H0 as [H0 H2].
-      apply (inb_correct (lists_eq eq) Q0 l (lists_eq_correct H10)) in H1.
-      assert (ext_transition eq eq' g Q0 [a] = [] \/ (exists Q' : list A, eq_sets Q' (ext_transition eq eq' g Q0 [a]) /\ In (trans Q0 a Q') L)).
-        auto.
-      destruct H3.
-      * apply n2dfa'_trans in H; destruct H as [H H4];
-        rewrite <- H3 in H4; apply H4 in H; destruct H.
-      * destruct H3 as [Q4 H3].
-        exists Q4; intuition.
-        1: split; auto.
-        apply n2dfa'_trans in H; destruct H as [H _];
-        split; intros.
-        1: apply H4; rewrite <- H; auto.
-        apply H4 in H3; rewrite H; auto.
-    + simpl in H.
-      admit.
-  - assert (exists L', visited eq eq' g L' [Q0]).
-      admit.
-    destruct H3 as [L' H3].
-    assert (visited eq eq' g (L++L') (Q0::l)). {
-      destruct H3 as [H3 H4]; destruct H0 as [H5 H6]; split; intros.
-      - destruct H0.
-        + subst; destruct H3 with Q a0.
-          1,2: intuition.
-          right; destruct H0 as [Q' H0]; exists Q'; intuition.
-        + destruct H5 with Q a0.
-          1,2: intuition.
-          right; destruct H7 as [Q' H7]; exists Q'; intuition.
-      - apply in_app_or in H0; destruct H0.
-        1: destruct H6 with Q a0 Q'; intuition.
-        destruct H4 with Q a0 Q'.
-        1: auto.
-        destruct H8; subst; intuition; destruct H8.
-    }
-    pose proof H4.
-    apply (IHn Q5 Q1 Q2 a (Q0::l) (L++L') H2) in H5.
-    destruct H5 as [Q3 [Q4 [H5 [H6 H7]]]]; exists Q3, Q4; split.
+  intros; induction l.
+  1: intuition.
+  simpl; destruct (eq_setsb eq s a) eqn:H0.
+  - right; exists a; split.
     2: split.
-    1,2: auto.
-    clear H5 H6 H2.
+    1: auto.
+    1: apply eq_setsb_correct in H0; try apply eq_sets_comm; auto.
+    replace (lists_eq eq a a) with true.
+    1: auto.
+    symmetry; apply lists_eq_correct; auto.
+  - destruct IHl as [IHl|[s' H1]].
+    1: left; auto.
+    right; exists s'; intuition. 
+Qed.
+
+
+Lemma next_n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f h Q l a c :
+  ext_transition eq eq' g Q [a] <> nil ->
+  In a l ->
+  In c (f (h (ext_transition eq eq' g Q [a]))) ->
+  In c (n2dfa'_loop eq eq' g f h Q l).
+Proof.
+  Opaque ext_transition.
+  intros; induction l; destruct H0.
+  - subst.
+    simpl; destruct (ext_transition eq eq' g Q [a]).
+    1: destruct H; auto.
+    right; apply in_or_app; intuition.
+  - simpl; destruct (ext_transition eq eq' g Q [a0]).
+    1: intuition.
+    right; apply in_or_app; intuition.
+  Transparent ext_transition.
+Qed.
+
+Lemma n2dfa'_op_correct {A B} eq eq' (g:nfa_comp_list A B) n Q0 a :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  (forall  Q1 Q2,
+  In (trans Q1 a Q2) (n2dfa' eq eq' g n Q0) ->
+  exists Q3 Q4, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\ In (trans Q3 a Q4) (n2dfa'_op eq eq' g [] n Q0)) /\
+  (forall Q3 Q4, In (trans Q3 a Q4) (n2dfa'_op eq eq' g [] n Q0) ->
+  exists Q1 Q2, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\ In (trans Q1 a Q2) (n2dfa' eq eq' g n Q0)).
+Proof.
+  Opaque ext_transition.
+  intros; split; intros.
+
+  {
+    generalize dependent Q0;
+    induction n; intros.
+    1: destruct H0.
+    pose proof H0; simpl in H0; apply in_n2dfa'_loop in H0;
+    destruct H0 as [Q1' [b [H2 [H3 [H4 H5]]]]].
+    destruct H5.
+    - injection H0; intros; subst; clear H0 IHn.
+      exists Q1; simpl.
+      remember (fun Q' : list A => if eq_setsb eq Q' Q1 then Q1 else Q') as h eqn:H20.
+      exists (h(ext_transition eq eq' g Q1 [a])); split.
+      2: split.
+      2: subst; destruct (eq_setsb eq (ext_transition eq eq' g Q1 [a]) Q1) eqn:H4.
+      1,3: split; intuition.
+      1: apply eq_setsb_correct in H4; auto.
+      apply n2dfa'_loop_in; auto.
+    - apply IHn in H0; clear IHn.
+      destruct H0 as [Q3 [Q4 [H5 [H6 H7]]]]; clear H1.
+      admit.
+  }
+
+  remember (@nil (list A)) as vis eqn:H1; clear H1.
+  generalize dependent Q0;
+  generalize dependent vis;
+  induction n; intros.
+  1: destruct H0.
+  simpl in H0; destruct (inb (lists_eq eq) Q0) eqn:H1.
+  1: destruct H0.
+  remember (fun Q' : list A => if eq_setsb eq Q' Q0 then Q0 else get_set eq Q' vis) as h eqn:H20.
+  apply in_n2dfa'_loop in H0.
+  destruct H0 as [Q' [b [H4 [H5 [H6 H7]]]]].
+  destruct H7.
+  - injection H0; intros; subst.
+    destruct (eq_setsb eq (ext_transition eq eq' g Q3 [a])) eqn:H10.
+    + apply eq_setsb_correct in H10.
+      2: auto.
+      exists Q3, (ext_transition eq eq' g Q3 [a]).
+      split.
+      2: split.
+      1: split; intuition.
+      1: auto.
+      simpl; remember (fun Q' : list A => Q') as h eqn:H20.
+      replace (ext_transition eq eq' g Q3 [a]) with (h (ext_transition eq eq' g Q3 [a])).
+      2: subst; auto.
+      apply n2dfa'_loop_in; auto.
+    + exists Q3, (ext_transition eq eq' g Q3 [a]).
+      split.
+      2: split.
+      1: split; intuition.
+      1: apply get_set_eq; auto.
+      simpl; remember (fun Q' : list A => Q') as h eqn:H20.
+      replace (ext_transition eq eq' g Q3 [a]) with (h (ext_transition eq eq' g Q3 [a])).
+      2: subst; auto.
+      apply n2dfa'_loop_in; auto.
+  - subst.
+    destruct (eq_setsb eq (ext_transition eq eq' g Q0 [b]) Q0) eqn:H10.
+    + clear IHn.
+      destruct n.
+      1: destruct H0.
+      simpl in H0.
+      assert (lists_eq eq Q0 Q0 = true).
+        apply lists_eq_correct; auto.
+      rewrite H2, orb_true_l in H0.
+      destruct H0.
+    + assert ((get_set eq (ext_transition eq eq' g Q0 [b]) vis = ext_transition eq eq' g Q0 [b]) \/ exists s', get_set eq (ext_transition eq eq' g Q0 [b]) vis = s' /\
+      eq_sets s' (ext_transition eq eq' g Q0 [b]) /\ inb (lists_eq eq) s' vis = true).
+        apply get_set_correct; auto.
+      destruct H2.
+      * rewrite H2 in H0.
+        apply IHn in H0; destruct H0 as [Q1 [Q2 [H0 [H6 H7]]]].
+        exists Q1, Q2; split.
+        2: split.
+        1,2: auto.
+        simpl.
+        apply next_n2dfa'_loop with b; auto.
+      * destruct H2 as [Q'' [H2 [_ H3]]]; subst; destruct n as [|n].
+        1: destruct H0.
+        simpl in H0; rewrite H3, orb_true_r in H0; destruct H0.
+  Transparent ext_transition.
 Admitted.
 
 
-Lemma n2dfa'kdsdsakdksa {A B} eq eq' (g:nfa_comp_list A B) q q' w :
-  (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
-  path g q q' w ->
-  exists Q Q', In q Q /\ In q' Q' /\ path (n2dfa' eq eq' g nil Q (length w)) Q Q' w.
+(*Fixpoint pow {B} (w:list B) n :=
+  match n with
+  | O => nil
+  | S n => w ++ pow w n
+  end.
+
+Definition max_length {A B} (g:nfa_comp_list A B) :=
+  length (states g).
+
+Lemma pumping {A B} (g:nfa_comp_list A B) q1 q3 w :
+  is_dfa' g ->
+  path g q1 q3 w -> exists w1 w2 w3 n q2, w = w1 ++ (pow w2 n) ++ w3 /\
+  path g q1 q2 w1 /\ path g q2 q2 w2 /\ path g q2 q3 w3 /\
+  length w2 <= max_length g /\
+  length (w1 ++ w3) <= max_length g.
 Proof.
-  intros.
-  induction H1.
-  - admit.
-  - destruct IHpath as [Q [Q' [H3 [H4 H5]]]]; exists Q.
-
-
-
-
-Lemma n2dfa'_new_path {A B} eq eq' (g:nfa_comp_list A B) n w :
-  (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
-  length w <= n ->
-  forall q q', path g q q' w ->
-  exists Q Q', In q Q /\ In q' Q' /\ path (n2dfa' eq eq' g nil Q n) Q Q' w.
-Proof.
-  intros.
-  induction H2.
-  - exists [q], [q]. admit.
-  - assert (length w <= n).
-      rewrite app_length in H1; lia.
-    apply IHpath in H4; clear IHpath; destruct H4 as [Q [Q' [H4 [H5 H6]]]];
-    exists Q.
-    assert (exists Q'', In q3 Q'' /\ In (trans Q' a Q'') (n2dfa' eq eq' g [] Q n)). {
-      generalize dependent (@nil (list A)).
-      induction n; intros.
-      - admit.
-      - inversion H1.
-        + subst. admit.
-        + subst. specialize (IHn H1).
-
-
-      replace (length (w ++ [a])) with (S (length w)) in H1.
-      2: rewrite app_length; simpl; lia.
-      induction n.
-      - admit.
-      - inversion H1.
-        2: subst; apply IHn in H8.
-        + admit.
-        + destruct H8 as [Q'' [H9 H10]]; exists Q''; split.
-          1: auto.
-          clear H9 IHn H6 H5 H4 H3 H2 H1.
-          admit.
-        + clear H8 IHn H5 H4 H3 H2 H1.
-          induction n.
-          * simpl. simpl in H6.
-    }
-    destruct H7 as [Q'' [H7 H8]]; exists Q''; repeat split.
-    3: apply path_next with Q'.
-    1-4: auto.
 Admitted.*)
+
+Lemma path_transitive {A B} (g:nfa_comp_list A B) q1 q2 q3 w1 w2 :
+  path g q1 q2 w1 -> path g q2 q3 w2 -> path g q1 q3 (w1 ++ w2).
+Proof.
+  intros.
+  induction H0.
+  1: rewrite app_nil_r; auto.
+  replace (w1 ++ w ++ [a]) with ((w1 ++ w) ++ [a]).
+  2: rewrite app_assoc; auto.
+  apply path_next with q2; auto.
+Qed.
+
 
 Definition n2dfa {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B) : nfa_comp_list (list A) B.
 Admitted.

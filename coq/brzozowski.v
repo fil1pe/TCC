@@ -31,7 +31,7 @@ Proof.
     2: subst; auto.
     apply revert_accept in H4; replace (revert_nfa (revert_nfa g)) with g in H4.
     2: apply revert_nfa_twice.
-    apply (dfa_start _q0 H H0); auto.
+    apply dfa_start with g; auto.
   - apply (n2dfa_accept H10 H1); exists q0; auto.
 Qed.
 
@@ -169,15 +169,16 @@ Proof.
         apply H10 in H0; destruct H0 as [w H0].
         apply ext_transition_list in H0.
         destruct H0 as [q0' [H5 H6]].
-        apply (dfa_start q0' H) in H3; subst.
-        2: auto.
+        assert (q0' = q0).
+          apply dfa_start with g; auto.
+        subst.
         specialize (H2 w); simpl in H2;
         destruct (ext_transition eq eq' g [q0] w) eqn:H7.
         1: destruct H6.
         assert (q = a0). {
           assert (In a0 (a0::l0)).
             left; auto.
-          apply (dfa_trans_ext H11 H12 H H7 H0 H6).
+          apply dfa_trans_ext with eq eq' g q0 w (a0::l0); auto.
         }
         subst; intuition.
       - apply (n2dfa_states Q2) with q in H1.
@@ -185,15 +186,16 @@ Proof.
         apply H10 in H1; destruct H1 as [w H1].
         apply ext_transition_list in H1.
         destruct H1 as [q0' [H5 H6]].
-        apply (dfa_start q0' H) in H3; subst.
-        2: auto.
+        assert (q0' = q0).
+          apply dfa_start with g; auto.
+        subst.
         specialize (H2 w); simpl in H2;
         destruct (ext_transition eq eq' g [q0] w) eqn:H7.
         1: destruct H6.
         assert (q = a0). {
           assert (In a0 (a0::l0)).
             left; auto.
-          apply (dfa_trans_ext H11 H12 H H7 H1 H6).
+          apply dfa_trans_ext with eq eq' g q0 w (a0::l0); auto.
         }
         subst; intuition.
     }

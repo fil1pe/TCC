@@ -42,7 +42,7 @@ Lemma reverted_is_nfa {A B} (g:nfa_comp_list A B) :
   is_nfa g -> is_nfa (revert_nfa g).
 Proof.
   intros. inversion H.
-  apply (is_nfa_cons (revert_nfa g) eq); auto.
+  apply (is_nfa_cons (revert_nfa g) eq eq'); auto.
 Qed.
 
 (* Prova de que reverter o autômato duas vezes resulta no autômato inicial *)

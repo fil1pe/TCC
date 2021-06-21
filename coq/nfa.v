@@ -16,7 +16,7 @@ Definition nfa_comp_list A B := list (@nfa_comp A B).
 (* Define as restrições dos autômatos *)
 Inductive is_nfa : forall {A B}, nfa_comp_list A B -> Prop :=
   | is_nfa_cons {A B} (g: nfa_comp_list A B) (eq:A->A->bool) (eq':B->B->bool) :
-      (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq a b=true) -> is_nfa g.
+      (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) -> is_nfa g.
 Inductive nfa A B :=
   | nfa_cons (g:nfa_comp_list A B) (eq:A->A->bool) (eq':B->B->bool) (H:forall q1 q2, q1=q2 <-> eq q1 q2=true)
       (H0:forall a b, a=b <-> eq a b=true).
