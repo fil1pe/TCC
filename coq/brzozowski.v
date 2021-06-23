@@ -166,6 +166,8 @@ Proof.
       simpl; split; intros.
       - apply (n2dfa_states Q1) with q in H0.
         2: auto.
+        pose proof (revert_states_are_states g q) as H5; destruct H5 as [H5 _];
+        apply H5 in H0; clear H5.
         apply H10 in H0; destruct H0 as [w H0].
         apply ext_transition_list in H0.
         destruct H0 as [q0' [H5 H6]].
@@ -183,6 +185,8 @@ Proof.
         subst; intuition.
       - apply (n2dfa_states Q2) with q in H1.
         2: auto.
+        pose proof (revert_states_are_states g q) as H5; destruct H5 as [H5 _];
+        apply H5 in H1; clear H5.
         apply H10 in H1; destruct H1 as [w H1].
         apply ext_transition_list in H1.
         destruct H1 as [q0' [H5 H6]].

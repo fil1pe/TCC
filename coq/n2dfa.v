@@ -12,14 +12,6 @@ Fixpoint n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f h Q l :=
             end
   end.
 
-Fixpoint n2dfa' {A B} eq eq' (g:nfa_comp_list A B) n Q :=
-  match n with
-  | O => nil
-  | S n =>
-    n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' => Q') Q (alphabet g)
-  end.
-
-
 Lemma n2dfa'_loop_in {A B} eq eq' (g:nfa_comp_list A B) f h Q l a :
   In a l -> ext_transition eq eq' g Q [a] <> nil ->
   In (trans Q a (h (ext_transition eq eq' g Q [a]))) (n2dfa'_loop eq eq' g f h Q l).
@@ -61,6 +53,31 @@ Proof.
   - apply IHl in H; destruct H as [Q' [d H]]; exists Q', d; intuition.
   Transparent ext_transition.
 Qed.
+
+Lemma next_n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f h Q l a c :
+  ext_transition eq eq' g Q [a] <> nil ->
+  In a l ->
+  In c (f (h (ext_transition eq eq' g Q [a]))) ->
+  In c (n2dfa'_loop eq eq' g f h Q l).
+Proof.
+  Opaque ext_transition.
+  intros; induction l; destruct H0.
+  - subst.
+    simpl; destruct (ext_transition eq eq' g Q [a]).
+    1: destruct H; auto.
+    right; apply in_or_app; intuition.
+  - simpl; destruct (ext_transition eq eq' g Q [a0]).
+    1: intuition.
+    right; apply in_or_app; intuition.
+  Transparent ext_transition.
+Qed.
+
+Fixpoint n2dfa' {A B} eq eq' (g:nfa_comp_list A B) n Q :=
+  match n with
+  | O => nil
+  | S n =>
+    n2dfa'_loop eq eq' g (n2dfa' eq eq' g n) (fun Q' => Q') Q (alphabet g)
+  end.
 
 Lemma in_trans_n2dfa' {A B} eq eq' (g:nfa_comp_list A B) Q0 Q Q' n a :
   In (trans Q a Q') (n2dfa' eq eq' g n Q0) ->
@@ -176,75 +193,163 @@ Proof.
   1-3: intuition.
 Qed.
 
+Lemma n2dfa'_eq {A B} eq eq' (g:nfa_comp_list A B) n Q1 Q2 a :
+  forall Q Q',
+  eq_sets Q Q' ->
+  In (trans Q1 a Q2) (n2dfa' eq eq' g n Q) ->
+  exists Q3 Q4, eq_sets Q3 Q1 /\ eq_sets Q4 Q2 /\
+  In (trans Q3 a Q4) (n2dfa' eq eq' g n Q').
+Proof.
+  Opaque ext_transition.
+  induction n; intros.
+  1: destruct H0.
+  simpl in H0; apply in_n2dfa'_loop in H0; destruct H0 as [Q0 [b [H0 [H1 [H2 [H3|H3]]]]]].
+  - injection H3; intros; subst; clear H3.
+    exists Q', (ext_transition eq eq' g Q' [a]).
+    split.
+    2: split.
+    2: apply ext_transition_eq_sets.
+    1,2: apply eq_sets_comm; auto.
+    simpl; remember (fun Q' : list A => Q') as h eqn:H2;
+    replace (ext_transition eq eq' g Q' [a]) with (h (ext_transition eq eq' g Q' [a])).
+    2: rewrite H2; auto.
+    apply n2dfa'_loop_in.
+    1: auto.
+    assert (eq_sets (ext_transition eq eq' g Q' [a]) (ext_transition eq eq' g Q1 [a])).
+      apply ext_transition_eq_sets, eq_sets_comm; auto.
+    intros contra; destruct (ext_transition eq eq' g Q1 [a]).
+    1: destruct H1; auto.
+    assert (In a0 []).
+      rewrite <- contra; apply H3; intuition.
+    destruct H4.
+  - destruct IHn with Q0 (ext_transition eq eq' g Q' [b]).
+    2: auto.
+    1: rewrite H2; apply ext_transition_eq_sets; auto.
+    destruct H4 as [Q4 H4]; exists x, Q4; split.
+    2: split.
+    1,2: intuition.
+    simpl; apply next_n2dfa'_loop with b.
+    2,3: intuition.
+    intros contra.
+    assert (eq_sets (ext_transition eq eq' g Q [b]) (ext_transition eq eq' g Q' [b])).
+      apply ext_transition_eq_sets; auto.
+    destruct (ext_transition eq eq' g Q [b]).
+    1: rewrite H2 in H1; destruct H1; auto.
+    assert (In a0 []).
+    2: destruct H6.
+    rewrite <- contra; apply H5; intuition.
+  Transparent ext_transition.
+Qed.
 
-(* A versão otimizada do algoritmo *)
+
+(* Uma versão um pouco mais otimizada do algoritmo *)
 Fixpoint n2dfa'_op {A B} eq eq' (g:nfa_comp_list A B) l n Q :=
   match n with
   | O => nil
   | S n =>
-    if inb (lists_eq eq) Q l then
-      nil
-    else
-      n2dfa'_loop eq eq' g (n2dfa'_op eq eq' g (Q::l) n) (fun Q' => get_set eq Q' (Q::l)) Q (alphabet g)
+    n2dfa'_loop eq eq' g (n2dfa'_op eq eq' g (Q::l) n) (fun Q' => get_set eq Q' (Q::l)) Q (alphabet g)
   end.
 
-
-Lemma get_set_eq {A} (eq:A->A->bool) s l :
-  (forall a b, a=b <-> eq a b = true) ->
-  eq_sets s (get_set eq s l).
-Proof.
-  intros; induction l.
-  1: split; auto.
-  simpl; destruct (eq_setsb eq s a) eqn:H0.
-  2: auto.
-  apply eq_setsb_correct in H0; auto.
-Qed.
-
-Lemma get_set_correct {A} (eq:A->A->bool) s l :
-  (forall a b, a=b <-> eq a b = true) ->
-  (get_set eq s l = s) \/
-  exists s', get_set eq s l = s' /\ eq_sets s' s /\ inb (lists_eq eq) s' l = true.
-Proof.
-  intros; induction l.
-  1: intuition.
-  simpl; destruct (eq_setsb eq s a) eqn:H0.
-  - right; exists a; split.
-    2: split.
-    1: auto.
-    1: apply eq_setsb_correct in H0; try apply eq_sets_comm; auto.
-    replace (lists_eq eq a a) with true.
-    1: auto.
-    symmetry; apply lists_eq_correct; auto.
-  - destruct IHl as [IHl|[s' H1]].
-    1: left; auto.
-    right; exists s'; intuition. 
-Qed.
-
-
-Lemma next_n2dfa'_loop {A B} eq eq' (g:nfa_comp_list A B) f h Q l a c :
-  ext_transition eq eq' g Q [a] <> nil ->
-  In a l ->
-  In c (f (h (ext_transition eq eq' g Q [a]))) ->
-  In c (n2dfa'_loop eq eq' g f h Q l).
+Lemma n2dfa'_op_eq {A B} eq eq' (g:nfa_comp_list A B) n a :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  forall Q Q' Q1 Q2 l1 l2,
+  In (trans Q1 a Q2) (n2dfa'_op eq eq' g l1 n Q) ->
+  (forall Q, In Q l1 -> exists Q', In Q' l2 /\ eq_sets Q Q') ->
+  (forall Q, In Q l2 -> exists Q', In Q' l1 /\ eq_sets Q Q') ->
+  eq_sets Q Q' ->
+  exists Q3 Q4, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\
+  In (trans Q3 a Q4) (n2dfa'_op eq eq' g l2 n Q').
 Proof.
   Opaque ext_transition.
-  intros; induction l; destruct H0.
-  - subst.
-    simpl; destruct (ext_transition eq eq' g Q [a]).
-    1: destruct H; auto.
-    right; apply in_or_app; intuition.
-  - simpl; destruct (ext_transition eq eq' g Q [a0]).
-    1: intuition.
-    right; apply in_or_app; intuition.
+  intro H20;
+  induction n; intros.
+  1: destruct H.
+  simpl in H.
+  apply in_n2dfa'_loop in H.
+  destruct H as [Q0 [b [H3 [H4 [H5 [H6|H6]]]]]].
+  - clear IHn.
+    exists Q', (if eq_setsb eq (ext_transition eq eq' g Q' [b]) Q' then Q' else get_set eq (ext_transition eq eq' g Q' [b]) l2).
+    injection H6; intros; subst; split.
+    1: auto.
+    split.
+    + assert (eq_setsb eq (ext_transition eq eq' g Q1 [a]) Q1 = eq_setsb eq (ext_transition eq eq' g Q' [a]) Q'). {
+        rewrite eq_setsb_comm, (eq_setsb_comm eq (ext_transition eq eq' g Q' [a])).
+        2,3: auto.
+        apply eq_setsb_ext_transition;
+        try apply eq_setsb_correct; auto.
+      }
+      destruct (eq_setsb eq (ext_transition eq eq' g Q' [a]) Q').
+      1: rewrite H; auto.
+      rewrite H.
+      apply eq_sets_transitive with (ext_transition eq eq' g Q1 [a]).
+      1: apply get_set_eq; auto.
+      apply eq_sets_transitive with (ext_transition eq eq' g Q' [a]).
+      1: apply ext_transition_eq_sets, eq_sets_comm; auto.
+      apply get_set_eq; auto.
+    + simpl.
+      remember (fun Q'0 : list A => if eq_setsb eq Q'0 Q' then Q' else get_set eq Q'0 l2) as h eqn:H8.
+      replace (if eq_setsb eq (ext_transition eq eq' g Q' [a]) Q' then Q' else get_set eq (ext_transition eq eq' g Q' [a]) l2)
+      with (h (ext_transition eq eq' g Q' [a])).
+      2: rewrite H8; auto.
+      apply n2dfa'_loop_in.
+      1: auto.
+      intros contra.
+      assert (eq_sets (ext_transition eq eq' g Q1 [a]) (ext_transition eq eq' g Q' [a])).
+        apply ext_transition_eq_sets; auto.
+      destruct (ext_transition eq eq' g Q1 [a]).
+      1: destruct H4; auto.
+      assert (In a0 []).
+        rewrite <- contra; apply H; intuition.
+      destruct H5.
+  - destruct IHn with (if eq_setsb eq Q0 Q then Q else get_set eq Q0 l1)
+  (if eq_setsb eq (ext_transition eq eq' g Q' [b]) Q' then Q' else get_set eq (ext_transition eq eq' g Q' [b]) l2)
+  Q1 Q2 (Q :: l1) (Q' :: l2).
+    1: auto.
+    + intros; destruct H.
+      2: apply H0 in H; destruct H as [x H]; exists x; intuition.
+      subst; exists Q'; intuition.
+    + intros; destruct H.
+      2: apply H1 in H; destruct H as [x H]; exists x; intuition.
+      apply eq_sets_comm in H2; subst; exists Q; intuition.
+    + remember (ext_transition eq eq' g Q' [b]) as Q0' eqn:H7.
+      assert (eq_setsb eq Q0 Q = eq_setsb eq Q0' Q'). {
+        rewrite H5, H7, eq_setsb_comm, (eq_setsb_comm eq (ext_transition eq eq' g Q' [b])).
+        2,3: auto.
+        apply eq_setsb_ext_transition;
+        try apply eq_setsb_correct; auto.
+      }
+      destruct (eq_setsb eq Q0' Q'); rewrite H.
+      1: auto.
+      apply eq_sets_transitive with Q0.
+      1: apply get_set_eq; auto.
+      apply eq_sets_transitive with Q0'.
+      2: apply get_set_eq; auto.
+      rewrite H7, H5; apply ext_transition_eq_sets, eq_sets_comm; auto.
+    + destruct H as [y H].
+      exists x, y.
+      split.
+      2: split.
+      1,2: intuition.
+      simpl; apply next_n2dfa'_loop with b.
+      2: auto.
+      2: intuition.
+      intros contra.
+      assert (eq_sets Q0 (ext_transition eq eq' g Q' [b])).
+        rewrite H5; apply ext_transition_eq_sets; auto.
+      rewrite contra in H7.
+      destruct Q0.
+      1: destruct H4; auto.
+      destruct H7 with a0; destruct H8.
+      intuition.
   Transparent ext_transition.
 Qed.
 
-Lemma n2dfa'_op_correct {A B} eq eq' (g:nfa_comp_list A B) n Q0 a :
+Lemma n2dfa'_op_correct {A B} eq eq' (g:nfa_comp_list A B) n l Q0 a :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
   (forall  Q1 Q2,
   In (trans Q1 a Q2) (n2dfa' eq eq' g n Q0) ->
-  exists Q3 Q4, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\ In (trans Q3 a Q4) (n2dfa'_op eq eq' g [] n Q0)) /\
-  (forall Q3 Q4, In (trans Q3 a Q4) (n2dfa'_op eq eq' g [] n Q0) ->
+  exists Q3 Q4, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\ In (trans Q3 a Q4) (n2dfa'_op eq eq' g l n Q0)) /\
+  (forall Q3 Q4, In (trans Q3 a Q4) (n2dfa'_op eq eq' g l n Q0) ->
   exists Q1 Q2, eq_sets Q1 Q3 /\ eq_sets Q2 Q4 /\ In (trans Q1 a Q2) (n2dfa' eq eq' g n Q0)).
 Proof.
   Opaque ext_transition.
@@ -252,6 +357,7 @@ Proof.
 
   {
     generalize dependent Q0;
+    generalize dependent l;
     induction n; intros.
     1: destruct H0.
     pose proof H0; simpl in H0; apply in_n2dfa'_loop in H0;
@@ -259,30 +365,50 @@ Proof.
     destruct H5.
     - injection H0; intros; subst; clear H0 IHn.
       exists Q1; simpl.
-      remember (fun Q' : list A => if eq_setsb eq Q' Q1 then Q1 else Q') as h eqn:H20.
+      remember (fun Q' : list A => if eq_setsb eq Q' Q1 then Q1 else get_set eq Q' l) as h eqn:H20.
       exists (h(ext_transition eq eq' g Q1 [a])); split.
       2: split.
-      2: subst; destruct (eq_setsb eq (ext_transition eq eq' g Q1 [a]) Q1) eqn:H4.
-      1,3: split; intuition.
-      1: apply eq_setsb_correct in H4; auto.
-      apply n2dfa'_loop_in; auto.
-    - apply IHn in H0; clear IHn.
+      + split; auto.
+      + subst; destruct (eq_setsb eq (ext_transition eq eq' g Q1 [a]) Q1) eqn:H4.
+        1: apply eq_setsb_correct in H4; auto.
+        apply get_set_eq; auto.
+      + apply n2dfa'_loop_in; auto.
+    - specialize (IHn (Q0::l)); apply IHn in H0; clear IHn.
       destruct H0 as [Q3 [Q4 [H5 [H6 H7]]]]; clear H1.
-      admit.
+      simpl; remember (fun Q' : list A => if eq_setsb eq Q' Q0 then Q0 else get_set eq Q' l) as h eqn:H8.
+      assert (exists Q5 Q6, eq_sets Q3 Q5 /\ eq_sets Q4 Q6 /\
+      In (trans Q5 a Q6) (n2dfa'_op eq eq' g (Q0::l) n (h (ext_transition eq eq' g Q0 [b])))). {
+        apply n2dfa'_op_eq with Q1' (Q0::l).
+        1,2: auto.
+        1,2: intros; destruct H0.
+        1,3: subst; exists Q; split; try split; intuition.
+        1,2: exists Q; split; try split; intuition.
+        apply eq_sets_transitive with (ext_transition eq eq' g Q0 [b]).
+        1: rewrite H4; split; intuition.
+        rewrite H8.
+        destruct (eq_setsb eq (ext_transition eq eq' g Q0 [b]) Q0) eqn:H9.
+        1: apply eq_setsb_correct in H9; auto.
+        apply get_set_eq; auto.
+      }
+      destruct H0 as [Q5 [Q6 H0]]; exists Q5, Q6; split.
+      2: split.
+      2: apply eq_sets_transitive with Q4.
+      1: apply eq_sets_transitive with Q3.
+      1,3: apply eq_sets_comm.
+      1-4: intuition.
+      apply next_n2dfa'_loop with b.
+      1: rewrite H4 in H3; auto.
+      1,2: intuition.
   }
 
-  remember (@nil (list A)) as vis eqn:H1; clear H1.
   generalize dependent Q0;
-  generalize dependent vis;
+  generalize dependent l;
   induction n; intros.
   1: destruct H0.
-  simpl in H0; destruct (inb (lists_eq eq) Q0) eqn:H1.
-  1: destruct H0.
-  remember (fun Q' : list A => if eq_setsb eq Q' Q0 then Q0 else get_set eq Q' vis) as h eqn:H20.
+  simpl in H0.
   apply in_n2dfa'_loop in H0.
-  destruct H0 as [Q' [b [H4 [H5 [H6 H7]]]]].
-  destruct H7.
-  - injection H0; intros; subst.
+  destruct H0 as [Q' [b [H4 [H5 [H6 [H7|H7]]]]]].
+  - injection H7; intros; subst.
     destruct (eq_setsb eq (ext_transition eq eq' g Q3 [a])) eqn:H10.
     + apply eq_setsb_correct in H10.
       2: auto.
@@ -305,34 +431,60 @@ Proof.
       2: subst; auto.
       apply n2dfa'_loop_in; auto.
   - subst.
-    destruct (eq_setsb eq (ext_transition eq eq' g Q0 [b]) Q0) eqn:H10.
-    + clear IHn.
-      destruct n.
-      1: destruct H0.
-      simpl in H0.
-      assert (lists_eq eq Q0 Q0 = true).
-        apply lists_eq_correct; auto.
-      rewrite H2, orb_true_l in H0.
-      destruct H0.
-    + assert ((get_set eq (ext_transition eq eq' g Q0 [b]) vis = ext_transition eq eq' g Q0 [b]) \/ exists s', get_set eq (ext_transition eq eq' g Q0 [b]) vis = s' /\
-      eq_sets s' (ext_transition eq eq' g Q0 [b]) /\ inb (lists_eq eq) s' vis = true).
-        apply get_set_correct; auto.
-      destruct H2.
-      * rewrite H2 in H0.
-        apply IHn in H0; destruct H0 as [Q1 [Q2 [H0 [H6 H7]]]].
-        exists Q1, Q2; split.
-        2: split.
-        1,2: auto.
-        simpl.
-        apply next_n2dfa'_loop with b; auto.
-      * destruct H2 as [Q'' [H2 [_ H3]]]; subst; destruct n as [|n].
-        1: destruct H0.
-        simpl in H0; rewrite H3, orb_true_r in H0; destruct H0.
+    apply IHn in H7; destruct H7 as [Q1 [Q2 [H7 [H8 H9]]]].
+    assert (exists Q5 Q6, eq_sets Q5 Q1 /\ eq_sets Q6 Q2 /\
+    In (trans Q5 a Q6) (n2dfa' eq eq' g n (ext_transition eq eq' g Q0 [b]))). {
+      apply n2dfa'_eq with (if eq_setsb eq (ext_transition eq eq' g Q0 [b]) Q0 then Q0 else get_set eq (ext_transition eq eq' g Q0 [b]) l).
+      2: auto.
+      destruct (eq_setsb eq (ext_transition eq eq' g Q0 [b])) eqn:H10;
+      apply eq_sets_comm.
+      1: apply eq_setsb_correct in H10; auto.
+      apply get_set_eq; auto.
+    }
+    destruct H0 as [Q5 [Q6 H0]]; exists Q5, Q6;
+    split.
+    2: split.
+    2: apply eq_sets_transitive with Q2.
+    1: apply eq_sets_transitive with Q1.
+    1,3: apply eq_sets_comm.
+    1-4: intuition.
+    simpl; apply next_n2dfa'_loop with b; intuition.
   Transparent ext_transition.
-Admitted.
+Qed.
 
 
-(*Fixpoint pow {B} (w:list B) n :=
+(*
+Fixpoint n2dfa'_op {A B} eq eq' (g:nfa_comp_list A B) l n Q :=
+  match n with
+  | O => nil
+  | S n =>
+    if inb (lists_eq eq) Q l then
+      nil
+    else
+      n2dfa'_loop eq eq' g (n2dfa'_op eq eq' g (Q::l) n) (fun Q' => get_set eq Q' (Q::l)) Q (alphabet g)
+  end.
+
+Lemma get_set_correct {A} (eq:A->A->bool) s l :
+  (forall a b, a=b <-> eq a b = true) ->
+  (get_set eq s l = s) \/
+  exists s', get_set eq s l = s' /\ eq_sets s' s /\ inb (lists_eq eq) s' l = true.
+Proof.
+  intros; induction l.
+  1: intuition.
+  simpl; destruct (eq_setsb eq s a) eqn:H0.
+  - right; exists a; split.
+    2: split.
+    1: auto.
+    1: apply eq_setsb_correct in H0; try apply eq_sets_comm; auto.
+    replace (lists_eq eq a a) with true.
+    1: auto.
+    symmetry; apply lists_eq_correct; auto.
+  - destruct IHl as [IHl|[s' H1]].
+    1: left; auto.
+    right; exists s'; intuition. 
+Qed.
+
+Fixpoint pow {B} (w:list B) n :=
   match n with
   | O => nil
   | S n => w ++ pow w n
@@ -361,19 +513,59 @@ Proof.
   apply path_next with q2; auto.
 Qed.
 
-
-Definition n2dfa {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B) : nfa_comp_list (list A) B.
+Definition max_length {A B} (g:nfa_comp_list A B) : nat.
 Admitted.
+
+Fixpoint n2dfa_accept_wrap {A B} eq (g:nfa_comp_list A B) states : nfa_comp_list (list A) B :=
+  match states with
+  | nil => nil
+  | Q::states =>
+    if has_accept_stateb eq g Q then
+      accept Q::n2dfa_accept_wrap eq g states
+    else
+      n2dfa_accept_wrap eq g states
+  end.
+
+Definition n2dfa {A B} eq eq' (g:nfa_comp_list A B) :=
+  let g' := n2dfa'_op eq eq' g nil (max_length g) (start_states g) in
+  match accept_states g with
+  | nil => nil
+  | _ => start (start_states g)::g' ++ n2dfa_accept_wrap eq g (states (g'))
+  end.
 
 Lemma n2dfa_nil {A B} eq eq' {g:nfa_comp_list A B} :
   accept_states g = [] -> n2dfa eq eq' g = [].
 Proof.
-Admitted.
+  intros; unfold n2dfa; rewrite H; auto.
+Qed.
+
 
 Lemma n2dfa_states {A B eq eq'} {g:nfa_comp_list A B} Q :
-  In Q (states (n2dfa eq eq' (revert_nfa g))) ->
+  In Q (states (n2dfa eq eq' g)) ->
   forall q, In q Q -> In q (states g).
 Proof.
+  unfold n2dfa; intros; destruct (accept_states g) eqn:H1.
+  1: destruct H.
+  clear H1 a l; destruct H.
+  1: apply start_state_is_state; rewrite H; intuition.
+  remember (@nil (list A)) as l eqn:H1; clear H1;
+  remember (max_length g) as n eqn:H1; clear H1.
+  assert (In Q (states (n2dfa'_op eq eq' g l n (start_states g))) -> In q (states g)). {
+    clear H; intros; induction n.
+    1: destruct H.
+    simpl in H.
+    admit.
+  }
+  apply in_app_states_or in H; destruct H.
+  1: intuition.
+  remember (n2dfa'_op eq eq' g l n (start_states g)) as g' eqn:H2; clear H2.
+  assert (forall l, In Q (states (n2dfa_accept_wrap eq g l)) -> In q (states g)). {
+    clear l; intros; induction l.
+    1: destruct H2.
+    simpl in H2.
+    admit.
+  }
+  apply H2 in H; auto.
 Admitted.
 
 Lemma n2dfa_eq_states {A B} eq eq' (g:nfa_comp_list A B) Q1 Q2 :

@@ -69,6 +69,61 @@ Fixpoint transition {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B)
   | _::g => transition eq eq' g q a
   end.
 
+(* Prova de que o estado inicial é um estado *)
+Lemma start_state_is_state {A B} (g:nfa_comp_list A B) q :
+  In q (start_states g) ->
+  In q (states g).
+Proof.
+  intros; induction g.
+  1: destruct H.
+  destruct a.
+  1,2,4,5: try right; intuition.
+  destruct H.
+  1: subst; left; auto.
+  right; intuition.
+Qed.
+
+(* Os estados de dois autômatos concatenados são a concatenação dos estados deles *)
+Lemma in_app_states_or {A B} (g1 g2:nfa_comp_list A B) q :
+  In q (states (g1 ++ g2)) <-> In q (states g1) \/ In q (states g2).
+Proof.
+  intros.
+  induction g1.
+  - split; intros.
+    1: intuition.
+    destruct H.
+    2: intuition.
+    destruct H.
+  - destruct a; split; intros.
+    + destruct H; subst.
+      1: left; left; intuition.
+      simpl; apply or_assoc; right; intuition.
+    + simpl in H; apply or_assoc in H; destruct H; subst.
+      1: left; intuition.
+      right; intuition.
+    + intuition.
+    + intuition.
+    + destruct H; subst.
+      1: left; left; intuition.
+      simpl; apply or_assoc; right; intuition.
+    + simpl in H; apply or_assoc in H; destruct H; subst.
+      1: left; intuition.
+      right; intuition.
+    + destruct H; subst.
+      1: left; left; intuition.
+      simpl; apply or_assoc; right; intuition.
+    + simpl in H; apply or_assoc in H; destruct H; subst.
+      1: left; intuition.
+      right; intuition.
+    + destruct H; subst.
+      1: left; left; intuition.
+      destruct H; subst.
+      1: left; right; intuition.
+      simpl; apply or_assoc; right; intuition.
+    + simpl in H; apply or_assoc in H; destruct H; subst.
+      1: left; intuition.
+      apply or_assoc in H; destruct H; subst; right; intuition.
+Qed.
 
 (* Se existe uma transição definida para algum símbolo a, então esse símbolo está no alfabeto *)
 Lemma trans_in_alphabet {A B} (g:nfa_comp_list A B) q a q' :
@@ -270,6 +325,82 @@ Proof.
   right; right; auto.
 Qed.
 
+(* Prova de que a transição a partir de estados equivalentes resulta em estados equivalentes *)
+Lemma ext_transition_eq_sets {A B} eq eq' (g: nfa_comp_list A B) w :
+  forall Q1 Q2, eq_sets Q1 Q2 ->
+  eq_sets (ext_transition eq eq' g Q1 w) (ext_transition eq eq' g Q2 w).
+Proof.
+  induction w; intros.
+  1: auto.
+  replace (a::w) with ([a] ++ w).
+  2: auto.
+  rewrite ext_transition_app, ext_transition_app.
+  apply IHw; clear IHw.
+  assert (forall s1 s2, (forall x, In x s1 -> In x s2) -> forall x, In x (ext_transition eq eq' g s1 [a]) -> In x (ext_transition eq eq' g s2 [a])). {
+    clear H Q1 Q2; intros; induction s1.
+    1: destruct H0.
+    replace (ext_transition eq eq' g (a0 :: s1) [a]) with (transition eq eq' g a0 a ++ ext_transition eq eq' g s1 [a]) in H0.
+    2: auto.
+    apply in_app_or in H0.
+    destruct H0.
+    - clear IHs1; specialize (H a0); induction s2.
+      1: destruct H; intuition.
+      assert (In a0 (a1::s2)).
+        apply H; intuition.
+      destruct H1.
+      1,2: simpl; apply in_or_app.
+      1: subst; intuition.
+      right; apply IHs2; intuition.
+    - apply IHs1.
+      1: intros; apply H; intuition.
+      auto.
+  }
+  split; intros.
+  - apply H0 with Q1.
+    2: auto.
+    intros; apply H; auto.
+  - apply H0 with Q2.
+    2: auto.
+    intros; apply H; auto.
+Qed.
+
+(* Prova de que a equivalência entre estados e transições é equivalentes se os estados envolvidos são equivalentes *)
+Lemma eq_setsb_ext_transition {A B} eq eq' (g:nfa_comp_list A B) Q1 Q2 Q3 Q4 w :
+  (forall x x', x=x' <-> eq x x'=true) ->
+  eq_setsb eq Q1 Q2 = true ->
+  eq_setsb eq Q3 Q4 = true ->
+  eq_setsb eq Q3 (ext_transition eq eq' g Q1 w) = eq_setsb eq Q4 (ext_transition eq eq' g Q2 w).
+Proof.
+  intros.
+  destruct (eq_setsb eq Q3 (ext_transition eq eq' g Q1 w)) eqn:H2;
+  destruct (eq_setsb eq Q4 (ext_transition eq eq' g Q2 w)) eqn:H3.
+  1,4: auto.
+  - apply eq_setsb_correct in H0;
+    apply eq_setsb_correct in H1;
+    apply eq_setsb_correct in H2.
+    2-8: auto.
+    assert (eq_setsb eq Q4 (ext_transition eq eq' g Q2 w) = true).
+    2: rewrite H4 in H3; discriminate.
+    apply eq_setsb_correct.
+    1: auto.
+    apply eq_sets_transitive with (ext_transition eq eq' g Q1 w).
+    2: apply ext_transition_eq_sets; auto.
+    apply eq_sets_transitive with Q3; auto.
+  - apply eq_setsb_correct in H0;
+    apply eq_setsb_correct in H1;
+    apply eq_setsb_correct in H3.
+    2-8: auto.
+    assert (eq_setsb eq Q3 (ext_transition eq eq' g Q1 w) = true).
+    2: rewrite H4 in H2; discriminate.
+    apply eq_setsb_correct.
+    1: auto.
+    apply eq_sets_transitive with (ext_transition eq eq' g Q2 w).
+    2: apply ext_transition_eq_sets, eq_sets_comm; auto.
+    apply eq_sets_transitive with Q4.
+    2: apply eq_sets_comm.
+    1,2: auto.
+Qed.
+
 (* Definição de existência de estado final em lista *)
 Definition has_accept_state {A B} (g:nfa_comp_list A B) Q :=
   exists q, In q Q /\ In q (accept_states g).
@@ -410,40 +541,6 @@ Proof.
     try apply in_or_app; intuition.
 Qed.
 
-
-(** Autômatos com estados-lista **)
-
-(* Decisor da igualdade *)
-Fixpoint lists_eq {A} (eq:A->A->bool) l1 l2 :=
-  match l1, l2 with
-  | nil, nil => true
-  | x1::l1, x2::l2 => eq x1 x2 && lists_eq eq l1 l2
-  | _, _ => false
-  end.
-
-(* Prova de que a definição está correta *)
-Lemma lists_eq_correct {A} {eq:A->A->bool} (H:forall q1 q2, q1=q2 <-> eq q1 q2=true) :
-  forall q1 q2, q1=q2 <-> lists_eq eq q1 q2=true.
-Proof.
-  split; intros.
-  - symmetry in H0; subst.
-    induction q1.
-    1: auto.
-    simpl; apply andb_true_intro; split.
-    1: apply H; auto.
-    auto.
-  - generalize dependent q2; induction q1; intros.
-    + destruct q2.
-      1: auto.
-      discriminate.
-    + destruct q2.
-      1: discriminate.
-      simpl in H0.
-      apply andb_prop in H0; destruct H0.
-      apply H in H0; symmetry in H0.
-      apply IHq1 in H1; subst.
-      auto.
-Qed.
 
 (** Normalizar autômato de listas **)
 

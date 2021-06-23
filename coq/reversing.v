@@ -152,6 +152,48 @@ Proof.
   inversion H.
 Qed.
 
+(* Prova de que os estados do autômato revertido são estados do autômato original *)
+Lemma revert_states_are_states {A B} (g:nfa_comp_list A B) :
+  forall q, In q (states (revert_nfa g)) <-> In q (states g).
+Proof.
+  induction g; intros; split; intros.
+  1,2: destruct H.
+  1,2: destruct a.
+  - destruct H; subst.
+    1: left; auto.
+    right; apply IHg; auto.
+  - simpl; apply IHg; auto.
+  - destruct H; subst.
+    1: left; auto.
+    right; apply IHg; auto.
+  - destruct H; subst.
+    1: left; auto.
+    right; apply IHg; auto.
+  - destruct H; subst.
+    right; left; auto.
+    destruct H; subst.
+    1: left; auto.
+    right; right; apply IHg; auto.
+  - destruct H; subst.
+    1: left; auto.
+    right; apply IHg; auto.
+  - simpl; apply IHg; auto.
+  - destruct H; subst.
+    1: left; auto.
+    right; apply IHg; auto.
+  - destruct H; subst.
+    1: left; auto.
+    right; apply IHg; auto.
+  - destruct H; subst.
+    right; left; auto.
+    destruct H; subst.
+    1: left; auto.
+    right; right; apply IHg; auto.
+Qed.
+
+
+
+
 
 
 

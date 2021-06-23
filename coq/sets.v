@@ -76,7 +76,7 @@ Proof.
 Qed.
 
 (* Prova da propriedade transitiva da equivalência *)
-Lemma eq_sets_trans {A} (s1 s2 s3:list A) :
+Lemma eq_sets_transitive {A} (s1 s2 s3:list A) :
   eq_sets s1 s2 -> eq_sets s1 s3 -> eq_sets s2 s3.
 Proof.
   unfold eq_sets; intros; split; intros.
@@ -106,6 +106,24 @@ Proof.
         try (unfold subset; intros; destruct H0 with x); auto.
 Qed.
 
+(* Prova da comutatividade *)
+Lemma eq_setsb_comm {A} (eq:A->A->bool) s1 s2 :
+  (forall x x', x=x' <-> eq x x'=true) ->
+  eq_setsb eq s1 s2 = eq_setsb eq s2 s1.
+Proof.
+  intros.
+  destruct (eq_setsb eq s1 s2) eqn:H0;
+  destruct (eq_setsb eq s2 s1) eqn:H1.
+  1,4: auto.
+  - assert (eq_setsb eq s2 s1 = true).
+    2: rewrite H2 in H1; discriminate.
+    apply eq_setsb_correct;
+    apply eq_setsb_correct, eq_sets_comm in H0; auto.
+  - assert (eq_setsb eq s1 s2 = true).
+    2: rewrite H2 in H0; discriminate.
+    apply eq_setsb_correct;
+    apply eq_setsb_correct, eq_sets_comm in H1; auto.
+Qed.
 
 (* Verifica se um elemento (que pode ser indefinido) está em uma lista (que pode ser indefinida) *)
 Definition in_opt {A} (x:option A) l :=
@@ -124,6 +142,53 @@ Fixpoint get_set {A} (eq:A->A->bool) s l :=
   | s'::l => if (eq_setsb eq s s') then s'
              else get_set eq s l
   end.
+
+(* Prova de que o retorno é equivalente *)
+Lemma get_set_eq {A} (eq:A->A->bool) s l :
+  (forall a b, a=b <-> eq a b = true) ->
+  eq_sets s (get_set eq s l).
+Proof.
+  intros; induction l.
+  1: split; auto.
+  simpl; destruct (eq_setsb eq s a) eqn:H0.
+  2: auto.
+  apply eq_setsb_correct in H0; auto.
+Qed.
+
+
+(** Igualdade entre listas **)
+
+(* O decisor *)
+Fixpoint lists_eq {A} (eq:A->A->bool) l1 l2 :=
+  match l1, l2 with
+  | nil, nil => true
+  | x1::l1, x2::l2 => eq x1 x2 && lists_eq eq l1 l2
+  | _, _ => false
+  end.
+
+(* Prova de que a definição está correta *)
+Lemma lists_eq_correct {A} {eq:A->A->bool} (H:forall q1 q2, q1=q2 <-> eq q1 q2=true) :
+  forall q1 q2, q1=q2 <-> lists_eq eq q1 q2=true.
+Proof.
+  split; intros.
+  - symmetry in H0; subst.
+    induction q1.
+    1: auto.
+    simpl; apply andb_true_intro; split.
+    1: apply H; auto.
+    auto.
+  - generalize dependent q2; induction q1; intros.
+    + destruct q2.
+      1: auto.
+      discriminate.
+    + destruct q2.
+      1: discriminate.
+      simpl in H0.
+      apply andb_prop in H0; destruct H0.
+      apply H in H0; symmetry in H0.
+      apply IHq1 in H1; subst.
+      auto.
+Qed.
 
 (**
 (**)
