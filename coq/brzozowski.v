@@ -208,7 +208,7 @@ Proof.
       specialize (H4 (Some q)).
       intuition.
     }
-    apply (n2dfa_eq_states eq eq' g) in H5; auto.
+    apply (n2dfa_eq_states eq eq' (revert_nfa g)) in H5; auto.
 Qed.
 
 

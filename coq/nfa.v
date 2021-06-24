@@ -135,6 +135,56 @@ Proof.
   destruct a0; simpl; try right; intuition.
 Qed.
 
+(* Prova de que todos os elementos retornados pela função estados são estados *)
+Lemma states_in {A B} (g:nfa_comp_list A B) q :
+  In q (states g) -> In (state q) g \/ In (start q) g \/ In (accept q) g \/
+  exists q' a, In (trans q a q') g \/ In (trans q' a q) g.
+Proof.
+  intros; induction g.
+  1: destruct H.
+  destruct a.
+  - destruct H; subst.
+    1: intuition.
+    apply IHg in H; destruct H as [H|[H|[H|[q' [a [H|H]]]]]].
+    1-3: intuition.
+    1-2: right; right; right; exists q', a; intuition.
+  - apply IHg in H; destruct H as [H|[H|[H|[q' [b [H|H]]]]]].
+    1-3: intuition.
+    1-2: right; right; right; exists q', b; intuition.
+  - destruct H; subst.
+    1: intuition.
+    apply IHg in H; destruct H as [H|[H|[H|[q' [a [H|H]]]]]].
+    1-3: intuition.
+    1-2: right; right; right; exists q', a; intuition.
+  - destruct H; subst.
+    1: intuition.
+    apply IHg in H; destruct H as [H|[H|[H|[q' [a [H|H]]]]]].
+    1-3: intuition.
+    1-2: right; right; right; exists q', a; intuition.
+  - destruct H; subst.
+    1: right; right; right; exists q', a; intuition.
+    destruct H; subst.
+    1: right; right; right; exists q0, a; intuition.
+    apply IHg in H; destruct H as [H|[H|[H|[q'' [b [H|H]]]]]].
+    1-3: intuition.
+    1-2: right; right; right; exists q'', b; intuition.
+Qed.
+
+(* Prova de consistência da função que retorna os estados de aceitação *)
+Lemma accept_states_in {A B} (g:nfa_comp_list A B) q :
+  In q (accept_states g) <-> In (accept q) g.
+Proof.
+  intros; induction g.
+  1: split; intros; destruct H.
+  destruct a; split; intros.
+  1,3,5,9: intuition.
+  1-3,6: destruct H; try discriminate; intuition.
+  1: destruct H; subst; intuition.
+  destruct H.
+  1: injection H; intros; subst; left; auto.
+  right; intuition.
+Qed.
+
 (* Prova de consistência da função de transição *)
 Lemma transition_in {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B) q a q' :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->

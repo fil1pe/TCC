@@ -530,7 +530,7 @@ Definition n2dfa {A B} eq eq' (g:nfa_comp_list A B) :=
   let g' := n2dfa'_op eq eq' g nil (max_length g) (start_states g) in
   match accept_states g with
   | nil => nil
-  | _ => start (start_states g)::g' ++ n2dfa_accept_wrap eq g (states (g'))
+  | _ => start (start_states g)::g' ++ n2dfa_accept_wrap eq g (start_states g::states (g'))
   end.
 
 Lemma n2dfa_nil {A B} eq eq' {g:nfa_comp_list A B} :
@@ -539,6 +539,21 @@ Proof.
   intros; unfold n2dfa; rewrite H; auto.
 Qed.
 
+Lemma in_n2dfa'_op {A B} eq eq' (g:nfa_comp_list A B) Q l n c :
+  In c (n2dfa'_op eq eq' g l n Q) ->
+  exists Q1 a Q2, c = trans Q1 a Q2 /\ subset Q1 (states g) /\ subset Q2 (states g).
+Proof.
+Admitted.
+
+Lemma in_n2dfa_accept_wrap {A B} eq (g:nfa_comp_list A B) Q l :
+  In Q (states (n2dfa_accept_wrap eq g l)) -> In Q l.
+Proof.
+  intros; induction l.
+  1: destruct H.
+  simpl in H; destruct (has_accept_stateb eq g a).
+  2: intuition.
+  destruct H; subst; intuition.
+Qed.
 
 Lemma n2dfa_states {A B eq eq'} {g:nfa_comp_list A B} Q :
   In Q (states (n2dfa eq eq' g)) ->
@@ -548,32 +563,59 @@ Proof.
   1: destruct H.
   clear H1 a l; destruct H.
   1: apply start_state_is_state; rewrite H; intuition.
-  remember (@nil (list A)) as l eqn:H1; clear H1;
-  remember (max_length g) as n eqn:H1; clear H1.
-  assert (In Q (states (n2dfa'_op eq eq' g l n (start_states g))) -> In q (states g)). {
-    clear H; intros; induction n.
-    1: destruct H.
-    simpl in H.
-    admit.
+  assert (In Q (states (n2dfa'_op eq eq' g nil (max_length g) (start_states g))) -> In q (states g)). {
+    clear H; intros; apply states_in in H;
+    pose proof (@in_n2dfa'_op A B eq eq' g (start_states g) nil);
+    destruct H as [H|[H|[H|[Q2 [a [H|H]]]]]].
+    - apply (H1 (max_length g) (state Q)) in H; destruct H as [Q1 [a [Q2 [H _]]]].
+      discriminate H.
+    - apply (H1 (max_length g) (start Q)) in H; destruct H as [Q1 [a [Q2 [H _]]]].
+      discriminate H.
+    - apply (H1 (max_length g) (accept Q)) in H; destruct H as [Q1 [a [Q2 [H _]]]].
+      discriminate H.
+    - apply (H1 (max_length g) (trans Q a Q2)) in H; clear H1; destruct H as [Q1 [b [Q3 [H [H1 _]]]]];
+      injection H; intros; subst; clear H;
+      apply H1; auto.
+    - apply (H1 (max_length g) (trans Q2 a Q)) in H; clear H1; destruct H as [Q1 [b [Q3 [H [_ H1]]]]];
+      injection H; intros; subst; clear H;
+      apply H1; auto.
   }
   apply in_app_states_or in H; destruct H.
   1: intuition.
-  remember (n2dfa'_op eq eq' g l n (start_states g)) as g' eqn:H2; clear H2.
-  assert (forall l, In Q (states (n2dfa_accept_wrap eq g l)) -> In q (states g)). {
-    clear l; intros; induction l.
-    1: destruct H2.
-    simpl in H2.
-    admit.
-  }
-  apply H2 in H; auto.
-Admitted.
+  apply in_n2dfa_accept_wrap in H; destruct H.
+  1: apply start_state_is_state; rewrite H; auto.
+  intuition.
+Qed.
 
 Lemma n2dfa_eq_states {A B} eq eq' (g:nfa_comp_list A B) Q1 Q2 :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
-  let brz := (n2dfa eq eq' (revert_nfa g)) in
-  In Q1 (states brz) -> In Q2 (states brz) ->
+  let g' := (n2dfa eq eq' g) in
+  In Q1 (states g') -> In Q2 (states g') ->
   eq_sets Q1 Q2 -> Q1 = Q2.
 Proof.
+  intros H.
+  assert (forall l n Q, In Q1 (states (n2dfa'_op eq eq' g l n Q)) -> In Q2 (states (n2dfa'_op eq eq' g l n Q)) -> eq_sets Q1 Q2 -> Q1 = Q2). {
+    intros; admit.
+  }
+  unfold n2dfa; intros; destruct (accept_states g).
+  1: destruct H1.
+  assert (forall Q, In Q (states (n2dfa'_op eq eq' g [] (max_length g) (start_states g))) -> eq_sets (start_states g) Q -> start_states g = Q). {
+    admit.
+  }
+  destruct H1, H2.
+  - symmetry in H1, H2; subst; auto.
+  - symmetry in H1; subst;
+    apply in_app_states_or in H2; destruct H2.
+    1: auto.
+    apply in_n2dfa_accept_wrap in H1; destruct H1; subst; auto.
+  - symmetry; apply eq_sets_comm in H3; symmetry in H2; subst;
+    apply in_app_states_or in H1; destruct H1.
+    1: auto.
+    apply in_n2dfa_accept_wrap in H1; destruct H1; subst; auto.
+  - clear H4; apply in_app_states_or in H1; apply in_app_states_or in H2;
+    destruct H1, H2.
+    + apply H0 with nil (max_length g) (start_states g); auto.
+    + apply in_n2dfa_accept_wrap in H2; destruct H2.
 Admitted.
 
 Lemma n2dfa_path {A B eq eq'} {g:nfa_comp_list A B} {Q q' w} :
@@ -596,4 +638,61 @@ Lemma n2dfa_accept {A B eq eq'} {g:nfa_comp_list A B} {Q} :
   In Q (states g') ->
   In Q (accept_states g') <-> exists q, In q Q /\ In q (accept_states g).
 Proof.
-Admitted.
+  unfold n2dfa; intros.
+  destruct (accept_states g) eqn:H2.
+  1: destruct H0.
+  rewrite <- H2; clear H2 a l.
+  remember (start_states g) as Q0 eqn:H1; clear H1;
+  remember (@nil (list A)) as l eqn:H1; clear H1;
+  remember (max_length g) as n eqn:H1; clear H1;
+  split; intros.
+  - clear H0; apply accept_states_in in H1.
+    destruct H1.
+    1: discriminate.
+    apply in_app_or in H0; destruct H0.
+    1: apply in_n2dfa'_op in H0; destruct H0 as [Q1 [a [Q2 [H0 _]]]]; discriminate.
+    remember (Q0::states (n2dfa'_op eq eq' g l n Q0)) as st eqn:H1; clear H1.
+    induction st.
+    1: destruct H0.
+    simpl in H0; destruct (has_accept_stateb eq g a) eqn:H1.
+    2: intuition.
+    apply has_accept_stateb_correct in H1.
+    1: destruct H0.
+    2,3: auto.
+    injection H0; intros; subst; auto.
+  - destruct H1 as [q [H1 H2]].
+    destruct H0; subst.
+    + simpl; apply accept_states_in, in_or_app.
+      assert (has_accept_stateb eq g Q = true). {
+        apply has_accept_stateb_correct.
+        1: auto.
+        exists q; intuition.
+      }
+      rewrite H0; intuition.
+    + assert (In Q (Q0::states (n2dfa'_op eq eq' g l n Q0)) -> In Q (accept_states (n2dfa_accept_wrap eq g (Q0::states (n2dfa'_op eq eq' g l n Q0))))). {
+        remember (Q0 :: states (n2dfa'_op eq eq' g l n Q0)) as y eqn:H3; clear H3 H0; intros.
+        induction y; destruct H0; subst.
+        - assert (has_accept_stateb eq g Q = true).
+            apply has_accept_stateb_correct; try exists q; intuition.
+          simpl; rewrite H0; simpl; intuition.
+        - simpl; destruct (has_accept_stateb eq g a).
+          1,2: simpl; intuition.
+      }
+      apply in_app_states_or in H0; destruct H0.
+      * apply accept_states_in; right; apply in_or_app; right;
+        apply accept_states_in, H3; intuition.
+      * apply accept_states_in; right; apply in_or_app; right;
+        apply accept_states_in, H3;
+        pose proof (in_n2dfa_accept_wrap eq g Q (Q0 :: states (n2dfa'_op eq eq' g l n Q0)));
+        intuition.
+Qed.
+
+
+
+
+
+
+
+
+
+
