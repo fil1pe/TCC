@@ -69,6 +69,19 @@ Fixpoint transition {A B} (eq:A->A->bool) (eq':B->B->bool) (g:nfa_comp_list A B)
   | _::g => transition eq eq' g q a
   end.
 
+(* Prova de que os estados iniciais estão contidos nos estados *)
+Lemma start_states_subset {A B} (g:nfa_comp_list A B) :
+  subset (start_states g) (states g).
+Proof.
+  induction g; intros q H.
+  1: destruct H.
+  simpl in H; destruct a.
+  1,2,4,5: try right; intuition.
+  destruct H; subst.
+  1: left; auto.
+  right; intuition.
+Qed.
+
 (* Prova de que o estado inicial é um estado *)
 Lemma start_state_is_state {A B} (g:nfa_comp_list A B) q :
   In q (start_states g) ->
@@ -123,6 +136,15 @@ Proof.
     + simpl in H; apply or_assoc in H; destruct H; subst.
       1: left; intuition.
       apply or_assoc in H; destruct H; subst; right; intuition.
+Qed.
+
+(* Se existe uma transição a um estado q, então esse estado está nos estados *)
+Lemma trans_in_states {A B} (g:nfa_comp_list A B) q a q' :
+  In (trans q a q') g -> In q (states g).
+Proof.
+  intros; induction g; destruct H; subst.
+  1: left; intuition.
+  destruct a0; try right; try right; intuition.
 Qed.
 
 (* Se existe uma transição definida para algum símbolo a, então esse símbolo está no alfabeto *)
@@ -267,6 +289,35 @@ Proof.
   induction w1.
   - auto.
   - intros; apply IHw1.
+Qed.
+
+(* Prova de que a transição está contida nos estados *)
+Lemma ext_transition_subset {A B} eq eq' (g:nfa_comp_list A B) q w :
+  subset q (states g) ->
+  subset (ext_transition eq eq' g q w) (states g).
+Proof.
+  intros H q' H0; generalize dependent q; induction w; intros.
+  1: apply H; auto.
+  replace (a::w) with ([a]++w) in H0.
+  2: auto.
+  rewrite ext_transition_app in H0.
+  apply IHw with (ext_transition eq eq' g q [a]).
+  2: auto.
+  clear IHw H0 q'; intros q' H0; induction q.
+  1: auto.
+  simpl in H0; apply in_app_or in H0; destruct H0.
+  - clear H IHq; induction g.
+    1: destruct H0.
+    destruct a1.
+    1-4: try right; intuition.
+    simpl in H0; destruct (eq a0 q0 && eq' a a1).
+    2: right; intuition.
+    destruct H0.
+    1: subst; right; left; auto.
+    right; intuition.
+  - apply IHq.
+    2: auto.
+    intros q'' H1; apply H; intuition.
 Qed.
 
 Lemma ext_transition_nil {A B} eq eq' (g:nfa_comp_list A B) w :

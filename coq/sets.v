@@ -84,6 +84,14 @@ Proof.
   - apply H, H0; auto.
 Qed.
 
+(* Prova de que, se um conjunto está contido em outro, seu equivalente está contido também *)
+Lemma subset_eq {A} (s1 s2 s3:list A) :
+  subset s1 s2 -> eq_sets s1 s3 -> subset s3 s2.
+Proof.
+  unfold subset, eq_sets; intros.
+  apply H, H0, H1.
+Qed.
+
 (* Verifica se duas listas-conjuntos são equivalentes *)
 Definition eq_setsb {A} (eq:A->A->bool) s1 s2 :=
   subsetb eq s1 s2 && subsetb eq s2 s1.

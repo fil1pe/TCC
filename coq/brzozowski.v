@@ -177,6 +177,7 @@ Proof.
         specialize (H2 w); simpl in H2;
         destruct (ext_transition eq eq' g [q0] w) eqn:H7.
         1: destruct H6.
+        2: auto.
         assert (q = a0). {
           assert (In a0 (a0::l0)).
             left; auto.
@@ -196,6 +197,7 @@ Proof.
         specialize (H2 w); simpl in H2;
         destruct (ext_transition eq eq' g [q0] w) eqn:H7.
         1: destruct H6.
+        2: auto.
         assert (q = a0). {
           assert (In a0 (a0::l0)).
             left; auto.
