@@ -643,64 +643,6 @@ Proof.
 Qed.
 
 
-(** Normalizar autômato de listas **)
-
-(*Fixpoint normalize_nfa' {A B} eq (g l:nfa_comp_list (list A) B) :=
-  match l with
-  | nil => nil
-  | trans Q a Q'::l => trans (get_set eq Q (states g)) a (get_set eq Q' (states g))::normalize_nfa' eq g l
-  | start Q::l => start (get_set eq Q (states g))::normalize_nfa' eq g l
-  | accept Q::l => accept (get_set eq Q (states g))::normalize_nfa' eq g l
-  | state Q::l => state (get_set eq Q (states g))::normalize_nfa' eq g l
-  | symbol a::l => symbol a::normalize_nfa' eq g l
-  end.
-
-Lemma normalized_nfa' {A B} eq (g l l':nfa_comp_list (list A) B) Q Q' :
-  (forall x x', x=x' <-> eq x x'=true) ->
-  subset l g ->
-  subset l' g ->
-  In Q (states (normalize_nfa' eq g l)) ->
-  In Q' (states (normalize_nfa' eq g l')) ->
-  (eq_sets Q Q' <-> Q = Q').
-Proof.
-  intros.
-  induction l.
-  - destruct H2.
-  - assert (subset l g).
-      unfold subset in H0; unfold subset; intuition.
-
-    assert (forall q, In q (states g) -> get_set eq q (states g) = Q -> (eq_sets Q Q' <-> Q = Q')). {
-      clear H4 IHl H2 H0; intros.
-      induction l'.
-      - destruct H3.
-      - assert (subset l' g).
-          unfold subset in H1; unfold subset; intuition.
-        destruct a0.
-        2: intuition.
-        1-4: destruct H3.
-        2,4,6: intuition.
-        1-5: admit.
-    }
-
-    simpl in H1; simpl in H2; destruct a.
-    2: intuition.
-    1-4: destruct H2.
-    2,4,6: intuition.
-    5: destruct H2.
-    6: intuition.
-
-    1-4: apply (H5 q); auto.
-    5: apply (H5 q'); auto.
-    
-Admitted.
-
-Definition normalize_nfa {A B} eq (g:nfa_comp_list (list A) B) :=
-  normalize_nfa' eq g g.
-
-Lemma normalized_nfa {A B} eq (g:nfa_comp_list (list A) B) Q Q' :
-  In Q (states (normalize_nfa eq g)) -> In Q' (states (normalize_nfa eq g)) ->
-  eq_sets *)
-
 
 
 

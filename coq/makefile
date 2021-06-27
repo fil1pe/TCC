@@ -4,4 +4,5 @@ compile:
 	coqc dfa.v
 	coqc nfa.v
 	coqc reversing.v
+	coqc normalizing.v
 	coqc n2dfa.v
