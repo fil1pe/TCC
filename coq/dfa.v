@@ -158,7 +158,69 @@ Proof.
     intros; apply H2; right; auto.
 Qed.
 
+(* Prova de que a junção de dois autômatos sem estado inicial não tem estado inicial *)
+Lemma start_states_app_nil {A B} (g1 g2:nfa_comp_list A B) :
+  start_states g1 = nil -> start_states g2 = nil ->
+  start_states (g1 ++ g2) = nil.
+Proof.
+  intros; induction g1.
+  1: simpl; rewrite H0; auto.
+  destruct a.
+  1,2,4,5: auto.
+  simpl in H; discriminate.
+Qed.
 
+(* Prova de que a junção de um DFA com uma lista de estados de aceitação é um DFA *)
+Lemma app_accept_is_dfa' {A B} (g:nfa_comp_list A B) l :
+  is_dfa' g ->
+  (forall c, In c l -> exists q, c = accept q) ->
+  is_dfa' (g ++ l).
+Proof.
+  intros; induction H.
+  - simpl; induction l.
+    1: apply cons_empty_dfa; auto.
+    destruct a.
+    + assert (In (state q) (state q::l)).
+        intuition.
+      apply H0 in H1; destruct H1; discriminate.
+    + assert (In (symbol a) (symbol a::l)).
+        intuition.
+      apply H0 in H1; destruct H1; discriminate.
+    + assert (In (start q) (start q::l)).
+        intuition.
+      apply H0 in H1; destruct H1; discriminate.
+    + apply cons_dfa_accept, IHl.
+      intros; apply H0; intuition.
+    + assert (In (trans q a q') (trans q a q'::l)).
+        intuition.
+      apply H0 in H1; destruct H1; discriminate.
+  - apply cons_dfa_state; intuition.
+  - apply cons_dfa_symbol; intuition.
+  - apply cons_dfa_accept; intuition.
+  - simpl; apply cons_dfa_start_repeat.
+    1: intuition.
+    apply in_app_start_states_or; intuition.
+  - simpl; apply cons_dfa_start.
+    1: intuition.
+    apply start_states_app_nil.
+    1: auto.
+    clear IHis_dfa' H1 H g q; induction l.
+    1: auto.
+    destruct a.
+    1,2,4,5: intuition.
+    assert (In (start q) (start q::l)).
+      intuition.
+    apply H0 in H; destruct H; discriminate.
+  - simpl; apply cons_dfa_trans_repeat.
+    1: intuition.
+    apply in_or_app; intuition.
+  - simpl; apply cons_dfa_trans.
+    1: intuition.
+    intros q'' contra.
+    apply in_app_or in contra; destruct contra.
+    1: apply H1 in H2; auto.
+    apply H0 in H2; destruct H2; discriminate.
+Qed.
 
 
 

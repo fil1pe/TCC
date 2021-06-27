@@ -338,7 +338,7 @@ Fixpoint n2dfa_accept_wrap {A B} eq (g:nfa_comp_list A B) states : nfa_comp_list
       n2dfa_accept_wrap eq g states
   end.
 
-Lemma in_n2dfa_accept_wrap {A B} eq (g:nfa_comp_list A B) Q l :
+Lemma state_in_n2dfa_accept_wrap {A B} eq (g:nfa_comp_list A B) Q l :
   In Q (states (n2dfa_accept_wrap eq g l)) -> In Q l.
 Proof.
   intros; induction l.
@@ -346,6 +346,28 @@ Proof.
   simpl in H; destruct (has_accept_stateb eq g a).
   2: intuition.
   destruct H; subst; intuition.
+Qed.
+
+Lemma in_n2dfa_accept_wrapp {A B} eq (g:nfa_comp_list A B) l :
+  forall c, In c (n2dfa_accept_wrap eq g l) -> exists q, c = accept q.
+Proof.
+  intros; induction l.
+  1: destruct H.
+  simpl in H; destruct (has_accept_stateb eq g a).
+  2: auto.
+  destruct H.
+  1: exists a; symmetry; auto.
+  auto.
+Qed.
+
+Lemma dfa_app_n2dfa_accept_wrapp {A B} eq (g:nfa_comp_list A B) l :
+  is_dfa' l ->
+  is_dfa' (l ++ n2dfa_accept_wrap eq g (states l)).
+Proof.
+  intros; apply app_accept_is_dfa'.
+  1: auto.
+  intros.
+  apply in_n2dfa_accept_wrapp with eq g (states l); auto.
 Qed.
 
 
@@ -400,7 +422,7 @@ Proof.
     destruct H as [Q' [H H2]]; apply H1 with Q'.
     2: auto.
     apply H; auto.
-  - apply in_n2dfa_accept_wrap in H; destruct H.
+  - apply state_in_n2dfa_accept_wrap in H; destruct H.
     {
       assert (eq_sets Q (start_states g)).
       2: apply H2 in H0; apply start_states_subset; auto.
@@ -412,8 +434,6 @@ Proof.
     apply H; auto.
 Qed.
 
-
-
 Lemma n2dfa_eq_states {A B} eq eq' (g:nfa_comp_list A B) Q1 Q2 :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
   let g' := (n2dfa eq eq' g) in
@@ -424,8 +444,8 @@ Proof.
   1: destruct H0.
   apply in_app_states_or in H0; apply in_app_states_or in H1;
   destruct H0, H1.
-  2,4: apply in_n2dfa_accept_wrap in H1.
-  3,4: apply in_n2dfa_accept_wrap in H0.
+  2,4: apply state_in_n2dfa_accept_wrap in H1.
+  3,4: apply state_in_n2dfa_accept_wrap in H0.
   1-4: apply normalize_eq_sets with eq (start (start_states g) :: n2dfa_trans eq eq' g (pumping_length g) (start_states g)); auto.
 Qed.
 
@@ -441,6 +461,10 @@ Lemma n2dfa_is_dfa {A B eq eq'} {g:nfa_comp_list A B} :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
   is_dfa' (n2dfa eq eq' g).
 Proof.
+  intros; unfold n2dfa; destruct (accept_states g).
+  - apply cons_empty_dfa.
+    apply (is_nfa_cons [] (lists_eq eq) eq' (lists_eq_correct H) H0).
+  - apply dfa_app_n2dfa_accept_wrapp.
 Admitted.
 
 Lemma n2dfa_accept {A B eq eq'} {g:nfa_comp_list A B} {Q} :
@@ -482,7 +506,7 @@ Proof.
   - assert (In Q (states (normalize eq (start Q0 :: n2dfa_trans eq eq' g n Q0) (start Q0 :: n2dfa_trans eq eq' g n Q0)))). {
       apply in_app_states_or in H0; destruct H0.
       1: auto.
-      apply in_n2dfa_accept_wrap in H0; auto.
+      apply state_in_n2dfa_accept_wrap in H0; auto.
     }
     clear H0;
     remember (normalize eq (start Q0 :: n2dfa_trans eq eq' g n Q0) (start Q0 :: n2dfa_trans eq eq' g n Q0)) as l eqn:H0; clear H0.

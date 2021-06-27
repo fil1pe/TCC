@@ -138,6 +138,29 @@ Proof.
       apply or_assoc in H; destruct H; subst; right; intuition.
 Qed.
 
+(* Os estados iniciais de dois autômatos concatenados são a concatenação dos estados iniciais deles *)
+Lemma in_app_start_states_or {A B} (g1 g2:nfa_comp_list A B) q :
+  In q (start_states (g1 ++ g2)) <-> In q (start_states g1) \/ In q (start_states g2).
+Proof.
+  intros; induction g1.
+  {
+    split; intros.
+    1: intuition.
+    destruct H.
+    1: destruct H.
+    auto.
+  }
+  destruct a.
+  1,2,4,5: auto.
+  simpl; split; intros.
+  - destruct H; subst.
+    1: left; left; auto.
+    apply or_assoc; right; intuition.
+  - apply or_assoc in H; destruct H; subst.
+    1: left; auto.
+    right; apply IHg1; auto.
+Qed.
+
 (* Se existe uma transição a um estado q, então esse estado está nos estados *)
 Lemma trans_in_states {A B} (g:nfa_comp_list A B) q a q' :
   In (trans q a q') g -> In q (states g).
