@@ -182,7 +182,97 @@ Proof.
   - apply H0 in H2; destruct H2; auto.
 Qed.
 
+Lemma accept_in_normalize {A B} eq (g:nfa_comp_list (list A) B) l Q :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  In (accept Q) (normalize eq g l) -> exists Q', eq_sets Q Q' /\ In (accept Q') g.
+Proof.
+  intros;
+  generalize dependent l;
+  induction g; intros.
+  1: destruct H0.
+  destruct a.
+  - destruct H0.
+    1: discriminate.
+    apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+    1: intuition.
+    right; intuition.
+  - destruct H0.
+    1: discriminate.
+    apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+    1: intuition.
+    right; intuition.
+  - destruct H0.
+    1: discriminate.
+    apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+    1: intuition.
+    right; intuition.
+  - destruct H0.
+    + injection H0; intros; subst; exists q; split.
+      2: intuition.
+      apply eq_sets_comm, get_set_eq; auto.
+    + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+      1: intuition.
+      right; intuition.
+  - destruct H0.
+    1: discriminate.
+    apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+    1: intuition.
+    right; intuition.
+Qed.
 
+Lemma state_in_normalize {A B} eq (g:nfa_comp_list (list A) B) l Q :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  In Q (states (normalize eq g l)) -> exists Q', eq_sets Q Q' /\ In Q' (states g).
+Proof.
+  intros;
+  generalize dependent l;
+  induction g; intros.
+  1: destruct H0.
+  destruct a.
+  - destruct H0.
+    + exists q; split.
+      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      left; auto.
+    + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+      1: intuition.
+      right; intuition.
+  - apply IHg in H0; auto.
+  - destruct H0.
+    + exists q; split.
+      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      left; auto.
+    + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+      1: intuition.
+      right; intuition.
+  - destruct H0.
+    + exists q; split.
+      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      left; auto.
+    + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+      1: intuition.
+      right; intuition.
+  - destruct H0.
+    2: destruct H0.
+    + exists q; split.
+      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      left; auto.
+    + exists q'; split.
+      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      right; left; auto.
+    + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
+      1: intuition.
+      right; intuition.
+Qed.
+
+Lemma normalize_start_states_nil {A B} eq (g:nfa_comp_list (list A) B) l :
+  start_states g = nil -> start_states (normalize eq g l) = nil.
+Proof.
+  intros; generalize dependent l; induction g; intros.
+  1: auto.
+  destruct a.
+  1,2,4,5: apply IHg, H.
+  discriminate.
+Qed.
 
 
 

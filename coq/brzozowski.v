@@ -213,6 +213,27 @@ Proof.
     apply (n2dfa_eq_states eq eq' (revert_nfa g)) in H5; auto.
 Qed.
 
+(* Prova de que a linguagem é reversa *)
+Lemma brzozowski_language {A B} eq eq' (g:nfa_comp_list A B) w :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
+  (forall q, In q (states g) -> reachable_state eq eq' g q) ->
+  let brz := (n2dfa eq eq' (revert_nfa g)) in
+  accepts (lists_eq eq) eq' brz w <-> accepts eq eq' g (revert w).
+Proof.
+  intros.
+  assert (equivalent_nfas eq eq' (lists_eq eq) (revert_nfa g) brz).
+    intros; apply n2dfa_language; auto.
+  split; intros.
+  - destruct H2 as [_ [_ [_ H2]]];
+    apply reverted_nfa_lang.
+    1,2: auto.
+    apply H2; rewrite <- revert_twice; auto.
+  - destruct H2 as [_ [_ [_ H2]]].
+    apply H2. apply reverted_nfa_lang.
+    1,2: auto.
+    rewrite <- revert_nfa_twice; auto.
+    
+Qed.
 
 
 

@@ -158,18 +158,6 @@ Proof.
     intros; apply H2; right; auto.
 Qed.
 
-(* Prova de que a junção de dois autômatos sem estado inicial não tem estado inicial *)
-Lemma start_states_app_nil {A B} (g1 g2:nfa_comp_list A B) :
-  start_states g1 = nil -> start_states g2 = nil ->
-  start_states (g1 ++ g2) = nil.
-Proof.
-  intros; induction g1.
-  1: simpl; rewrite H0; auto.
-  destruct a.
-  1,2,4,5: auto.
-  simpl in H; discriminate.
-Qed.
-
 (* Prova de que a junção de um DFA com uma lista de estados de aceitação é um DFA *)
 Lemma app_accept_is_dfa' {A B} (g:nfa_comp_list A B) l :
   is_dfa' g ->

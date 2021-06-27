@@ -161,6 +161,30 @@ Proof.
     right; apply IHg1; auto.
 Qed.
 
+(* Prova de que a junção de dois autômatos sem estado inicial não tem estado inicial *)
+Lemma start_states_app_nil {A B} (g1 g2:nfa_comp_list A B) :
+  start_states g1 = nil -> start_states g2 = nil ->
+  start_states (g1 ++ g2) = nil.
+Proof.
+  intros; induction g1.
+  1: simpl; rewrite H0; auto.
+  destruct a.
+  1,2,4,5: auto.
+  simpl in H; discriminate.
+Qed.
+
+(* Se um autômato sem estados iniciais é concatenado a outro, o resultado tem os estados iniciais do segundo autômato *)
+Lemma app_start_states_nil {A B} (g1 g2:nfa_comp_list A B) :
+  start_states g2 = [] ->
+  start_states (g1++g2) = start_states g1.
+Proof.
+  intros; induction g1.
+  1: auto.
+  destruct a.
+  1,2,4,5: auto.
+  simpl; rewrite IHg1; auto.
+Qed.
+
 (* Se existe uma transição a um estado q, então esse estado está nos estados *)
 Lemma trans_in_states {A B} (g:nfa_comp_list A B) q a q' :
   In (trans q a q') g -> In q (states g).
@@ -213,6 +237,15 @@ Proof.
     apply IHg in H; destruct H as [H|[H|[H|[q'' [b [H|H]]]]]].
     1-3: intuition.
     1-2: right; right; right; exists q'', b; intuition.
+Qed.
+
+(* Todo estado final está nos estados *)
+Lemma accept_in_states {A B} (g:nfa_comp_list A B) q :
+  In (accept q) g -> In q (states g).
+Proof.
+  intros; induction g; destruct H; subst.
+  1: left; intuition.
+  destruct a; try right; try right; intuition.
 Qed.
 
 (* Prova de consistência da função que retorna os estados de aceitação *)
@@ -564,6 +597,12 @@ Definition accepts {A B} eq eq' (g:nfa_comp_list A B) w :=
 (* Verifica se uma palavra é aceita *)
 Definition acceptsb {A B} eq eq' (g:nfa_comp_list A B) w :=
   has_accept_stateb eq g (ext_transition eq eq' g (start_states g) w).
+
+(* Autômatos equivalentes *)
+Definition equivalent_nfas {A B C} eq1 eq eq2 (g1:nfa_comp_list A B) (g2:nfa_comp_list C B) :=
+  (forall q1 q2, q1=q2 <-> eq1 q1 q2=true) /\ (forall a b, a=b <-> eq a b=true) /\
+  (forall q1 q2, q1=q2 <-> eq2 q1 q2=true) /\
+  forall w, accepts eq1 eq g1 w <-> accepts eq2 eq g2 w.
 
 
 (** Estados alcançáveis **)
