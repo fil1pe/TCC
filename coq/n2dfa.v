@@ -82,7 +82,7 @@ Fixpoint n2dfa_trans {A B} eq eq' (g:nfa_comp_list A B) n Q :=
 Lemma trans_in_n2dfa_trans {A B} eq eq' (g:nfa_comp_list A B) Q0 Q Q' n a :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
   In (trans Q a Q') (n2dfa_trans eq eq' g n Q0) ->
-  In a (alphabet g) /\ Q' <> nil /\ eq_sets Q' (ext_transition eq eq' g Q [a]).
+  In a (alphabet g) /\ Q' <> nil /\ Q' = ext_transition eq eq' g Q [a].
 Proof.
   intros;
   generalize dependent Q0;
@@ -96,6 +96,19 @@ Proof.
   split; auto.
 Qed.
 
+Lemma trans_in_n2dfa_trans_eq {A B} eq eq' (g:nfa_comp_list A B) Q0 Q Q' n a :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  In (trans Q a Q') (n2dfa_trans eq eq' g n Q0) ->
+  In a (alphabet g) /\ Q' <> nil /\ eq_sets Q' (ext_transition eq eq' g Q [a]).
+Proof.
+  intros; apply trans_in_n2dfa_trans in H0.
+  2: auto.
+  destruct H0 as [H0 [H1 H2]]; subst; split.
+  2: split.
+  1,2: auto.
+  apply eq_sets_self.
+Qed.
+
 Lemma n2dfa_trans_old_path {A B} eq eq' (g:nfa_comp_list A B) n w Q Q' q' :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
   In q' Q' -> path (n2dfa_trans eq eq' g n Q) Q Q' w ->
@@ -105,7 +118,7 @@ Proof.
   generalize dependent q';
   induction H2; intros.
   1: exists q'; intuition; constructor.
-  apply trans_in_n2dfa_trans in H1.
+  apply trans_in_n2dfa_trans_eq in H1.
   2: auto.
   destruct H1 as [H1 [_ H4]].
   assert (In q' (ext_transition eq eq' g  q2 [a])).
@@ -375,7 +388,62 @@ Proof.
   - apply cons_empty_dfa.
     apply (is_nfa_cons [] (lists_eq eq) eq' (lists_eq_correct H) H0).
   - apply dfa_app_n2dfa_accept_wrapp.
-Admitted.
+    clear a l.
+    apply normalize_is_dfa'.
+    1: auto.
+    1: intros c; intuition.
+    {
+      intros; destruct H2, H3; try discriminate.
+      apply trans_in_n2dfa_trans_eq in H2; apply trans_in_n2dfa_trans_eq in H3.
+      2-4: auto.
+      apply eq_sets_transitive with (ext_transition eq eq' g q1 [a]).
+      1: apply eq_sets_comm; intuition.
+      apply eq_sets_transitive with (ext_transition eq eq' g q3 [a]).
+      2: apply eq_sets_comm; intuition.
+      apply ext_transition_eq_sets, eq_sets_comm; auto.
+    }
+    apply cons_dfa_start.
+    2: {
+      assert (forall A (l:list A), (forall x, ~ In x l) -> l = []). {
+        intros; destruct l.
+        1: auto.
+        specialize (H1 a); destruct H1; intuition.
+      }
+      apply H1; clear H1; intros q H1. apply start_states_in in H1.
+      apply in_n2dfa_trans in H1.
+      2: auto.
+      2: apply start_states_subset.
+      destruct H1 as [Q1 [a [Q2 [H1 _]]]]; discriminate.
+    }
+    assert (forall (g':nfa_comp_list (list A) B),
+    (forall c, In c g' -> exists q a, c = trans q a (ext_transition eq eq' g q [a])) ->
+    is_dfa' g').
+    2: {
+      apply H1; clear H1; intros; pose proof H1; apply in_n2dfa_trans in H1.
+      2: auto.
+      2: apply start_states_subset.
+      destruct H1 as [Q1 [a [Q2 [H1 _]]]]; subst; apply trans_in_n2dfa_trans in H2.
+      2: auto.
+      exists Q1, a; destruct H2 as [H2 [H3 H4]]; subst; auto.
+    }
+    intros; induction g'.
+    1: apply cons_empty_dfa, (is_nfa_cons [] (lists_eq eq) eq' (lists_eq_correct H) H0).
+    pose proof H1; destruct H2 with a.
+    1: left; auto.
+    destruct H3 as [b H3]; subst.
+    destruct (nfa_ex_trans_dec g' (is_nfa_cons g' (lists_eq eq) eq' (lists_eq_correct H) H0) x b).
+    Opaque ext_transition.
+    + destruct H3 as [y H3].
+      destruct H2 with (trans x b y).
+      1: intuition.
+      destruct H4 as [b' H4]; injection H4; intros; subst.
+      apply cons_dfa_trans_repeat.
+      2: auto.
+      apply IHg'; intros; apply H1; intuition.
+    + apply cons_dfa_trans.
+      2: auto.
+      apply IHg'; intros; apply H1; intuition.
+Qed.
 
 Lemma n2dfa_accept {A B eq eq'} {g:nfa_comp_list A B} {Q} :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->

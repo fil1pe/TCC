@@ -3,15 +3,15 @@ Include ListNotations.
 
 
 (* Define as restrições dos autômatos finitos determinísticos *)
-Inductive is_dfa' : forall {A B}, nfa_comp_list A B -> Prop :=
-  | cons_empty_dfa {A B} : is_nfa (@nil (@nfa_comp A B)) -> is_dfa' (@nil (@nfa_comp A B))
-  | cons_dfa_state {A B} (g:nfa_comp_list A B) q : is_dfa' g -> is_dfa' (state q::g)
-  | cons_dfa_symbol {A B} (g:nfa_comp_list A B) a : is_dfa' g -> is_dfa' (symbol a::g)
-  | cons_dfa_accept {A B} (g:nfa_comp_list A B) q : is_dfa' g -> is_dfa' (accept q::g)
-  | cons_dfa_start_repeat {A B} (g:nfa_comp_list A B) q : is_dfa' g -> In q (start_states g) -> is_dfa' (start q::g)
-  | cons_dfa_start {A B} (g:nfa_comp_list A B) q : is_dfa' g -> start_states g = [] -> is_dfa' (start q::g)
-  | cons_dfa_trans_repeat {A B} (g:nfa_comp_list A B) q a q' : is_dfa' g -> In (trans q a q') g -> is_dfa' (trans q a q'::g)
-  | cons_dfa_trans {A B} (g:nfa_comp_list A B) q a q' : is_dfa' g -> (forall q', ~ In (trans q a q') g) -> is_dfa' (trans q a q'::g).
+Inductive is_dfa' {A B} : nfa_comp_list A B -> Prop :=
+  | cons_empty_dfa : is_nfa (@nil (@nfa_comp A B)) -> is_dfa' (@nil (@nfa_comp A B))
+  | cons_dfa_state (g:nfa_comp_list A B) q : is_dfa' g -> is_dfa' (state q::g)
+  | cons_dfa_symbol (g:nfa_comp_list A B) a : is_dfa' g -> is_dfa' (symbol a::g)
+  | cons_dfa_accept (g:nfa_comp_list A B) q : is_dfa' g -> is_dfa' (accept q::g)
+  | cons_dfa_start_repeat (g:nfa_comp_list A B) q : is_dfa' g -> In q (start_states g) -> is_dfa' (start q::g)
+  | cons_dfa_start (g:nfa_comp_list A B) q : is_dfa' g -> start_states g = [] -> is_dfa' (start q::g)
+  | cons_dfa_trans_repeat (g:nfa_comp_list A B) q a q' : is_dfa' g -> In (trans q a q') g -> is_dfa' (trans q a q'::g)
+  | cons_dfa_trans (g:nfa_comp_list A B) q a q' : is_dfa' g -> (forall q', ~ In (trans q a q') g) -> is_dfa' (trans q a q'::g).
 
 Definition is_dfa {A B} (G:nfa A B) :=
   match G with
@@ -72,21 +72,19 @@ Proof.
   apply (transition_in eq eq' g q0 a q' H H0) in H3.
   induction H1.
   1: destruct H2.
-  1-5: destruct H2, H3; try discriminate; apply (IHis_dfa' eq eq' q0 q q' a); auto.
+  1-5: destruct H2, H3; try discriminate; apply IHis_dfa'; auto.
   - destruct H2, H3.
     + injection H2; injection H3; intros; subst; auto.
     + injection H2; intros; subst; auto.
-      apply (IHis_dfa' eq eq' q0 q q' a); auto.
     + injection H3; intros; subst; auto.
-      apply (IHis_dfa' eq eq' q0 q q' a); auto.
-    + apply (IHis_dfa' eq eq' q0 q q' a); auto.
+    + auto.
   - destruct H2, H3.
     + injection H2; injection H3; intros; subst; auto.
     + injection H2; intros; subst; auto.
       apply H4 in H3; destruct H3.
     + injection H3; intros; subst; auto.
       apply H4 in H2; destruct H2.
-    + apply (IHis_dfa' eq eq' q0 q q' a); auto.
+    + auto.
 Qed.
 
 Lemma dfa_trans_ext {A B} eq eq' (g:nfa_comp_list A B) q0 q q' w l :

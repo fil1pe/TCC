@@ -274,6 +274,232 @@ Proof.
   discriminate.
 Qed.
 
+Lemma normalize_in_start_states {A B} eq (g:nfa_comp_list (list A) B) l q :
+  In q (start_states g) ->
+  In (normalize_state eq l q) (start_states (normalize eq g l)).
+Proof.
+  intros;
+  generalize dependent l;
+  induction g; intros.
+  1: destruct H.
+  destruct a.
+  1,2,4,5: simpl in *; intuition.
+  simpl in *; destruct H; subst; intuition.
+Qed.
+
+Lemma normalize_trans_in {A B} eq (g:nfa_comp_list (list A) B) l q a q' :
+  In (trans q a q') g ->
+  In (trans (normalize_state eq l q) a (normalize_state eq l q')) (normalize eq g l).
+Proof.
+  intros;
+  generalize dependent l;
+  induction g; intros.
+  1: destruct H.
+  destruct a0.
+  1-4: simpl in *; destruct H; try discriminate; intuition.
+  simpl in H; destruct H.
+  1: injection H; intros; subst; simpl; intuition.
+  simpl in *; intuition.
+Qed.
+
+Lemma in_normalize_eq_trans {A B} eq (g:nfa_comp_list (list A) B) l q a q' :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  In (trans q a q') (normalize eq g l) -> exists q0 q0', eq_sets q q0 /\ eq_sets q' q0' /\ In (trans q0 a q0') g.
+Proof.
+  intros H10; generalize dependent l; induction g; intros.
+  1: intros; destruct H.
+  destruct a0.
+  1-4: destruct H; try discriminate; apply IHg in H; destruct H as [q1 [q2 H]]; exists q1, q2; intuition.
+  destruct H.
+  2: apply IHg in H; destruct H as [q1 [q2 H]]; exists q1, q2; intuition.
+  injection H; intros; subst; clear IHg; exists q0, q'0; split.
+  2: split.
+  1,2: apply eq_sets_comm, get_set_eq; auto.
+  intuition.
+Qed.
+
+Lemma normalize_eq_trans_in {A B} eq (g:nfa_comp_list (list A) B) l q1 q2 a q3 q4 :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  subset g l ->
+  eq_sets q1 q3 ->
+  eq_sets q2 q4 ->
+  In (trans q1 a q2) g ->
+  In (trans (normalize_state eq l q3) a (normalize_state eq l q4)) (normalize eq g l).
+Proof.
+  intros H10; intros; generalize dependent l; induction g; intros.
+  1: destruct H2.
+  destruct a0.
+  - simpl; right; apply IHg.
+    1: destruct H2; try discriminate; auto.
+    intros Q H3; apply H; intuition.
+  - simpl; right; apply IHg.
+    1: destruct H2; try discriminate; auto.
+    intros Q H3; apply H; intuition.
+  - simpl; right; apply IHg.
+    1: destruct H2; try discriminate; auto.
+    intros Q H3; apply H; intuition.
+  - simpl; right; apply IHg.
+    1: destruct H2; try discriminate; auto.
+    intros Q H3; apply H; intuition.
+  - destruct H2.
+    + simpl; injection H2; intros; subst; clear IHg; left.
+      assert (In (trans q1 a q2) l).
+        apply H; intuition.
+      clear H2 H g; unfold normalize_state; induction l.
+      1: destruct H3.
+      assert (forall q, eq_setsb eq q q = true).
+        intros; apply eq_setsb_correct; try apply eq_sets_self; auto.
+      assert (eq_setsb eq q1 q3 = true).
+        apply eq_setsb_correct; auto.
+      assert (eq_setsb eq q2 q4 = true).
+        apply eq_setsb_correct; auto.
+      assert (eq_setsb eq q3 q1 = true).
+        rewrite eq_setsb_comm; auto.
+      assert (eq_setsb eq q4 q2 = true).
+        rewrite eq_setsb_comm; auto.
+      destruct H3; subst.
+      * simpl; repeat rewrite H; rewrite H5, H6.
+        rewrite (eq_setsb_equals eq q2 q4 q1).
+        2,3: auto.
+        destruct (eq_setsb eq q4 q1); auto.
+      * apply IHl in H3; clear IHl.
+        injection H3; intros; subst.
+        destruct a0.
+        -- simpl; rewrite (eq_setsb_equals eq q1 q3 q), (eq_setsb_equals eq q2 q4 q).
+          2-5: auto.
+          destruct (eq_setsb eq q3 q), (eq_setsb eq q4 q);
+          try rewrite H7; try rewrite H8; auto.
+        -- simpl; rewrite H7, H8; auto.
+        -- simpl; rewrite (eq_setsb_equals eq q1 q3 q), (eq_setsb_equals eq q2 q4 q).
+          2-5: auto.
+          destruct (eq_setsb eq q3 q), (eq_setsb eq q4 q);
+          try rewrite H7; try rewrite H8; auto.
+        -- simpl; rewrite (eq_setsb_equals eq q1 q3 q), (eq_setsb_equals eq q2 q4 q).
+          2-5: auto.
+          destruct (eq_setsb eq q3 q), (eq_setsb eq q4 q);
+          try rewrite H7; try rewrite H8; auto.
+        -- simpl. rewrite (eq_setsb_equals eq q1 q3 q), (eq_setsb_equals eq q2 q4 q),
+          (eq_setsb_equals eq q1 q3 q'), (eq_setsb_equals eq q2 q4 q').
+          2-9: auto.
+          destruct (eq_setsb eq q3 q), (eq_setsb eq q3 q'), (eq_setsb eq q4 q), (eq_setsb eq q4 q');
+          try rewrite H7; try rewrite H8; auto.
+    + right; apply IHg.
+      1: auto.
+      intros Q H3; apply H; intuition.
+Qed.
+
+Require Import dfa.
+
+Lemma nfa_ex_trans_dec {A B} (g:nfa_comp_list A B) :
+  is_nfa g ->
+  forall q a, (exists q', In (trans q a q') g) \/ (forall q', ~ In (trans q a q') g).
+Proof.
+  intros; inversion H; subst.
+  induction g.
+  1: intuition.
+  assert (is_nfa g).
+    apply (is_nfa_cons g eq eq' H0 H1).
+  apply IHg in H2; clear IHg; destruct H2 as [[q' H2]|H2].
+  1: left; exists q'; intuition.
+  destruct a0.
+  - right; intros q' contra.
+    simpl in contra; destruct contra.
+    1: discriminate.
+    apply H2 in H3; auto.
+  - right; intros q' contra.
+    simpl in contra; destruct contra.
+    1: discriminate.
+    apply H2 in H3; auto.
+  - right; intros q' contra.
+    simpl in contra; destruct contra.
+    1: discriminate.
+    apply H2 in H3; auto.
+  - right; intros q' contra.
+    simpl in contra; destruct contra.
+    1: discriminate.
+    apply H2 in H3; auto.
+  - destruct (eq q q0) eqn:H3.
+    + apply H0 in H3; subst.
+      destruct (eq' a a0) eqn:H4.
+      1: apply H1 in H4; subst; left; exists q'; intuition.
+      right; intros; intros contra; destruct contra.
+      1: injection H3; intros; symmetry in H6;
+      apply H1 in H6; rewrite H6 in H4; discriminate.
+      apply H2 in H3; auto.
+    + right; intros; intros contra; destruct contra.
+      1: injection H4; intros; symmetry in H7;
+      apply H0 in H7; rewrite H7 in H3; discriminate.
+      apply H2 in H4; auto.
+Qed.
+
+Lemma normalize_is_dfa' {A B} eq (g:nfa_comp_list (list A) B) l :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  subset g l ->
+  (forall q1 q2 a q3 q4, eq_sets q1 q3 ->
+    In (trans q1 a q2) g -> In (trans q3 a q4) g ->
+    eq_sets q2 q4
+  ) ->
+  is_dfa' g -> is_dfa' (normalize eq g l).
+Proof.
+  intros.
+  induction H2.
+  - apply cons_empty_dfa; auto.
+  - simpl; apply cons_dfa_state, IHis_dfa'; intros.
+    1: intros q'; intros; apply H0; intuition.
+    apply (H1 q1 q2 a q3 q4); intuition.
+  - simpl; apply cons_dfa_symbol, IHis_dfa'; intros.
+    1: intros q'; intros; apply H0; intuition.
+    apply (H1 q1 q2 a0 q3 q4); intuition.
+  - simpl; apply cons_dfa_accept, IHis_dfa'; intros.
+    1: intros q'; intros; apply H0; intuition.
+    apply (H1 q1 q2 a q3 q4); intuition.
+  - simpl; apply cons_dfa_start_repeat.
+    + apply IHis_dfa'.
+      1: intros q'; intuition.
+      intros; apply (H1 q1 q2 a q3 q4); intuition.
+    + apply normalize_in_start_states; auto.
+  - simpl; apply cons_dfa_start.
+    + apply IHis_dfa'.
+      1: intros q'; intuition.
+      intros; apply (H1 q1 q2 a q3 q4); intuition.
+    + apply normalize_start_states_nil; auto.
+  - simpl; apply cons_dfa_trans_repeat.
+    + apply IHis_dfa'.
+      1: intros q''; intuition.
+      intros; apply (H1 q1 q2 a0 q3 q4); intuition.
+    + apply normalize_trans_in; auto.
+  - assert (is_dfa' (normalize eq g l)). {
+      apply IHis_dfa'.
+      1: intros q''; intuition.
+      intros; apply (H1 q1 q2 a0 q3 q4); intuition.
+    }
+    clear IHis_dfa'; pose proof H4;
+    apply dfa_is_nfa in H4; simpl.
+    destruct (nfa_ex_trans_dec (normalize eq g l) H4 (normalize_state eq l q) a).
+    2: apply cons_dfa_trans; auto.
+    destruct H6 as [Q1 H6].
+    apply in_normalize_eq_trans in H6.
+    2: auto.
+    destruct H6 as [q1 [q2 H6]].
+    simpl; apply cons_dfa_trans_repeat.
+    1: auto.
+    specialize (H1 q1 q2 a q q').
+    assert (eq_sets q2 q'). {
+      apply H1.
+      - apply eq_sets_transitive with (normalize_state eq l q).
+        2: apply eq_sets_comm, get_set_eq; auto.
+        intuition.
+      - right; intuition.
+      - left; auto.
+    }
+    clear H1.
+    apply normalize_eq_trans_in with q1 q2.
+    1,4,5: intuition.
+    1: intros Q; intuition.
+    apply eq_sets_transitive with (normalize_state eq l q).
+    1: intuition.
+    apply eq_sets_comm, get_set_eq; auto.
+Qed.
 
 
 

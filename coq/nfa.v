@@ -14,8 +14,8 @@ Inductive nfa_comp {A B} :=
 Definition nfa_comp_list A B := list (@nfa_comp A B).
 
 (* Define as restrições dos autômatos *)
-Inductive is_nfa : forall {A B}, nfa_comp_list A B -> Prop :=
-  | is_nfa_cons {A B} (g: nfa_comp_list A B) (eq:A->A->bool) (eq':B->B->bool) :
+Inductive is_nfa {A B} : nfa_comp_list A B -> Prop :=
+  | is_nfa_cons (g: nfa_comp_list A B) (eq:A->A->bool) (eq':B->B->bool) :
       (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) -> is_nfa g.
 Inductive nfa A B :=
   | nfa_cons (g:nfa_comp_list A B) (eq:A->A->bool) (eq':B->B->bool) (H:forall q1 q2, q1=q2 <-> eq q1 q2=true)
@@ -246,6 +246,21 @@ Proof.
   intros; induction g; destruct H; subst.
   1: left; intuition.
   destruct a; try right; try right; intuition.
+Qed.
+
+(* Prova de consistência da função que retorna os estados iniciais *)
+Lemma start_states_in {A B} (g:nfa_comp_list A B) q :
+  In q (start_states g) <-> In (start q) g.
+Proof.
+  intros; induction g.
+  1: split; intros; destruct H.
+  destruct a; split; intros.
+  1,3,7,9: intuition.
+  1,2,5,6: destruct H; try discriminate; intuition.
+  1: destruct H; subst; intuition.
+  destruct H.
+  1: injection H; intros; subst; left; auto.
+  right; intuition.
 Qed.
 
 (* Prova de consistência da função que retorna os estados de aceitação *)

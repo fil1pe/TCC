@@ -67,6 +67,13 @@ Qed.
 Definition eq_sets {A} (s1 s2:list A) :=
   forall x, In x s1 <-> In x s2.
 
+(* Um conjunto é equivalente a ele mesmo *)
+Lemma eq_sets_self {A} (s:list A) :
+  eq_sets s s.
+Proof.
+  split; intuition.
+Qed.
+
 (* Prova da propriedade comutativa da equivalência *)
 Lemma eq_sets_comm {A} (s1 s2:list A) :
   eq_sets s1 s2 -> eq_sets s2 s1.
@@ -131,6 +138,32 @@ Proof.
     2: rewrite H2 in H0; discriminate.
     apply eq_setsb_correct;
     apply eq_setsb_correct, eq_sets_comm in H1; auto.
+Qed.
+
+(* Prova de que a função aplicada sobre dois conjuntos equivalentes é igual *)
+Lemma eq_setsb_equals {A} eq (s1 s2 s:list A) :
+  (forall x1 x2, x1=x2 <-> eq x1 x2=true) ->
+  eq_sets s1 s2 ->
+  eq_setsb eq s1 s = eq_setsb eq s2 s.
+Proof.
+  intros; destruct (eq_setsb eq s1 s) eqn:H1, (eq_setsb eq s2 s) eqn:H2.
+  1,4: auto.
+  - apply eq_setsb_correct in H1.
+    2: auto.
+    assert (eq_setsb eq s2 s = true).
+    2: rewrite H3 in H2; discriminate.
+    apply eq_setsb_correct.
+    1: auto.
+    apply eq_sets_transitive with s1; auto.
+  - apply eq_setsb_correct in H2.
+    2: auto.
+    assert (eq_setsb eq s1 s = true).
+    2: rewrite H3 in H1; discriminate.
+    apply eq_setsb_correct.
+    1: auto.
+    apply eq_sets_transitive with s2.
+    2: auto.
+    apply eq_sets_comm; auto.
 Qed.
 
 (* Verifica se um elemento (que pode ser indefinido) está em uma lista (que pode ser indefinida) *)
