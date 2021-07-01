@@ -40,10 +40,11 @@ Lemma basic_observation {A B eq eq'} {g:nfa_comp_list A B} {q' Q w} :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
   is_dfa' g ->
   let brz := (n2dfa eq eq' (revert_nfa g)) in
+  In Q (states brz) ->
   in_opt (Some q') (dfa_transition (lists_eq eq) eq' brz (Some Q) w) <->
   in_opt (dfa_transition eq eq' g (Some q') (revert w)) (Some Q).
 Proof.
-  intros H10 H11; intros; split; intros.
+  intros H10 H11 H brz H12; intros; split; intros.
   - simpl in H0; destruct (ext_transition (lists_eq eq) eq' brz [Q] w) as [|Q' L] eqn:H1.
     1: destruct H0.
     assert (In Q' (ext_transition (lists_eq eq) eq' brz [Q] w)).
@@ -53,7 +54,7 @@ Proof.
     2,3: auto.
     assert (path brz Q Q' w /\ In q' Q').
         split; auto.
-    apply (n2dfa_path H10 H11) in H3; destruct H3 as [q [H3 H4]].
+    apply (n2dfa_path_reach H10 H11) in H3; destruct H3 as [q [H3 H4]].
     apply reverted_path in H3; replace (revert_nfa (revert_nfa g)) with g in H3.
     2: apply revert_nfa_twice.
     simpl; destruct (ext_transition eq eq' g [q'] (revert w)) as [|_q l] eqn:H5.
@@ -75,7 +76,7 @@ Proof.
       apply path_ext_transition with eq eq'; try rewrite H1; intuition.
     apply reverted_path in H2; rewrite <- revert_twice in H2.
     assert (H3: exists Q', path brz Q Q' w /\ In q' Q').
-      pose proof (@n2dfa_path A B eq eq' (revert_nfa g) Q q' w H10 H11) as H3;
+      pose proof (@n2dfa_path_reach A B eq eq' (revert_nfa g) Q q' w H10 H11) as H3;
       destruct H3 as [_ H3]; apply H3 with q; auto.
     destruct H3 as [Q' [H3 H4]].
     apply (path_ext_transition (lists_eq eq) eq' brz Q Q' w (lists_eq_correct H10) H11) in H3.
@@ -145,7 +146,7 @@ Proof.
       specialize (H4 w).
       replace brz with (n2dfa eq eq' (revert_nfa g)) in H4.
       2: auto.
-      rewrite (basic_observation H11 H12 H), (basic_observation H11 H12 H) in H4.
+      rewrite (basic_observation H11 H12 H), (basic_observation H11 H12 H) in H4;
       intuition.
     }
     clear H4.

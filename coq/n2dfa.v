@@ -1,4 +1,4 @@
-Require Import List Bool Lia sets nfa dfa normalizing.
+Require Import List Bool Lia sets nfa dfa normalizing pumping.
 Include ListNotations.
 
 
@@ -71,6 +71,20 @@ Proof.
   Transparent ext_transition.
 Qed.
 
+Lemma path_loop {A B} eq eq' (g:nfa_comp_list A B) f Q l a Q1 Q2 w :
+  ext_transition eq eq' g Q [a] <> nil ->
+  In a l ->
+  path (f (ext_transition eq eq' g Q [a])) Q1 Q2 w ->
+  path (loop eq eq' g f Q l) Q1 Q2 w.
+Proof.
+  intros.
+  induction H1.
+  1: constructor.
+  apply path_next with q2.
+  1: auto.
+  apply next_in_loop with a; auto.
+Qed.
+
 
 Fixpoint n2dfa_trans {A B} eq eq' (g:nfa_comp_list A B) n Q :=
   match n with
@@ -109,37 +123,65 @@ Proof.
   apply eq_sets_self.
 Qed.
 
-Lemma n2dfa_trans_old_path {A B} eq eq' (g:nfa_comp_list A B) n w Q Q' q' :
+Lemma n2dfa_trans_old_path {A B} eq eq' (g:nfa_comp_list A B) n w Q0' Q0 Q Q' q' :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
-  In q' Q' -> path (n2dfa_trans eq eq' g n Q) Q Q' w ->
+  let start_and_trans := start Q0'::n2dfa_trans eq eq' g n Q0 in
+  In q' Q' -> path (normalize eq (start_and_trans) (start_and_trans)) Q Q' w ->
   exists q, In q Q /\ path g q q' w.
 Proof.
-  intros.
+  intros; simpl in H2; apply app_start_path in H2;
   generalize dependent q';
   induction H2; intros.
   1: exists q'; intuition; constructor.
-  apply trans_in_n2dfa_trans_eq in H1.
+  apply in_normalize_eq_trans in H1.
   2: auto.
-  destruct H1 as [H1 [_ H4]].
-  assert (In q' (ext_transition eq eq' g  q2 [a])).
-    apply H4; auto.
-  apply in_transition_ext in H5.
+  destruct H1 as [Q1 [Q2 [H1 [H4 H5]]]].
+  apply trans_in_n2dfa_trans_eq in H5.
+  2: auto.
+  destruct H5 as [H5 [_ H6]].
+  assert (In q' (ext_transition eq eq' g  q2 [a])). {
+    assert (eq_sets q3 (ext_transition eq eq' g q2 [a])).
+    2: apply H7; auto.
+    apply eq_sets_transitive with Q2.
+    1: apply eq_sets_comm; auto.
+    apply eq_sets_transitive with (ext_transition eq eq' g Q1 [a]).
+    1: apply eq_sets_comm; auto.
+    apply ext_transition_eq_sets, eq_sets_comm; auto.
+  }
+  apply in_transition_ext in H7.
   2,3: auto.
-  destruct H5 as [q'' [H5 H6]].
-  apply IHpath in H5; destruct H5 as [q H5].
+  destruct H7 as [q'' [H7 H8]].
+  apply IHpath in H7; destruct H7 as [q H7].
   exists q; split.
   2: apply path_next with q''.
   1-3: intuition.
 Qed.
 
-Lemma n2dfa_trans_new_path {A B} eq eq' (g:nfa_comp_list A B) n w Q q q' :
+Lemma n2dfa_trans_new_path {A B} eq eq' (g:nfa_comp_list A B) n w Q0 Q q q' :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
+  let start_and_trans := start Q0::n2dfa_trans eq eq' g n Q in
   length w <= n -> In q Q -> path g q q' w ->
-  exists Q', In q' Q' /\ path (n2dfa_trans eq eq' g n Q) Q Q' w.
+  exists Q', In q' Q' /\ path (normalize eq start_and_trans start_and_trans) (normalize_state eq start_and_trans Q) Q' w.
 Proof.
+  intros. assert (exists Q', In q' Q' /\ path start_and_trans Q Q' w).
+  2: {
+    destruct H4 as [Q' [H4 H5]].
+    apply (normalize_path eq start_and_trans start_and_trans) in H5.
+    2: auto.
+    destruct H5 as [Q'' [H5 H6]]; exists Q''; split.
+    1: apply H5; auto.
+    auto.
+  }
+  assert (exists Q' : list A, In q' Q' /\ path (n2dfa_trans eq eq' g n Q) Q Q' w).
+  2: {
+    destruct H4 as [Q' H4]; exists Q'; split.
+    1: intuition.
+    apply app_start_path; intuition.
+  }
+  clear start_and_trans Q0;
   generalize dependent w;
   generalize dependent q;
-  generalize dependent Q;
+  generalize dependent Q.
   induction n; intros.
   - assert (w = []).
       destruct w; inversion H1; auto.
@@ -159,8 +201,8 @@ Proof.
         apply path_left; auto.
       destruct H4 as [q'' H4].
       destruct IHn with (ext_transition eq eq' g Q [a]) q'' w.
-      1,2,5: intuition.
-      1: simpl in H1; lia.
+      3: intuition.
+      2: simpl in H1; lia.
       {
         induction Q.
         1: destruct H2.
@@ -204,6 +246,19 @@ Qed.
 
 Lemma in_n2dfa_trans {A B} eq eq' (g:nfa_comp_list A B) n :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  forall Q c, In c (n2dfa_trans eq eq' g n Q) ->
+  exists Q1 a Q2, c = trans Q1 a Q2.
+Proof.
+  intros H10 Q c H0; generalize dependent Q;
+  induction n; intros.
+  1: destruct H0.
+  simpl in H0; apply in_loop in H0; destruct H0 as [Q' [a [H0 [H1 [H2 [H3|H3]]]]]].
+  1: exists Q, a, Q'; symmetry; auto.
+  apply IHn with Q'; auto.
+Qed.
+
+Lemma in_n2dfa_trans_subset {A B} eq eq' (g:nfa_comp_list A B) n :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
   forall Q c, subset Q (states g) -> In c (n2dfa_trans eq eq' g n Q) ->
   exists Q1 a Q2, c = trans Q1 a Q2 /\ subset Q1 (states g) /\ subset Q2 (states g).
 Proof.
@@ -224,36 +279,18 @@ Qed.
 Lemma n2dfa_trans_in_states {A B} eq eq' (g:nfa_comp_list A B) Q Q1 n :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
   let g' := n2dfa_trans eq eq' g n Q in
-  subset Q (states g) ->
   In Q1 (states g') ->
   exists Q2 a, In (trans Q1 a Q2) g' \/ In (trans Q2 a Q1) g'.
 Proof.
   intros;
-  pose proof (in_n2dfa_trans eq eq' g n H Q);
-  apply states_in in H1; destruct H1 as [H1|[H1|[H1|[Q' [a [H1|H1]]]]]].
-  - apply (H2 (state Q1) H0) in H1;
-    destruct H1 as [Q2 [b [Q3 [H1 [H3 H4]]]]];
-    discriminate.
-  - apply (H2 (start Q1) H0) in H1;
-    destruct H1 as [Q2 [b [Q3 [H1 [H3 H4]]]]];
-    discriminate.
-  - apply (H2 (accept Q1) H0) in H1;
-    destruct H1 as [Q2 [b [Q3 [H1 [H3 H4]]]]];
-    discriminate.
+  pose proof (in_n2dfa_trans eq eq' g n H Q) as H2;
+  apply states_in in H0; destruct H0 as [H1|[H1|[H1|[Q' [a [H1|H1]]]]]].
+  - apply (H2 (state Q1)) in H1; destruct H1 as [Q2 [b [Q3 H1]]]; discriminate.
+  - apply (H2 (start Q1)) in H1; destruct H1 as [Q2 [b [Q3 H1]]]; discriminate.
+  - apply (H2 (accept Q1)) in H1; destruct H1 as [Q2 [b [Q3 H1]]]; discriminate.
   - exists Q', a; left; auto.
   - exists Q', a; right; auto.
 Qed.
-
-(*Lemma path_transitive {A B} (g:nfa_comp_list A B) q1 q2 q3 w1 w2 :
-  path g q1 q2 w1 -> path g q2 q3 w2 -> path g q1 q3 (w1 ++ w2).
-Proof.
-  intros.
-  induction H0.
-  1: rewrite app_nil_r; auto.
-  replace (w1 ++ w ++ [a]) with ((w1 ++ w) ++ [a]).
-  2: rewrite app_assoc; auto.
-  apply path_next with q2; auto.
-Qed.*)
 
 Definition pumping_length {A B} (g:nfa_comp_list A B) : nat.
 Admitted.
@@ -334,14 +371,14 @@ Proof.
     assert (subset (start_states g) (states g)).
       apply start_states_subset.
     apply n2dfa_trans_in_states in H1.
-    2,3: auto.
+    2: auto.
     destruct H1 as [Q2 [a [H1|H1]]].
-    - apply in_n2dfa_trans in H1.
+    - apply in_n2dfa_trans_subset in H1.
       2,3: auto.
       destruct H1 as [Q3 [b [Q5 [H1 H3]]]].
       injection H1; intros; subst.
       intuition.
-    - apply in_n2dfa_trans in H1.
+    - apply in_n2dfa_trans_subset in H1.
       2,3: auto.
       destruct H1 as [Q3 [b [Q5 [H1 H3]]]].
       injection H1; intros; subst.
@@ -352,7 +389,12 @@ Proof.
     2: auto.
     destruct H as [Q' [H H2]]; apply H1 with Q'.
     2: auto.
-    apply H; auto.
+    assert (eq_sets Q Q'). {
+      apply eq_sets_transitive with (normalize_state eq (start (start_states g) :: n2dfa_trans eq eq' g (pumping_length g) (start_states g)) Q').
+      2: apply eq_sets_comm, get_set_eq; auto.
+      rewrite H; apply eq_sets_self.
+    }
+    apply H3; auto.
   - apply state_in_n2dfa_accept_wrap in H; destruct H.
     {
       assert (eq_sets Q (start_states g)).
@@ -362,7 +404,12 @@ Proof.
     apply state_in_normalize in H.
     destruct H as [Q' [H H2]]; apply H1 with Q'.
     2,3: auto.
-    apply H; auto.
+    assert (eq_sets Q Q'). {
+      apply eq_sets_transitive with (normalize_state eq (start (start_states g) :: n2dfa_trans eq eq' g (pumping_length g) (start_states g)) Q').
+      2: apply eq_sets_comm, get_set_eq; auto.
+      rewrite H; apply eq_sets_self.
+    }
+    apply H3; auto.
 Qed.
 
 Lemma n2dfa_eq_states {A B} eq eq' (g:nfa_comp_list A B) Q1 Q2 :
@@ -410,7 +457,7 @@ Proof.
         specialize (H1 a); destruct H1; intuition.
       }
       apply H1; clear H1; intros q H1. apply start_states_in in H1.
-      apply in_n2dfa_trans in H1.
+      apply in_n2dfa_trans_subset in H1.
       2: auto.
       2: apply start_states_subset.
       destruct H1 as [Q1 [a [Q2 [H1 _]]]]; discriminate.
@@ -419,7 +466,7 @@ Proof.
     (forall c, In c g' -> exists q a, c = trans q a (ext_transition eq eq' g q [a])) ->
     is_dfa' g').
     2: {
-      apply H1; clear H1; intros; pose proof H1; apply in_n2dfa_trans in H1.
+      apply H1; clear H1; intros; pose proof H1; apply in_n2dfa_trans_subset in H1.
       2: auto.
       2: apply start_states_subset.
       destruct H1 as [Q1 [a [Q2 [H1 _]]]]; subst; apply trans_in_n2dfa_trans in H2.
@@ -467,7 +514,7 @@ Proof.
       apply accept_in_normalize in H0.
       2: auto.
       destruct H0 as [Q' [_ H0]].
-      apply in_n2dfa_trans in H0.
+      apply in_n2dfa_trans_subset in H0.
       2,3: auto.
       destruct H0 as [Q1 [b [Q2 [H0 _]]]]; discriminate.
     }
@@ -528,13 +575,171 @@ Proof.
         1-4: intuition.
 Qed.
 
-Lemma n2dfa_path {A B eq eq'} {g:nfa_comp_list A B} {Q q' w} :
+Lemma n2dfa_path {A B} eq eq' (g:nfa_comp_list A B) q' w :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
+  let g' := (n2dfa eq eq' g) in
+  (forall Q Q', path g' Q Q' w /\ In q' Q' -> exists q, path g q q' w /\ In q Q) /\
+  (accept_states g <> nil -> forall q, path g q q' w /\ In q (start_states g) -> exists Q', path g' (start_states g) Q' w /\ In q' Q').
+Proof.
+  intros; split; intros.
+  {
+    destruct H1 as [H1 H2].
+    unfold n2dfa in g'; destruct (accept_states g).
+    + inversion H1; subst.
+      1: exists q'; split; try constructor; auto.
+      destruct H4.
+    + apply path_app_accept in H1.
+      2: apply in_n2dfa_accept_wrapp.
+      apply (n2dfa_trans_old_path eq eq' g (pumping_length g) w (start_states g) (start_states g) Q Q' q') in H1.
+      2-4: auto.
+      destruct H1 as [q H1]; exists q; split; intuition.
+  }
+  unfold n2dfa in g'; destruct (accept_states g).
+  1: destruct H1; auto.
+  assert (exists Q', path (normalize eq (start (start_states g) :: n2dfa_trans eq eq' g (pumping_length g) (start_states g))
+    (start (start_states g) :: n2dfa_trans eq eq' g (pumping_length g) (start_states g))) (start_states g) Q' w /\ In q' Q').
+  2: destruct H3 as [Q' H3]; exists Q'; split; try (apply path_app; left); intuition.
+  clear g'; remember (start (start_states g) :: n2dfa_trans eq eq' g (pumping_length g) (start_states g)) as start_and_trans eqn:H3.
+  replace (start_states g) with (normalize_state eq start_and_trans (start_states g)).
+  2: {
+    unfold normalize_state; rewrite H3; simpl; assert (eq_setsb eq (start_states g) (start_states g) = true).
+      apply eq_setsb_correct; try apply eq_sets_self; auto.
+    rewrite H4; auto.
+  }
+  assert (exists Q', In q' Q' /\ path (normalize eq start_and_trans start_and_trans) (normalize_state eq start_and_trans (start_states g)) Q' w).
+  2: destruct H4 as [Q' H4]; exists Q'; intuition.
+  
+Admitted.
+
+Lemma normalized_n2dfa_trans_reach {A B} eq eq' (g:nfa_comp_list A B) Q Q0 n l :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
+  let g' := normalize eq (n2dfa_trans eq eq' g n Q0) l in
+  In Q (states g') -> exists w, path g' (normalize_state eq l Q0) Q w.
+Proof.
+  intros.
+  apply normalize_ext_transition.
+  1,3: auto.
+  clear H1 g' Q l; intros.
+
+  apply n2dfa_trans_in_states in H1.
+  2: auto.
+  destruct H1 as [Q' [a [H1|H1]]].
+  - generalize dependent Q0; induction n; intros.
+    1: destruct H1.
+    simpl in H1; apply in_loop in H1; destruct H1 as [Q1 [b [H1 [H2 [H3 [H4|H4]]]]]].
+    + injection H4; intros; subst.
+      exists nil; constructor.
+    + apply IHn in H4; clear IHn; destruct H4 as [w H4]; exists (b::w).
+      apply path_left with Q1; subst.
+      1: simpl; apply loop_in; auto.
+      simpl; apply path_loop with b; subst; intuition.
+  - generalize dependent Q0; induction n; intros.
+    1: destruct H1.
+    simpl in H1; apply in_loop in H1; destruct H1 as [Q1 [b [H1 [H2 [H3 [H4|H4]]]]]].
+    + injection H4; intros; subst; clear IHn; exists (nil ++ [a]);
+      apply path_next with Q'.
+      1: constructor.
+      apply loop_in; auto.
+    + apply IHn in H4; clear IHn; destruct H4 as [w H4]; exists (b::w).
+      apply path_left with Q1; subst.
+      1: simpl; apply loop_in; auto.
+      simpl; apply path_loop with b; subst; intuition.
+Qed.
+
+Lemma n2dfa_path_reach {A B eq eq'} {g:nfa_comp_list A B} {Q q' w} :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) -> (forall a b, a=b <-> eq' a b=true) ->
   let g' := (n2dfa eq eq' g) in
   (forall Q', path g' Q Q' w /\ In q' Q' -> exists q, path g q q' w /\ In q Q) /\
-  (forall q, path g q q' w /\ In q Q -> exists Q', path g' Q Q' w /\ In q' Q').
+  (forall q, In Q (states g') ->
+  path g q q' w /\ In q Q -> exists Q', path g' Q Q' w /\ In q' Q').
 Proof.
-Admitted.
+  revert w; intro w2; intros; split.
+  1: apply n2dfa_path; auto.
+  intros; assert (accept_states g <> nil). {
+    unfold n2dfa in g'; destruct (accept_states g).
+    1: destruct H1.
+    intros contra; discriminate.
+  }
+  intros; assert (exists w1, path g' (start_states g) Q w1). {
+    clear H3 H2 q'; unfold n2dfa in g'; destruct (accept_states g).
+    1: destruct H1.
+    assert (forall Q0 n l, In Q (states (normalize eq (start Q0::n2dfa_trans eq eq' g n Q0) (start Q0::l))) ->
+    exists w1, path (normalize eq (start Q0::n2dfa_trans eq eq' g n Q0) (start Q0::l)) Q0 Q w1).
+    2: {
+      apply in_app_states_or in H1; destruct H1.
+      1: apply H2 in H1; destruct H1 as [w H1]; exists w; apply path_app; intuition.
+      apply state_in_n2dfa_accept_wrap in H1; apply H2 in H1; destruct H1 as [w H1]; exists w; apply path_app; intuition.
+    }
+    clear H1 g'; intros; simpl in H1; destruct H1; subst.
+    {
+      unfold normalize_state; simpl; assert (eq_setsb eq Q0 Q0 = true).
+      1: apply eq_setsb_correct; try apply eq_sets_self; auto.
+      rewrite H1; exists nil; constructor.
+    }
+    assert (normalize_state eq (start Q0 :: l0) Q0 = Q0). {
+      unfold normalize_state; simpl; assert (eq_setsb eq Q0 Q0 = true).
+        apply eq_setsb_correct; try apply eq_sets_self; auto.
+      rewrite H2; auto.
+    }
+    clear l; remember (start Q0::l0) as l eqn:H3; clear H3.
+    assert (exists w, path  (normalize eq (n2dfa_trans eq eq' g n Q0) l) Q0 Q w).
+    2: {
+      destruct H3 as [w H3]; exists w; simpl; replace (start (normalize_state eq l Q0) :: normalize eq (n2dfa_trans eq eq' g n Q0) l) with
+      ([start (normalize_state eq l Q0)] ++ normalize eq (n2dfa_trans eq eq' g n Q0) l).
+      2: auto.
+      apply path_app; right; auto.
+    }
+    apply normalized_n2dfa_trans_reach in H1.
+    2,3: auto.
+    rewrite H2 in H1; destruct H1 as [w H1]; exists w; auto.
+  }
+  destruct H4 as [w1 H4].
+  assert (exists q0, path g q0 q w1 /\ In q0 (start_states g)). {
+    destruct (n2dfa_path eq eq' g q w1 H H0) as [H5 _]; destruct H5 with (start_states g) Q.
+    1: split; intuition.
+    exists x; auto.
+  }
+  destruct H5 as [q0 H5]; assert (path g q0 q' (w1++w2) /\ In q0 (start_states g)).
+    split; try apply path_transitive with q; intuition.
+  pose proof (n2dfa_path eq eq' g q' (w1++w2) H H0) as [_ H7];
+  apply H7 with q0 in H3; clear H7.
+  2: auto.
+  destruct H3 as [Q' H3]; exists Q'; split.
+  2: intuition.
+  destruct H3 as [H3 _]; clear H1 H2 H5 H6 q0.
+  replace (n2dfa eq eq' g) with g' in H3.
+  2: auto.
+  assert (is_dfa' g').
+    apply n2dfa_is_dfa; auto.
+  generalize dependent g';
+  generalize dependent (start_states g);
+  induction w1; intros Q0; intros.
+  {
+    inversion H4; subst.
+    1: intuition.
+    destruct w; discriminate.
+  }
+  assert (exists Q1, In (trans Q0 a Q1) g' /\ path g' Q1 Q w1 /\ path g' Q1 Q' (w1 ++ w2)).
+  2: destruct H2 as [Q1 H2]; apply IHw1 with Q1; intuition.
+  clear IHw1; generalize dependent Q'; induction w2 using rev_ind; intros.
+  - rewrite app_nil_r; rewrite app_nil_r in H3.
+    assert (Q = Q').
+      apply dfa'_path with g' Q0 (a::w1); auto.
+    subst; clear H3; apply path_left in H4; destruct H4 as [Q1 H4]; exists Q1.
+    split.
+    2: split.
+    1-3: intuition.
+  - inversion H3; subst.
+    replace (a :: w1 ++ w2 ++ [x]) with (((a :: w1) ++ w2) ++ [x]) in H2.
+    2: rewrite <- app_assoc; simpl; auto.
+    apply app_inj_tail in H2; destruct H2; subst.
+    apply IHw2 in H5; destruct H5 as [Q1 H5]; exists Q1; split.
+    2: split.
+    1,2: intuition.
+    replace (w1 ++ w2 ++ [x]) with ((w1 ++ w2) ++ [x]).
+    2: rewrite app_assoc; auto.
+    apply path_next with q2; intuition.
+Qed.
 
 Lemma n2dfa_start_states {A B} eq eq' (g:nfa_comp_list A B) :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
@@ -587,10 +792,15 @@ Proof.
     apply ext_transition_list in H1; destruct H1 as [q0 [H1 H3]].
     apply path_ext_transition in H3.
     2,3: auto.
-    destruct (@n2dfa_path A B eq eq' g (start_states g) q w H H0) as [_ H5].
-    destruct H5 with q0.
+    assert (accept_states g <> nil). {
+      destruct (accept_states g).
+      1: destruct H2.
+      intros contra; discriminate.
+    }
+    destruct (n2dfa_path eq eq' g q w H H0) as [_ H5].
+    destruct (H5 H4) with q0.
     1: intuition.
-    destruct H4 as [H4 H6].
+    clear H4; destruct H6 as [H4 H6].
     exists x; split.
     + rewrite n2dfa_start_states.
       2: auto.
@@ -642,8 +852,8 @@ Proof.
       apply (n2dfa_accept H H3); auto.
     }
     destruct H3 as [q' H4].
-    destruct (@n2dfa_path A B eq eq' g (start_states g) q' w H H0) as [H5 _].
-    destruct H5 with Q'.
+    destruct (n2dfa_path eq eq' g q' w H H0) as [H5 _].
+    destruct H5 with (start_states g) Q'.
     1: intuition.
     destruct H3 as [H3 H7].
     exists q'; split.

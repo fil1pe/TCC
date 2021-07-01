@@ -36,7 +36,7 @@ Definition dfa_indisting_states {A B} eq eq' (g:nfa_comp_list A B) q1 q2 :=
 
 
 (* Todo autômato determinístico é não-determinístico *)
-Lemma dfa_is_nfa {A B} (g:nfa_comp_list A B) (H:is_dfa' g) :
+Lemma dfa'_is_nfa {A B} (g:nfa_comp_list A B) (H:is_dfa' g) :
   is_nfa g.
 Proof.
   induction H.
@@ -208,6 +208,19 @@ Proof.
     apply H0 in H2; destruct H2; discriminate.
 Qed.
 
+Lemma dfa'_path {A B} (g:nfa_comp_list A B) q1 q2 q3 w :
+  is_dfa' g -> path g q1 q2 w -> path g q1 q3 w ->
+  q2 = q3.
+Proof.
+  intros;
+  pose proof H; apply dfa'_is_nfa in H; inversion H; subst.
+  assert (In q2 (ext_transition eq eq' g [q1] w)).
+    apply path_ext_transition; auto.
+  assert (In q3 (ext_transition eq eq' g [q1] w)).
+    apply path_ext_transition; auto.
+  remember (ext_transition eq eq' g [q1] w) as l eqn:H7.
+  apply (dfa_trans_ext eq eq' g q1 q3 q2 w l); auto.
+Qed.
 
 
 

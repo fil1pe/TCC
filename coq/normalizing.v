@@ -222,7 +222,7 @@ Qed.
 
 Lemma state_in_normalize {A B} eq (g:nfa_comp_list (list A) B) l Q :
   (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
-  In Q (states (normalize eq g l)) -> exists Q', eq_sets Q Q' /\ In Q' (states g).
+  In Q (states (normalize eq g l)) -> exists Q', Q = normalize_state eq l Q' /\ In Q' (states g).
 Proof.
   intros;
   generalize dependent l;
@@ -231,7 +231,7 @@ Proof.
   destruct a.
   - destruct H0.
     + exists q; split.
-      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      1: symmetry; auto.
       left; auto.
     + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
       1: intuition.
@@ -239,14 +239,14 @@ Proof.
   - apply IHg in H0; auto.
   - destruct H0.
     + exists q; split.
-      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      1: symmetry; auto.
       left; auto.
     + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
       1: intuition.
       right; intuition.
   - destruct H0.
     + exists q; split.
-      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      1: symmetry; auto.
       left; auto.
     + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
       1: intuition.
@@ -254,10 +254,10 @@ Proof.
   - destruct H0.
     2: destruct H0.
     + exists q; split.
-      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      1: symmetry; auto.
       left; auto.
     + exists q'; split.
-      1: rewrite <- H0; apply eq_sets_comm, get_set_eq; auto.
+      1: symmetry; auto.
       right; left; auto.
     + apply IHg in H0; destruct H0 as [Q' H0]; exists Q'; split.
       1: intuition.
@@ -474,7 +474,7 @@ Proof.
       intros; apply (H1 q1 q2 a0 q3 q4); intuition.
     }
     clear IHis_dfa'; pose proof H4;
-    apply dfa_is_nfa in H4; simpl.
+    apply dfa'_is_nfa in H4; simpl.
     destruct (nfa_ex_trans_dec (normalize eq g l) H4 (normalize_state eq l q) a).
     2: apply cons_dfa_trans; auto.
     destruct H6 as [Q1 H6].
@@ -500,6 +500,47 @@ Proof.
     1: intuition.
     apply eq_sets_comm, get_set_eq; auto.
 Qed.
+
+Lemma normalize_path  {A B} eq (g:nfa_comp_list (list A) B) l q q' w :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  path g q q' w ->
+  exists q'', eq_sets q' q'' /\ path (normalize eq g l) (normalize_state eq l q) q'' w.
+Proof.
+  intros H10; intros.
+  generalize dependent q;
+  induction w; intros.
+  - inversion H; subst.
+    2: destruct w; discriminate.
+    exists (normalize_state eq l q'); split.
+    2: constructor.
+    apply get_set_eq; auto.
+  - apply path_left in H; destruct H as [q1 [H H0]].
+    apply IHw in H0; destruct H0 as [q'' [H0 H1]].
+    exists q''; split.
+    1: auto.
+    apply path_left with (normalize_state eq l q1).
+    2: auto.
+    apply normalize_trans_in; auto.
+Qed.
+
+Lemma normalize_ext_transition {A B} eq (g l:nfa_comp_list (list A) B) Q0 :
+  (forall q1 q2, q1=q2 <-> eq q1 q2=true) ->
+  (forall Q, In Q (states g) -> exists w, path g Q0 Q w) ->
+  forall Q, In Q (states (normalize eq g l)) -> exists w, path (normalize eq g l) (normalize_state eq l Q0) Q w.
+Proof.
+  intros.
+  apply state_in_normalize in H1.
+  2: auto.
+  destruct H1 as [Q' [H1 H3]]; subst.
+  apply H0 in H3; destruct H3 as [w H3]; clear H0.
+  exists w; induction H3.
+  1: constructor.
+  apply path_next with (normalize_state eq l q2).
+  1: auto.
+  apply normalize_trans_in; auto.
+Qed.
+
+
 
 
 

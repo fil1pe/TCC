@@ -719,6 +719,50 @@ Proof.
     try apply in_or_app; intuition.
 Qed.
 
+(* Podemos desconsiderar a primeira componente do autômato nos caminhos se for o estado inicial *)
+Lemma app_start_path {A B} (g:nfa_comp_list A B) q0 q q' w :
+  path (start q0::g) q q' w <-> path g q q' w.
+Proof.
+  split; intros.
+  - induction H.
+    1: apply path_nil.
+    apply path_next with q2.
+    1: auto.
+    destruct H0; try discriminate; auto.
+  - induction H.
+    1: constructor.
+    apply path_next with q2.
+    1: auto.
+    right; auto.
+Qed.
+
+(* Podemos desconsiderar os últimos componentes do autômato nos caminhos se forem estados finais *)
+Lemma path_app_accept {A B} (g:nfa_comp_list A B) l q q' w :
+  (forall c, In c l -> exists q, c = accept q) ->
+  path (g ++ l) q q' w -> path g q q' w.
+Proof.
+  intros.
+  induction H0.
+  1: constructor.
+  apply path_next with q2.
+  1: auto.
+  apply in_app_or in H1; destruct H1.
+  1: auto.
+  apply H in H1; destruct H1 as [q H1]; discriminate.
+Qed.
+
+(* Prova da transitividade *)
+Lemma path_transitive {A B} (g:nfa_comp_list A B) q1 q2 q3 w1 w2 :
+  path g q1 q2 w1 -> path g q2 q3 w2 -> path g q1 q3 (w1 ++ w2).
+Proof.
+  intros.
+  induction H0.
+  1: rewrite app_nil_r; auto.
+  replace (w1 ++ w ++ [a]) with ((w1 ++ w) ++ [a]).
+  2: rewrite app_assoc; auto.
+  apply path_next with q2; auto.
+Qed.
+
 
 
 
