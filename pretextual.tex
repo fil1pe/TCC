@@ -1,0 +1,140 @@
+%!TEX root = ../Principal.tex
+% Capa do trabalho:
+\imprimircapa
+
+
+% Folha de rosto:
+\imprimirfolhaderosto*
+
+
+% Caso a Biblioteca da UDESC forneça, utilize o comando
+% \begin{fichacatalografica}
+%    \includepdf{fig_ficha_catalografica.pdf}
+% \end{fichacatalografica}
+
+% Geração da ficha catalográfica via LaTeX:
+% \begin{fichacatalografica}
+%	\vspace*{\fill}					% Posição vertical
+%	\begin{center}					% Minipage Centralizado
+%	\begin{minipage}[c]{12.5cm}		% Largura
+%	
+%	\imprimirautor
+%	
+%	\hspace{0.5cm} \imprimirtitulo  / \imprimirautor. --
+%	\imprimirlocal, \imprimirdata-
+%	
+%	\hspace{0.5cm} \pageref{LastPage} p. : il. (algumas color.) ; 30 cm.\\
+%	
+%	\hspace{0.5cm} \imprimirorientadorRotulo~\imprimirorientador\\
+%	
+%	\hspace{0.5cm}
+%	\parbox[t]{\textwidth}{\imprimirtipotrabalho~--~\imprimirinstituicao,
+%	\imprimirdata.}\\
+%	
+%	\hspace{0.5cm}
+%		1. Tópico 01.
+%		2. Tópico 02.
+%		I. Prof. Dr. xxxxx.
+%		II. Universidade do Estado de Santa Catarina.
+%		III. Centro de Educação do Planalto Norte.
+%		IV. identificação xxxx\\ 			
+%	
+%	\hspace{8.75cm} CDU 02:121:005.7\\
+%	
+%	\end{minipage}
+%	\end{center}
+% \end{fichacatalografica}
+
+
+% Folha de aprovação:
+% Exemplo de folha de aprovação antes da Banca. Após isso, incluia o pdf digitalizado com as assinaturas%
+% \includepdf{folhadeaprovacao_final.pdf}
+% \begin{folhadeaprovacao}
+%
+%	\begin{center}
+%		{\ABNTEXchapterfont\bfseries\imprimirautor}
+%		\vspace{6em}
+%
+%			\ABNTEXchapterfont\bfseries\imprimirtitulo
+%		
+%	\end{center}
+%		\vspace{1em}
+%		{\justify
+%		Trabalho de Conclusão de Curso apresentado ao curso de Bacharelado em Ciência da Computação como requisito parcial para a obtenção do título de Bacharel em Ciência da Computação}
+%	
+%	\vspace{3em} 
+%	\noindent
+%	{\bfseries Banca examinadora:}
+%	\assinatura{\textbf{Dra. Karina Girardi Roggia} \\ Universidade do Estado de Santa Catarina (Udesc)} 
+%	\assinatura{\textbf{Dr. Cristiano Damiani Vasconcellos} \\ Udesc}
+%    \assinatura{\textbf{Dr. Roberto Silvio Ubertino Rosso Junior} \\ Udesc}
+%
+%    \vspace*{\fill}
+%    \begin{center}
+%    	\imprimirlocal,\,\imprimirfulldata
+%    \end{center}
+% \end{folhadeaprovacao}
+
+
+% Dedicatória:
+%\begin{dedicatoria}				
+%Dedico este trabalho a...  
+%\end{dedicatoria}
+
+
+% Agradecimentos:
+% \begin{agradecimentos}
+%   Gostaria de agradecer...
+%   Aqui devem ser colocadas os agradecimentos às pessoas que de alguma forma contribuíram para a realização do trabalho.
+% \end{agradecimentos}
+
+
+% Epígrafe:
+% \begin{epigrafe}	
+%   ``frase''
+%   \\
+%   \par
+%   autor
+% \end{epigrafe}
+
+
+% Resumo em português:
+\begin{resumo}
+    RESUMO
+
+    \vspace{\onelineskip}
+    
+    \noindent
+    \textbf{Palavras-chaves}: .
+\end{resumo}
+
+
+% Resumo em inglês:
+\begin{resumo}[Abstract]
+    \begin{otherlanguage*}{english}
+    ABSTRACT
+    
+    \vspace{\onelineskip}
+    
+    \noindent 
+    \textbf{Keywords}: .
+    \end{otherlanguage*}
+\end{resumo}
+
+
+% Lista de figuras:
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
+
+
+% Lista de tabelas:
+% \pdfbookmark[0]{\listtablename}{lot}
+% \listoftables*
+% \cleardoublepage
+
+
+% Lista de quadros:
+\pdfbookmark[0]{\listofquadrosname}{loq}
+\listofquadros*
+\cleardoublepage

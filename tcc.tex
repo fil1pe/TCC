@@ -1,4 +1,18 @@
-\documentclass[12pt,a4paper,brazil]{abntex2}
+\documentclass[
+	12pt,					        % tamanho da fonte
+	openright,				    % capítulos começam em pág ímpar (insere página vazia caso preciso)
+	%oneside,				      % para impressão apenas no verso
+	a4paper,				      % tamanho do papel
+	chapter=TITLE,			  % títulos de capítulos convertidos em letras maiúsculas
+	section=TITLE,			  % títulos de seções convertidos em letras maiúsculas
+	%subsection=TITLE,		% títulos de subseções convertidos em letras maiúsculas
+	%subsubsection=TITLE,	% títulos de subsubseções convertidos em letras maiúsculas
+	% -- opções do pacote babel --
+	english,			      	% idioma adicional para hifenização
+	brazil,					      % o último idioma é o principal do documento
+]{abntex2}
+
+\usepackage{udesc}
 
 \usepackage{times} % Fonte Times New Roman
 \usepackage[alf]{abntex2cite} % Citar nas normas da ABNT
@@ -12,26 +26,168 @@
 \usepackage{multirow} % Row da tabela com mais de uma linha
 
 \hypersetup{hidelinks} % Não colorir links
-\setlength{\parindent}{1.25cm} % Tamanho da identação do parágrafo
-\linespread{1.5} % Espaçamento entre linhas
+
+% Para fazer marcações:
+\usepackage{color}
+\usepackage{ulem}
+\newcommand\hl{\bgroup\markoverwith
+  {\textcolor{yellow}{\rule[-.5ex]{2pt}{2.5ex}}}\ULon}
+
+% Para desenhar autômatos:
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+\tikzset{
+    node distance=3cm,
+    every state/.style={semithick},
+    double distance=2pt,
+    every edge/.style={
+        draw,
+        ->,>=stealth',
+        auto,
+        semithick
+    },
+    initial text=$ $
+}
+
+% Para escrever códigos do Coq:
+\usepackage{minted}
+\setminted[coq]{
+    breaklines=true,
+    encoding=utf8
+}
+\usemintedstyle{borland}
+\AtBeginEnvironment{minted}{\setlength{\parskip}{0 pt}}
+
+% Para melhorar as equações:
+\usepackage{amsmath} 
+\usepackage{amssymb} % para usar o símbolo de conjunto vazio
+
+% Para determinar o número da última página na ficha catalográfica:
+\usepackage{lastpage}
+
+% Para agilizar a inserção de figuras:
+\newcommand{\figura}[4]{
+	\begin{figure}[H]
+    \caption{#1}
+    \begin{center}
+      #2
+    \end{center}
+    \legend{Fonte: #4.}
+    \label{#3}
+  \end{figure}
+}
+\newcommand{\figuradoautor}[3]{
+  \figura{#1}{#2}{#3}{Elaborada pelo autor, 2021}
+}
+
+% Tabela
+\newcommand{\ttable}[4][H]{
+  \begin{table}[#1]
+    \begin{center}
+      #3
+    \end{center}
+    \caption{#2}
+    \if #4\else
+      \label{#4}
+    \fi
+  \end{table}
+}
+
+% Para agilizar a inserção de quadros:
+\def\arraystretch{1.3}
+\newcommand{\novoquadro}[4]{
+	\begin{quadro}[H]
+		\footnotesize
+		\caption{#1}
+		\vskip 8pt
+		\label{#3}
+		\centering
+		#2
+		\vskip 15pt
+		\legend{Fonte: #4.}
+	\end{quadro}
+}
+\newcommand{\quadrodoautor}[3]{
+  \novoquadro{#1}{#2}{#3}{Elaborado pelo autor, 2021}
+}
+
+% Dados da capa:
+\titulo{Prova do algoritmo de Brzozowski assistida por computador}
+\autor{Filipe Ramos}
+\local{Joinville - SC}
+\instituicao{Universidade do Estado de Santa Catarina - Udesc}
+\campus{Centro de Ciências Tecnológicas - CCT}
+\curso{Bacharelado em Ciência da Computação}
+\data{2021}
+\fulldata{xx de xxxx de 2021}
+
+% Dados da folha de rosto:
+\inforosto{Trabalho de Conclusão de Curso apresentado ao curso de Bacharelado em Ciência da Computação como requisito parcial para a obtenção do título de Bacharel em Ciência da Computação.}
+\orientador{Karina Girardi Roggia}
+\orientadorRotulo{Dra. }
+\coorientador{Rafael Castro Gonçalves Silva}
+\coorientadorRotulo{Me. }
 
 \begin{document}
 
-  % Tabela
-  \newcommand{\ttable}[4][H]{
-    \begin{table}[#1]
-      \begin{center}
-        #3
-      \end{center}
-      \caption{#2}
-      \if #4\else
-        \label{#4}
-      \fi
-    \end{table}
-  }
+  \include{pretextual} % texto dos elementos pré-textuais
 
+  % Lista de abreviaturas e siglas:
+  \begin{siglas}
+      \acro{AFD}{Autômato finito determinístico}
+      \acro{SED}{Sistema a eventos discretos}
+  \end{siglas}
+
+  % Lista de símbolos:
+  % \begin{simbolos}
+  %	  \SingleSpacing
+  %	  \item[\%] Porcentagem
+  %	  \item[$D_{ab}$] Distância Euclidiana
+  %	  \item[$O(n)$] Ordem de um algoritmo
+  % \end{simbolos}
+
+  % Sumário:
+  \pdfbookmark[0]{\contentsname}{toc}
+  \tableofcontents*
+  \cleardoublepage
+
+  \textual
+
+  % Retira o nome do capítulo do header:
+  \pagestyle{eudesc}
+  \aliaspagestyle{chapter}{eudesc}
+
+  % Texto principal do TCC:
   \include{capitulos/intro}
+  \include{capitulos/assistente}
+  \include{capitulos/afs}
+  \include{capitulos/minimizacao}
+  \include{capitulos/relacionados}
+  \include{capitulos/brzozowski}
+  \include{capitulos/conclusao}
 
+  % Finaliza o bookmark do PDF:
+  \bookmarksetup{startatroot}
+
+  \postextual
+
+  % Referências bibliográficas:
   \bibliography{referencias}
+
+  % Glossário:
+  %
+  % Consulte o manual da classe abntex2 para orientações sobre o glossário.
+  %
+  %\glossary
+
+  % Apêndices:
+  %\begin{apendicesenv}
+  %	\include{Partes/apeA}
+  %\end{apendicesenv}
+
+  % Anexos:
+  %\begin{anexosenv}
+  %	\include{Partes/aneA}
+  %\end{anexosenv}
 
 \end{document}

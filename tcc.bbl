@@ -1,0 +1,34 @@
+\providecommand{\abntreprintinfo}[1]{%
+ \citeonline{#1}}
+\setlength{\labelsep}{0pt}\begin{thebibliography}{}
+\providecommand{\abntrefinfo}[3]{}
+\providecommand{\abntbstabout}[1]{}
+\abntbstabout{v-1.9.7 }
+
+\bibitem[Blot, Dagand e Lawall 2016]{blot2016sets}
+\abntrefinfo{Blot, Dagand e Lawall}{BLOT; DAGAND; LAWALL}{2016}
+{BLOT, A.; DAGAND, P.-{\'E}.; LAWALL, J. From sets to bits in coq. In:
+  SPRINGER. \textbf{International Symposium on Functional and Logic
+  Programming}. [S.l.], 2016. p. 12--28. Acesso em: 9 jul. 2021.}
+
+\bibitem[Silva 2017]{rafael_tcc}
+\abntrefinfo{Silva}{SILVA}{2017}
+{SILVA, R. C.~G.
+\textbf{Vis{\~a}o Categ{\'o}rica do Sistema de Tipos de Haskell}.
+Monografia (Trabalho de Conclusão de Curso) --- Bacharelado em Ciência da
+  Computação, Universidade do Estado de Santa Catarina, Joinville, 2017.
+Dispon{\'\i}vel em:
+  \url{http://sistemabu.udesc.br/pergamumweb/vinculos/000043/000043b8.pdf}.
+  Acesso em: 12 mar. 2021.}
+
+\bibitem[Veen, Rot e Geuvers 2007]{van2007practical}
+\abntrefinfo{Veen, Rot e Geuvers}{VEEN; ROT; GEUVERS}{2007}
+{VEEN, E. van~der; ROT, J.; GEUVERS, J. The practical performance of automata
+  minimization algorithms.
+\textbf{Comparative Study of Performance of Tabulation and Partition}, v.~27,
+  2007.
+Dispon{\'\i}vel em:
+  \url{http://www.cs.ru.nl/bachelors-theses/2017/Erin\_van\_der\_Veen\_\_\_4431200\_\_\_The\_Practical\_Performance\_of\_Automata\_Minimization\_Algorithms.pdf}.
+  Acesso em: 8 jul. 2021.}
+
+\end{thebibliography}

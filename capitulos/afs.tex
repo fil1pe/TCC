@@ -1,0 +1,110 @@
+\chapter{Autômatos finitos}
+
+Um autômato finito não-determinístico (AFND), ou simplesmente autômato finito (AF), é a abstração de uma máquina que decide uma linguagem regular. Para isso, ela conta com um conjunto de estados e regras de transição definida com base em um alfabeto, o conjunto de símbolos que são permitidos na entrada da máquina. Uma regra de transição indica os próximos estados da computação de uma palavra -- sequência de símbolos -- feita símbolo a símbol, da esquerda para a direita. O processo inicia-se nos estados iniciais e, quando termina em pelo menos um estado de aceitação, aceita a entrada. O nome não-determinístico serve para indicar a possibilidade de a computação ser não-determinística, no sentido de que pode ocorrer em mais de um estado simultaneamente. Por outro lado, um autômato finito determinístico (AFD) não compartilha dessa característica, havendo, portanto, apenas um estado inicial e regras de transição determinísticas: a partir de um estado e símbolo, só é possível transicionar para um único estado.
+
+\citeonline{van2007practical} definem um AF $G$ como uma quíntupla \begin{equation}
+  \label{eq:afnd_def_1}
+  G = (\Sigma, S, I, \delta, F)
+\end{equation} respectivamente o alfabeto, o conjunto de estados, o conjunto de estados inciais, o conjunto de regras de transição -- ou função parcial de transição -- e o conjunto de estados finais, ou de aceitação. Notadamente, essa definição vem com algumas restrições, conforme o \autoref{quadro:afnd_restricoes}. É interessante torná-las restrições intrínsecas ao tipo que definiremos em vez de utilizar condicionais, pois facilita as provas no Coq por alguns motivos: as restrições ficam implícitas e o compilador consegue verificá-las automaticamente.
+
+\quadrodoautor{Restrições da definição de um AFND $G$}{
+  \begin{tabular}{|c|c|c|}
+    \hline
+    & \textbf{Componente} & \textbf{Restrição} \\
+    \hline
+    1 & $S$ & \multirow{2}{*}{Conjunto finito} \\
+    \cline{1-2}
+    2 & $\Sigma$ & \\
+    \cline{1-2}
+    \hline
+    3 & $I$ & $I \subseteq S$ \\
+    \hline
+    4 & $F$ & $F \subseteq S$ \\
+    \hline
+    5 & $\delta$ & $\delta : S \to \Sigma \to S$ \\
+    \hline
+  \end{tabular}
+}{quadro:afnd_restricoes}
+
+Nas seções seguintes, discutimos a representação de AFs, outras definições relevantes a este contexto e algumas aplicações.
+
+\section{Diagrama de estados}
+
+Para auxiliar na visualização das transições entre os estados dos autômatos, os AFs são comumente representados por diagramas de estados. Nessa representação, os estados são nós de uma estrutura semelhante a de grafos, e as transições, arestas que interligam dois nós, conforme a \autoref{fig:afd_diagrama}. Representam-se as transições cuja origem e destino são o mesmo estado por \textit{loops}: arestas que partem de um nó e terminam no mesmo.
+
+\figuradoautor{Representação da transição de estados em um diagrama}{
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state,minimum size=1.7cm] (q0) {$q$}; 
+        \node[state,accepting,minimum size=1.7cm] at (4,0) (q1) {$\delta(q, e)$};
+        \draw
+        (q0) edge node{$e$} (q1);
+    \end{tikzpicture}
+}{fig:afd_diagrama}
+
+Nesta classe de diagramas, os estados inicial e final podem ser destacados de alguma forma. Para este trabalho, uma seta sem nó de origem aponta sempre para o nó do estado inicial, e uma circunferência dupla enfatiza o de um estado final, como demonstra a \autoref{fig:afd_estado_inicial}.
+
+\figuradoautor{Representação de estados inicial (à esquerda) e final (à direita) em um diagrama}{
+    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[align=center,state,initial] (q0) {estado\\inicial};
+        \node[align=center,state,accepting] at (4,0) (qf) {estado\\final};
+    \end{tikzpicture}
+}{fig:afd_estado_inicial}
+
+Pode-se citar outros aspectos desta representação de autômatos: a possibilidade de adicionar rótulos aos nós, a opção de omitir os nomes dos estados nos nós quando não forem necessários e a aglutinação de transições que partem e terminam no mesmo estado em uma mesma aresta, com os símbolos separados por vírgula.
+
+\section{Representação computacional de autômatos finitos}
+
+Antes de iniciar qualquer prova sobre AFs no assistente de provas, devemos definir o que são esses autômatos na linguagem específica do sistema. Para tanto, precisamos utilizar estruturas de dados convencionais, pois estamos tratando de um assistente computacional. Novamente, facilita os trabalhos sequentes as restrições dos AFs representados pelas nossas estruturas de dados serem inerentes a elas.
+
+Façamos uma singela modificação na definição da \autoref{eq:afnd_def_1}. Fixemos $$S = S' \cup I \cup F \cup \{ s \mid \exists a s', (s, a, s') \in \delta \vee (s', a, s) \in \delta \}$$ sendo o nosso conjunto de estados definido agora pela união dos estados iniciais ($I$), finais ($F$), definidos pelas transições e outros possivelmente desconexos ($S'$). Além disso, passemos a definir o alfabeto como $$\Sigma = \Sigma' \cup \{ a \mid \exists s s', (s, a, s') \in \delta \}$$ de forma semelhante, a união dos símbolos contidos em transições e dos não utilizados ($\Sigma'$). Apesar de ser uma maneira aparentemente mais complexa para o nosso entendimento do que é um AF, essa nova forma substitui as restrições condicionais de forma conveniente. Desse modo, um AF $G$ não será mais rotulado pela quíntupla da \autoref{eq:afnd_def_1}, mas por cinco novos conjuntos de componentes: \begin{itemize}
+  \item conjunto finito de estados ($S'$);
+  \item conjunto finito de estados iniciais ($I$);
+  \item conjunto finito de estados finais ($F$);
+  \item conjunto finito de símbolos ($\Sigma'$);
+  \item conjutno finito de transições ($\delta$).
+\end{itemize} Essa nova representação define o alfabeto ($\Sigma$) e conjunto de estados ($S$) de forma implícita, nos restando apenas agora as restrições 1 e 2 do \autoref{quadro:afnd_restricoes}.
+
+Agora nos resta representar os conjuntos finitos supracitados como estruturas de dados computacionais. Uma abordagem comum é o uso de \textit{sets}, uma espécie de lista ordenada sem repetição \cite{blot2016sets}. A vantagem dessa estrutura é a extensionalidade: dois conjuntos são iguais se e somente se suas representações são iguais. Todavia, ela necessita de comparadores, e os algoritmos de ordenamento interferem no desempenho da computação, entre outros. No presente estudo, a ausência da propriedade extensional não obsta as provas sobre AFs uma vez que podemos substituir a relação de igualdade de conjuntos por uma nova relação de equivalência. Assim, se representarmos os conjuntos por listas simples, duas listas $L1$ e $L2$ serão ditas equivalentes se $$\forall x, x \in L1 \leftrightarrow x \in L2$$ permitindo inclusive elementos fora da ordem ou repetidos nas estruturas.
+
+\figuradoautor{Estrutura de dados para AFs}{
+}{fig:afnd_coq}
+
+\begin{minted}{coq}
+Inductive nfa_comp {A B} :=
+| state (q:A)
+| symbol (a:B)
+| start (q:A)
+| accept (q:A)
+| trans (q:A) (a:B) (q':A).
+
+Definition nfa_comp_list A B := list (@nfa_comp A B).
+\end{minted}
+
+Baseado nisso, a estrutura usada por este trabalho, já na linguagem do assistente de provas Coq, é a que segue na \autoref{fig:afnd_coq}. É importante notarmos uma nova restrição decorrente da teoria dos tipos -- implementada pelo Coq. Antes falávamos em elementos quaisquer, diferenciando-os apenas pelos conjuntos aos quais pertenciam. Ao utilizarmos tipos, no entanto, condicionamos os elementos -- agora termos -- a eles. Os termos podem ser, por exemplo, números naturais, strings ou de qualquer tipo que definirmos. Nem todos os tipos, entretanto, nos garantem uma propriedade essencial para a computação dos algoritmos sobre os AFs representados: a decidibilidade da igualdade. Um tipo $A$ tem igualdade decidível se existe algum decisor $f$ tal que $$\forall x y, f(x, y) \leftrightarrow x = y$$ Dessarte, junto aos componentes, nossa representação abarcará a restrição de existência desses decisores para os tipos \texttt{A} e \texttt{B} da \autoref{fig:afnd_coq}.
+
+\section{Função de transição}
+
+Uma das funções mais importantes relativas aos AFs é a de transição. A função de transição $\delta$ de um autômato $G$ é tal que $$\forall s a s', s' \in \delta(s, a) \leftrightarrow \texttt{trans}\text{ }s\text{ }a\text{ }s' \in G$$ Ela pode ser estendida para que funcione computando uma dada sequência de símbolos (lista) $w$ a partir de um dado conjunto de estados $Q$ desta maneira $$\delta(Q, \epsilon) = Q$$ $$\delta(Q, a) = \{ s \mid \exists s' a, \texttt{trans}\text{ }s'\text{ }a\text{ }s \in G \wedge s' \in Q \}$$ $$\delta(Q, aw) = \delta(\delta(Q, a), w)$$ em que $\epsilon$ é a palavra vazia e $a \in \Sigma$ é um símbolo do alfabeto do autômato. Desenvolvemos tal função facilmente no Coq, de forma segmentada. Definimos, por exemplo, uma função que recebe um estado e símbolo e, por meio de sucessivas iterações na lista que o representa, constrói uma lista de estados que são transicionados a partir daqueles; depois escrevemos uma função estendida que se utiliza dessa última para generalizar as entradas para listas de estados e símbolos. Essas funções também recebem os decisores de igualdade do AF, que suprimiremos no decorrer do presente trabalho. 
+
+A função de transição é responsável pela computação da entrada que o autômato recebe. Temos a possibilidade de formalizar a linguagem do AF $G$ como o conjunto $$L(G) = \{ w \mid \exists s, s \in F \wedge s \in \delta(I, w) \}$$ Logo, para verificar se uma palavra é aceita pelo AF, basta-nos rodar a função de transição sobre os estados iniciais e essa dada palavra e verificar se um dos termos resultantes é estado pertencente ao conjunto de estados finais.
+
+Outra definição importante relacionada à de transições tange aos caminhos. Essa é uma definição indutiva de dois construtores: \begin{itemize}
+  \item para todo possível estado\footnote{Termo do tipo dos estados do autômato} $s$, existe um caminho de $s$ a $s$ por $\epsilon$;
+  \item para todos os estados $s_1$, $s_2$, símbolo $a$ e palavra $w$, se existe uma transição $\texttt{trans}\text{ }s_2\text{ }a\text{ }s_3 \in G$ e um caminho de $s_1$ a $s_2$ por $w$, então existe um caminho de $s_1$ a $s_3$ por $wa$.
+\end{itemize} A noção de caminho é relevante para tratar de buscas\footnote{Como a busca em profundidade}.
+
+\section{Alcançabilidade dos estados}
+
+\section{Reversão}
+
+\section{Autômatos finitos determinísticos}
+
+Os autômatos finitos determinísticos (AFDs) carregam duas restrições a mais: (1) possuem apenas um estado inicial e (2) as transições são determinísticas, ou seja, não existe uma transição partindo de um mesmo estado e mediante um mesmo símbolo para um estado destino diferente. Consideremos permitida a existência de AFDs sem estado inicial a fim de simplificar o presente estudo. Isso não acarretará inconsistência, uma vez que a representação de um AFD sem estado inicial é equivalente à de um AFD com um estado inicial sem transições a partir dele -- a linguagem e as propriedades de interesse do trabalho se mantêm isomórficas. Para representar os AFDs no Coq, utilizemos a mesma estrutura de dados e um tipo proposição indutivamente definido. Basicamente, esse tipo receberá construtores para cada construtor de AF, com diferenças para os construtores de estado inicial e transição. Nesses casos, adicionamos hipóteses para garantir as restrições.
+
+Um modo de garantir a restrição (1) é criando dois construtores. O primeiro receberá um AF $G_1$ qualquer, uma prova de que ele é determinístico, uma prova de que ele não possui estados inicias e um estado inicial $q_0$. Dessa forma podemos afirmar que o o autômato $\texttt{start}\text{ }q0\texttt{::}G_1$ é determinístico. O outro construtor receberá um AF $G_2$ qualquer, uma prova de que ele é determinístico, um estado inicial $q_1$ e uma prova de que já existe um estado inicial igual a $q_1$. Outrossim, o autômato $\texttt{start}\text{ }q_1\texttt{::}G_2$ também é determinístico.
+
+Semelhantemente, em relação à restrição (2), podemos utilizar a mesma tática. Primeiro garantimos que não existe uma transição $\texttt{trans}\text{ }q\text{ }a\text{ }s$ para todo e qualquer $s$ no AFD $G_1$ e obtemos um AFD $\texttt{trans}\text{ }q\text{ }a\text{ }q'\texttt{::}G_1$. Depois definimos que existe $\texttt{trans}\text{ }r\text{ }b\text{ }r'$ no AFD $G_2$ para termos um AFD $\texttt{trans}\text{ }r\text{ }b\text{ }r'\texttt{::}G_2$.
+
+\section{Determinização}
+
+\section{Aplicações}
